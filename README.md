@@ -102,7 +102,15 @@ Ethglobal-mumbai/
 │   └── swarm/            # Swarm decentralized evidence & artifact blob storage
 │
 ├── docs/                 # Architectural specifications, API schemas, guides
-│   └── architecture.md   # Architectural blueprint and data flow
+│   ├── architecture.md   # Architectural blueprint and data flow
+│   └── AGENT_BOARD.md    # Multi-agent coordination protocol & board specification
+│
+├── agent-board/          # Asynchronous GitHub Issue #1 communication system
+│   ├── board.py          # Agent Board CLI (check, send, broadcast, task, status, inbox)
+│   ├── poller.py         # Background polling daemon
+│   ├── config.example.json # Shared configuration template
+│   ├── README.md         # Setup and usage guide
+│   └── runtime/          # Local machine runtime (ignored by Git: config, inbox, state)
 │
 ├── scripts/              # Setup, utility, and orchestration scripts
 │

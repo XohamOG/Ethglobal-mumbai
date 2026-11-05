@@ -93,3 +93,13 @@ Thumbs.db
 !.vscode/launch.json
 !.vscode/extensions.json
 
+# Agent Board local state & runtime
+agent-board/runtime/
+agent-board/config.json
+agent-board/inbox.json
+agent-board/state.json
+agent-board/*.tmp
+agent-board/*.log
+agent-board/__pycache__/
+
+
