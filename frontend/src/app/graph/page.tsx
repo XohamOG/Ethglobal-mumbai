@@ -381,7 +381,18 @@ function GraphViewerContent() {
             )}
           </div>
 
-          <div className="pt-4 border-t border-[#161a25]">
+          <div className="pt-4 border-t border-[#161a25] space-y-2">
+            <a
+              href={`https://rabdi.explorer.arkiv.network`}
+              target="_blank"
+              rel="noreferrer"
+              className="block"
+            >
+              <ShinyButton variant="secondary" className="w-full justify-between border-blue-900/40 hover:border-blue-700/60 text-blue-300">
+                <span>View on Arkiv Explorer</span>
+                <ExternalLink className="w-3.5 h-3.5 text-blue-400" />
+              </ShinyButton>
+            </a>
             <a
               href={`https://etherscan.io/address/${selectedNode.address}`}
               target="_blank"

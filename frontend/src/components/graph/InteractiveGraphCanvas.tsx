@@ -170,7 +170,7 @@ export function InteractiveGraphCanvas({
             oracle: { border: "#d97706", badge: "bg-amber-950/80 text-amber-400 border-amber-900/60" },
             multisig: { border: "#9333ea", badge: "bg-purple-950/80 text-purple-400 border-purple-900/60" },
             token: { border: "#475569", badge: "bg-slate-900 text-slate-400 border-slate-800" },
-          }[node.category];
+          }[node.category] || { border: "#475569", badge: "bg-slate-900 text-slate-400 border-slate-800" };
 
           return (
             <foreignObject

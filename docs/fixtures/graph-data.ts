@@ -33,9 +33,9 @@ export const PROTOCOLS = [
     "name": "Aave V3",
     "category": "Lending Protocol",
     "chain": "Ethereum Mainnet",
-    "compositeScore": 13.71,
+    "compositeScore": 14.75,
     "riskTier": "LOW",
-    "lastEvaluatedBlock": 26354138,
+    "lastEvaluatedBlock": 26354315,
     "coreNodesCount": 6,
     "directDepsCount": 4,
     "transitiveDepsCount": 5,
@@ -183,12 +183,12 @@ export const AAVE_NODES: GraphNode[] = [
     "address": "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
     "hop": 2,
     "category": "oracle",
-    "riskScore": 0,
+    "riskScore": 7,
     "proxyType": "none",
     "adminType": "none",
     "sourcifyStatus": "full_match",
     "referencedProtocolId": "chainlink-mainnet",
-    "oracleStaleness": 0.355
+    "oracleStaleness": 0.95
   },
   {
     "id": "chainlink-usdc-usd",
@@ -201,7 +201,7 @@ export const AAVE_NODES: GraphNode[] = [
     "adminType": "none",
     "sourcifyStatus": "full_match",
     "referencedProtocolId": "chainlink-mainnet",
-    "oracleStaleness": 20.039
+    "oracleStaleness": 20.634
   },
   {
     "id": "chainlink-btc-usd",
@@ -209,12 +209,12 @@ export const AAVE_NODES: GraphNode[] = [
     "address": "0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c",
     "hop": 2,
     "category": "oracle",
-    "riskScore": 0,
+    "riskScore": 7,
     "proxyType": "none",
     "adminType": "none",
     "sourcifyStatus": "full_match",
     "referencedProtocolId": "chainlink-mainnet",
-    "oracleStaleness": 0.356
+    "oracleStaleness": 0.951
   },
   {
     "id": "chainlink-dai-usd",
@@ -222,12 +222,12 @@ export const AAVE_NODES: GraphNode[] = [
     "address": "0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9",
     "hop": 2,
     "category": "oracle",
-    "riskScore": 0,
+    "riskScore": 7,
     "proxyType": "none",
     "adminType": "none",
     "sourcifyStatus": "full_match",
     "referencedProtocolId": "chainlink-mainnet",
-    "oracleStaleness": 0.293
+    "oracleStaleness": 0.888
   },
   {
     "id": "chainlink-usdt-usd",
@@ -240,7 +240,7 @@ export const AAVE_NODES: GraphNode[] = [
     "adminType": "none",
     "sourcifyStatus": "full_match",
     "referencedProtocolId": "chainlink-mainnet",
-    "oracleStaleness": 16.073
+    "oracleStaleness": 16.668
   }
 ];
 
