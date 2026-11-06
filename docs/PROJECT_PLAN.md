@@ -370,3 +370,4 @@ Frontend reads directly from Arkiv using the SDK — no graph service API needed
 view: getRisk(protocolId: string) → (score: uint256, snapshotId: string, blockNumber: uint256)
 event: RiskReported(protocolId, score, snapshotId, blockNumber)
 ```
+
