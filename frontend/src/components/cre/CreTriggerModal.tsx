@@ -2,23 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { PROTOCOLS, GraphNode, ScoreBreakdown } from "@/lib/graph-data";
+import { PROTOCOLS, ScoreBreakdown } from "@/lib/graph-data";
 import { AnimatedScoreCard } from "@/components/ui/AnimatedScoreCard";
-import { ShinyButton } from "@/components/ui/ShinyButton";
-import { Magnet } from "@/components/ui/Magnet";
 import {
   Zap,
   CheckCircle2,
   RefreshCw,
   ArrowRight,
-  ShieldAlert,
-  ShieldCheck,
   Terminal,
-  Database,
-  HardDrive,
-  Radio,
   X,
-  Play,
 } from "lucide-react";
 
 interface CreTriggerModalProps {
@@ -52,7 +44,6 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
 
   const [breakdown, setBreakdown] = useState<ScoreBreakdown>(defaultBreakdown);
 
-  // Auto-run scanning sequence on open
   useEffect(() => {
     if (!isOpen) return;
 
@@ -70,7 +61,7 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
         "[+] Verified EIP-1967 storage slots: 0x3608...2bbc (Impl), 0xb531...6103 (Admin)",
         "[*] Computing deterministic Keccak256 Protocol Fingerprint...",
       ]);
-    }, 700);
+    }, 600);
 
     const t2 = setTimeout(() => {
       setStage("checking_drift");
@@ -79,7 +70,7 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
         `[+] Computed Fingerprint: ${currentFingerprint.slice(0, 16)}...`,
         "[*] Querying RiskRegistry.sol (0x5FbDB231...) for on-chain fingerprint drift...",
       ]);
-    }, 1400);
+    }, 1200);
 
     const t3 = setTimeout(() => {
       setStage("evaluating_score");
@@ -88,17 +79,16 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
         "[+] Fingerprint matches on-chain baseline (No drift detected).",
         "[*] QuickJS-WASM executing 7-factor consensus risk scoring...",
       ]);
-    }, 2000);
+    }, 1800);
 
     const t4 = setTimeout(() => {
       setStage("completed");
       setLogs((prev) => [
         ...prev,
         `[+] Consensus Reached: Composite Risk Score = ${currentScore} (LOW_RISK)`,
-        "[+] BTL Cache Verified in Arkiv DB-Chain (50,000 blocks valid)",
-        "[+] Ready for Dependency Graph Inspection.",
+        "[+] Attestation Verified in RiskRegistry.sol",
       ]);
-    }, 2600);
+    }, 2400);
 
     return () => {
       clearTimeout(t1);
@@ -108,12 +98,12 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
     };
   }, [isOpen, currentScore, currentFingerprint, protocol.lastEvaluatedBlock]);
 
-  // Simulate Implementation Upgrade (Fingerprint Changed -> Trigger Rebuild)
+  // Simulate Implementation Upgrade (Drift)
   const triggerSimulatedUpgrade = () => {
     setIsDriftSimulated(true);
     setStage("reading_rpc");
     setLogs([
-      "[!] SIMULATED EVENT: Upgraded(address 0x9B41...newImpl) emitted on Pool Proxy!",
+      "[!] EVENT: Upgraded(address 0x9B41...newImpl) emitted on Pool Proxy",
       "[*] Chainlink Log Trigger fired: EIP-1967 Implementation slot changed.",
       "[*] Re-resolving graph nodes and bytecodes...",
     ]);
@@ -125,14 +115,13 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
       setLogs((prev) => [
         ...prev,
         `[+] New Keccak256 Fingerprint: ${driftedFp.slice(0, 16)}...`,
-        "[!] FINGERPRINT DRIFT DETECTED: Hash != On-chain snapshot!",
-        "[*] CRE Consensus Engine: Triggering AUTOMATIC GRAPH REBUILD & RE-SCORING...",
+        "[!] FINGERPRINT DRIFT DETECTED: Hash != On-chain snapshot",
+        "[*] CRE Consensus Engine: Triggering graph rebuild & re-scoring...",
       ]);
-    }, 800);
+    }, 700);
 
     setTimeout(() => {
       setStage("evaluating_score");
-      // New score with upgraded contract
       const updatedScore = 18.5;
       setCurrentScore(updatedScore);
       setBreakdown({
@@ -149,67 +138,67 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
       setLogs((prev) => [
         ...prev,
         "[+] Rebuilt 15 nodes and 21 dependency edges.",
-        "[+] Recalculated 7-factor composite score: 18.5 (LOW_RISK).",
-        "[*] Writing new snapshot to Swarm (bzz://a41fd9...) and indexing in Arkiv...",
-        "[*] Forwarder submitting updateRiskSnapshot() to RiskRegistry.sol on-chain...",
+        "[+] Recalculated composite score: 18.5.",
+        "[*] Submitting updateRiskSnapshot() to RiskRegistry.sol on-chain...",
       ]);
-    }, 1700);
+    }, 1500);
 
     setTimeout(() => {
       setStage("completed");
       setLogs((prev) => [
         ...prev,
         "[+] On-Chain Tx Mined: 0x3e17...4bf9 | Gas Used: 82,410",
-        "[+] Event SnapshotRecorded emitted by RiskRegistry.sol",
-        "[+] Score & Lineage updated live in Provenance Engine!",
+        "[+] SnapshotRecorded event emitted by RiskRegistry.sol",
       ]);
       if (onComplete) {
         onComplete(18.5, true);
       }
-    }, 2600);
+    }, 2300);
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-      <div className="w-full max-w-3xl bg-[#07090e] border border-[#1e2638] rounded-2xl shadow-2xl overflow-hidden flex flex-col text-[#e2e8f0] animate-fadeIn">
-        {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-[#141b2c] flex items-center justify-between bg-[#0a0d16]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-950/60 border border-emerald-800/80 flex items-center justify-center">
-              <Zap className="w-4 h-4 text-emerald-400" />
+    <div className="fixed inset-0 z-50 bg-[#0e0e12]/90 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      <div className="w-full max-w-2xl bg-[#17171d] border border-[#282832] rounded-[6px] shadow-2xl overflow-hidden flex flex-col text-[#ececf2] animate-fadeIn">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-[#282832] flex items-center justify-between bg-[#17171d]">
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 rounded-[2px] bg-[#282832] border border-[#7d8495]/40 flex items-center justify-center">
+              <Zap className="w-3.5 h-3.5 text-[#d6d8e4]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-white text-sm">Chainlink CRE Consensus Trigger</h3>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-emerald-800/60 bg-emerald-950/40 text-emerald-400 font-semibold">
-                  Runtime Environment
+                <h3 className="font-serif font-bold text-base text-[#ececf2]">
+                  Chainlink CRE Attestation
+                </h3>
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-[2px] border border-[#282832] bg-[#282832]/60 text-[#aaaab8]">
+                  Runtime
                 </span>
               </div>
-              <p className="text-[11px] text-[#64728f] font-mono">
-                Real-time Keccak256 protocol fingerprint verification & risk score attestation
+              <p className="text-[11px] font-mono text-[#aaaab8]">
+                Real-time Keccak256 fingerprint verification & on-chain score consensus
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 text-[#64728f] hover:text-white rounded-lg hover:bg-[#141b2c] transition-colors cursor-pointer"
+            className="p-1.5 text-[#aaaab8] hover:text-[#ececf2] rounded-[2px] hover:bg-[#282832] transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Content Area */}
-        <div className="p-6 space-y-6">
-          {/* Real-Time Scan Progress Steps */}
+        {/* Content */}
+        <div className="p-6 space-y-5">
+          {/* Progress Steps (Cyber Sigilism chrome/monochrome) */}
           <div className="grid grid-cols-4 gap-2 text-xs font-mono">
             {[
-              { id: "reading_rpc", label: "1. RPC Scan", desc: "Block #26354138" },
-              { id: "hashing_fingerprint", label: "2. Fingerprint", desc: "Keccak256 Hash" },
-              { id: "checking_drift", label: "3. Drift Check", desc: "RiskRegistry.sol" },
-              { id: "evaluating_score", label: "4. Score & Attest", desc: "QuickJS DON" },
+              { id: "reading_rpc", label: "1. Scan", desc: "Block #26354138" },
+              { id: "hashing_fingerprint", label: "2. Fingerprint", desc: "Keccak256" },
+              { id: "checking_drift", label: "3. Drift Check", desc: "RiskRegistry" },
+              { id: "evaluating_score", label: "4. Consensus", desc: "QuickJS DON" },
             ].map((step, idx) => {
               const isDone =
                 stage === "completed" ||
@@ -221,39 +210,39 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
               return (
                 <div
                   key={step.id}
-                  className={`p-2.5 rounded-lg border transition-all ${
+                  className={`p-2.5 rounded-[2px] border transition-all ${
                     isDone
-                      ? "bg-emerald-950/30 border-emerald-800/60 text-emerald-300"
+                      ? "bg-[#282832]/40 border-[#7d8495]/60 text-[#d6d8e4]"
                       : isCurrent
-                      ? "bg-blue-950/40 border-blue-600/80 text-white shadow-md animate-pulse"
-                      : "bg-[#090d16] border-[#151d2d] text-[#556381]"
+                      ? "bg-[#282832] border-[#b068ff] text-[#ececf2] shadow-sm"
+                      : "bg-[#0e0e12] border-[#282832] text-[#aaaab8]/50"
                   }`}
                 >
                   <div className="font-semibold text-[11px] flex items-center justify-between">
                     <span>{step.label}</span>
-                    {isDone && <CheckCircle2 className="w-3 h-3 text-emerald-400" />}
+                    {isDone && <CheckCircle2 className="w-3 h-3 text-[#d6d8e4]" />}
                   </div>
-                  <div className="text-[10px] text-[#7888a7] truncate mt-0.5">{step.desc}</div>
+                  <div className="text-[10px] text-[#aaaab8] truncate mt-0.5">{step.desc}</div>
                 </div>
               );
             })}
           </div>
 
           {/* Terminal Logs Output */}
-          <div className="p-3.5 rounded-xl bg-[#04060a] border border-[#141a28] font-mono text-[11px] text-[#7c8ca8] space-y-1 max-h-36 overflow-y-auto">
-            <div className="flex items-center gap-1.5 text-[10px] text-[#4b5874] uppercase tracking-wider mb-1.5 pb-1 border-b border-[#10141f]">
-              <Terminal className="w-3 h-3 text-blue-400" />
-              <span>CRE Consensus Execution Stream</span>
+          <div className="p-3.5 rounded-[4px] bg-[#0e0e12] border border-[#282832] font-mono text-[11px] text-[#aaaab8] space-y-1 max-h-32 overflow-y-auto">
+            <div className="flex items-center gap-1.5 text-[10px] text-[#7d8495] uppercase tracking-wider mb-1 pb-1 border-b border-[#282832]">
+              <Terminal className="w-3 h-3 text-[#d6d8e4]" />
+              <span>Consensus Stream</span>
             </div>
             {logs.map((log, i) => (
               <div
                 key={i}
                 className={
                   log.startsWith("[!]")
-                    ? "text-amber-400 font-semibold"
+                    ? "text-[#b068ff] font-semibold"
                     : log.startsWith("[+]")
-                    ? "text-emerald-300"
-                    : "text-[#8d9db9]"
+                    ? "text-[#ececf2]"
+                    : "text-[#aaaab8]"
                 }
               >
                 {log}
@@ -261,7 +250,7 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
             ))}
           </div>
 
-          {/* Sleek Score Reveal with React Bits Component */}
+          {/* Score Reveal Card */}
           {stage === "completed" && (
             <div className="space-y-4 animate-fadeIn">
               <AnimatedScoreCard
@@ -273,72 +262,54 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
                 isFingerprintChanged={isDriftSimulated}
               />
 
-              {/* Simulation Action Bar */}
-              <div className="p-4 rounded-xl bg-[#090d16] border border-[#161f30] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono">
+              {/* Simulation Drift Button (Subtle & Monochrome) */}
+              <div className="p-3.5 rounded-[4px] bg-[#0e0e12] border border-[#282832] flex items-center justify-between gap-3 text-xs font-mono">
                 <div>
-                  <div className="text-white font-semibold flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Want to test automated graph rebuild on drift?</span>
-                  </div>
-                  <p className="text-[11px] text-[#6b7c9c] mt-0.5">
-                    Simulate a contract upgrade event to test CRE automatic fingerprint change detection.
+                  <div className="text-[#ececf2] font-semibold">Test Upgrade Drift Detection</div>
+                  <p className="text-[10.5px] text-[#aaaab8] mt-0.5">
+                    Simulate proxy upgrade event to trigger automatic consensus rebuild.
                   </p>
                 </div>
 
                 <button
                   onClick={triggerSimulatedUpgrade}
                   disabled={stage !== "completed"}
-                  className="px-3.5 py-1.5 rounded-lg bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 border border-amber-800/80 text-xs font-mono transition-colors cursor-pointer flex items-center gap-1.5 shrink-0"
+                  className="px-3 py-1.5 rounded-[2px] bg-[#282832] hover:bg-[#7d8495]/40 text-[#ececf2] border border-[#7d8495]/40 text-xs font-mono transition-colors cursor-pointer flex items-center gap-1.5 shrink-0"
                 >
-                  <RefreshCw className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Simulate Upgrade Drift</span>
+                  <RefreshCw className="w-3 h-3 text-[#d6d8e4]" />
+                  <span>Simulate Drift</span>
                 </button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Modal Footer with Direct Launch Button */}
-        <div className="px-6 py-4 border-t border-[#141b2c] bg-[#0a0d16] flex items-center justify-between">
-          <div className="text-xs font-mono text-[#5f6f8e] hidden sm:flex items-center gap-3">
-            <span className="flex items-center gap-1">
-              <Database className="w-3 h-3 text-indigo-400" /> Arkiv Valid
-            </span>
-            <span>·</span>
-            <span className="flex items-center gap-1">
-              <HardDrive className="w-3 h-3 text-amber-400" /> Swarm Anchored
-            </span>
-          </div>
+        {/* Modal Footer (Cleaned Up: No Arkiv Valid / Swarm Anchored) */}
+        <div className="px-6 py-4 border-t border-[#282832] bg-[#17171d] flex items-center justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-[2px] text-xs font-mono text-[#aaaab8] hover:text-[#ececf2] transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 rounded-lg text-xs font-mono text-[#7888a7] hover:text-white transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
-
-            <Magnet magnetStrength={0.15}>
-              <button
-                onClick={() => {
-                  onClose();
-                  router.push("/graph?protocol=aave-v3-mainnet");
-                }}
-                disabled={stage !== "completed"}
-                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer ${
-                  stage === "completed"
-                    ? "bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/30"
-                    : "bg-[#161c2a] text-[#556381] cursor-not-allowed"
-                }`}
-              >
-                <span>View Dependency Graph</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </Magnet>
-          </div>
+          <button
+            onClick={() => {
+              onClose();
+              router.push("/graph?protocol=aave-v3-mainnet");
+            }}
+            disabled={stage !== "completed"}
+            className={`flex items-center gap-2 px-5 py-2 rounded-[2px] text-xs font-mono font-semibold transition-all cursor-pointer ${
+              stage === "completed"
+                ? "bg-[#d6d8e4] text-[#000000] hover:bg-[#ececf2] shadow-sm"
+                : "bg-[#282832] text-[#aaaab8]/50 cursor-not-allowed"
+            }`}
+          >
+            <span>View Dependency Graph</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
     </div>
   );
 }
-

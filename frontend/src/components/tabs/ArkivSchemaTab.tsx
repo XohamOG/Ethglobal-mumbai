@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { AAVE_NODES, PROTOCOLS } from "@/lib/graph-data";
-import { Database, Copy, Check, ExternalLink, ShieldCheck, Clock, Code2 } from "lucide-react";
-import { ShinyButton } from "@/components/ui/ShinyButton";
+import { AAVE_NODES } from "@/lib/graph-data";
+import { Database, Copy, Check, ExternalLink, Code2 } from "lucide-react";
 
 export function ArkivSchemaTab() {
   const [selectedSchema, setSelectedSchema] = useState<"contract_node" | "risk_snapshot" | "protocol_registry">("contract_node");
@@ -112,16 +111,16 @@ const { entities } = await publicClient
   const curr = schemaDefinitions[selectedSchema];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-[#ececf2]">
       {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-[#0a0d16] border border-[#182032]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-[4px] bg-[#17171d] border border-[#282832]">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-blue-950/60 border border-blue-800/60 flex items-center justify-center text-blue-400 font-mono">
+          <div className="w-8 h-8 rounded-[2px] bg-[#282832] border border-[#7d8495]/40 flex items-center justify-center text-[#d6d8e4]">
             <Database className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-white">Arkiv DB-Chain Relational Schemas</h3>
-            <p className="text-xs text-[#717e9c] font-mono">
+            <h3 className="font-serif font-bold text-sm text-[#ececf2]">Arkiv DB-Chain Relational Schemas</h3>
+            <p className="text-xs text-[#aaaab8] font-mono">
               Rabdi Testnet (Chain ID 7794095) · SDK @arkiv-network/sdk@1.0.1
             </p>
           </div>
@@ -132,7 +131,7 @@ const { entities } = await publicClient
             href="https://rabdi.explorer.arkiv.network"
             target="_blank"
             rel="noreferrer"
-            className="text-xs font-mono text-blue-400 hover:text-blue-300 flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#101524] border border-[#212b44]"
+            className="text-xs font-mono text-[#d6d8e4] hover:text-[#ececf2] flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-[#0e0e12] border border-[#282832] transition-colors"
           >
             <span>Rabdi Block Explorer</span>
             <ExternalLink className="w-3.5 h-3.5" />
@@ -141,7 +140,7 @@ const { entities } = await publicClient
       </div>
 
       {/* Schema Selector Tabs */}
-      <div className="flex gap-2 border-b border-[#151b2a] pb-3 text-xs font-mono">
+      <div className="flex gap-2 border-b border-[#282832] pb-3 text-xs font-mono">
         {[
           { key: "contract_node", label: "ContractNode (Micro)" },
           { key: "risk_snapshot", label: "RiskSnapshot (BTL TTL)" },
@@ -150,10 +149,11 @@ const { entities } = await publicClient
           <button
             key={t.key}
             onClick={() => setSelectedSchema(t.key as any)}
-            className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${selectedSchema === t.key
-                ? "bg-[#182033] text-white border border-[#2a3754] font-semibold"
-                : "text-[#677595] hover:text-white hover:bg-[#0e121d]"
-              }`}
+            className={`px-3 py-1.5 rounded-[2px] transition-all cursor-pointer ${
+              selectedSchema === t.key
+                ? "bg-[#282832] text-[#ececf2] border border-[#7d8495]/40 font-semibold"
+                : "text-[#aaaab8] hover:text-[#ececf2] hover:bg-[#17171d]"
+            }`}
           >
             {t.label}
           </button>
@@ -162,65 +162,65 @@ const { entities } = await publicClient
 
       {/* Selected Schema Metadata */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs font-mono">
-        <div className="p-3 rounded-lg bg-[#0b0e18] border border-[#161d2d]">
-          <span className="text-[#566483] block text-[10px] uppercase">Schema Tag</span>
-          <span className="text-white font-semibold text-xs mt-0.5 block">{curr.tag}</span>
+        <div className="p-3 rounded-[2px] bg-[#17171d] border border-[#282832]">
+          <span className="text-[#7d8495] block text-[10px] uppercase">Schema Tag</span>
+          <span className="text-[#ececf2] font-semibold text-xs mt-0.5 block">{curr.tag}</span>
         </div>
-        <div className="p-3 rounded-lg bg-[#0b0e18] border border-[#161d2d]">
-          <span className="text-[#566483] block text-[10px] uppercase">Entity Role</span>
-          <span className="text-blue-400 font-semibold text-xs mt-0.5 block truncate">{curr.role}</span>
+        <div className="p-3 rounded-[2px] bg-[#17171d] border border-[#282832]">
+          <span className="text-[#7d8495] block text-[10px] uppercase">Entity Role</span>
+          <span className="text-[#d6d8e4] font-semibold text-xs mt-0.5 block truncate">{curr.role}</span>
         </div>
-        <div className="p-3 rounded-lg bg-[#0b0e18] border border-[#161d2d]">
-          <span className="text-[#566483] block text-[10px] uppercase">BTL Lifetime Policy</span>
-          <span className="text-emerald-400 font-semibold text-xs mt-0.5 block truncate">{curr.lifetime}</span>
+        <div className="p-3 rounded-[2px] bg-[#17171d] border border-[#282832]">
+          <span className="text-[#7d8495] block text-[10px] uppercase">BTL Lifetime Policy</span>
+          <span className="text-[#d6d8e4] font-semibold text-xs mt-0.5 block truncate">{curr.lifetime}</span>
         </div>
-        <div className="p-3 rounded-lg bg-[#0b0e18] border border-[#161d2d]">
-          <span className="text-[#566483] block text-[10px] uppercase">Cardinality</span>
-          <span className="text-amber-400 font-semibold text-xs mt-0.5 block truncate">{curr.cardinality}</span>
+        <div className="p-3 rounded-[2px] bg-[#17171d] border border-[#282832]">
+          <span className="text-[#7d8495] block text-[10px] uppercase">Cardinality</span>
+          <span className="text-[#b068ff] font-semibold text-xs mt-0.5 block truncate">{curr.cardinality}</span>
         </div>
       </div>
 
       {/* Columns Specification Table */}
-      <div className="rounded-xl border border-[#161d2d] bg-[#090c15] overflow-hidden">
-        <div className="px-4 py-3 border-b border-[#161d2d] flex items-center justify-between text-xs font-mono">
-          <span className="text-white font-semibold">{curr.name} Typed Attribute Columns</span>
-          <span className="text-[#5e6c8e]">{curr.columns.length} Defined Attributes</span>
+      <div className="rounded-[4px] border border-[#282832] bg-[#17171d] overflow-hidden">
+        <div className="px-4 py-3 border-b border-[#282832] flex items-center justify-between text-xs font-mono">
+          <span className="font-serif font-bold text-[#ececf2]">{curr.name} Typed Attribute Columns</span>
+          <span className="text-[#7d8495]">{curr.columns.length} Defined Attributes</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
             <thead>
-              <tr className="border-b border-[#141926] text-[#556382] text-[10px] uppercase">
+              <tr className="border-b border-[#282832] text-[#7d8495] text-[10px] uppercase bg-[#0e0e12]">
                 <th className="py-2.5 px-4">Column Name</th>
                 <th className="py-2.5 px-4">Arkiv SDK Type</th>
                 <th className="py-2.5 px-4">Indexing</th>
                 <th className="py-2.5 px-4">Description</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#121622] text-[#8e9bb8]">
+            <tbody className="divide-y divide-[#282832] text-[#ececf2]">
               {curr.columns.map((col) => {
                 const isIndexed = col.type.includes(".indexed()");
                 const isBytes = col.type.includes("bytes()");
                 return (
-                  <tr key={col.name} className="hover:bg-[#0d111c] transition-colors">
-                    <td className="py-2 px-4 font-semibold text-white">{col.name}</td>
-                    <td className="py-2 px-4 text-yellow-500/90">{col.type}</td>
+                  <tr key={col.name} className="hover:bg-[#282832]/40 transition-colors">
+                    <td className="py-2 px-4 font-semibold text-[#ececf2]">{col.name}</td>
+                    <td className="py-2 px-4 text-[#d6d8e4]">{col.type}</td>
                     <td className="py-2 px-4">
                       {isIndexed ? (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-950/80 text-emerald-400 border border-emerald-900/60 font-semibold">
+                        <span className="px-1.5 py-0.5 rounded-[2px] text-[10px] bg-[#0e0e12] text-[#d6d8e4] border border-[#282832] font-semibold">
                           INDEXED
                         </span>
                       ) : isBytes ? (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-purple-950/80 text-purple-400 border border-purple-900/60 font-semibold">
+                        <span className="px-1.5 py-0.5 rounded-[2px] text-[10px] bg-[#0e0e12] text-[#b068ff] border border-[#282832] font-semibold">
                           STORED BYTES
                         </span>
                       ) : (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-[#161b29] text-[#717e9c]">
+                        <span className="px-1.5 py-0.5 rounded-[2px] text-[10px] bg-[#0e0e12] text-[#aaaab8] border border-[#282832]">
                           STORED
                         </span>
                       )}
                     </td>
-                    <td className="py-2 px-4 text-[#7584a6] text-[11px]">{col.desc}</td>
+                    <td className="py-2 px-4 text-[#aaaab8] text-[11px]">{col.desc}</td>
                   </tr>
                 );
               })}
@@ -230,40 +230,40 @@ const { entities } = await publicClient
       </div>
 
       {/* Code Snippet */}
-      <div className="rounded-xl border border-[#161d2d] bg-[#070910] p-4 text-xs font-mono">
-        <div className="flex items-center justify-between mb-2 text-[#606e90]">
+      <div className="rounded-[4px] border border-[#282832] bg-[#17171d] p-4 text-xs font-mono">
+        <div className="flex items-center justify-between mb-2 text-[#aaaab8]">
           <span className="flex items-center gap-1.5">
-            <Code2 className="w-3.5 h-3.5 text-blue-400" />
+            <Code2 className="w-3.5 h-3.5 text-[#d6d8e4]" />
             <span>SDK Query Example (@arkiv-network/sdk@1.0.1)</span>
           </span>
           <button
             onClick={() => copy(curr.sdkQuery, "code")}
-            className="hover:text-white cursor-pointer"
+            className="hover:text-[#ececf2] cursor-pointer"
             title="Copy code"
           >
             {copiedKey === "code" ? (
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
+              <Check className="w-3.5 h-3.5 text-[#b068ff]" />
             ) : (
-              <Copy className="w-3.5 h-3.5 text-[#5e6c8e]" />
+              <Copy className="w-3.5 h-3.5 text-[#7d8495]" />
             )}
           </button>
         </div>
-        <pre className="text-emerald-400/90 overflow-x-auto p-3 rounded-lg bg-[#0a0d17] border border-[#141926]">
+        <pre className="text-[#ececf2] overflow-x-auto p-3 rounded-[2px] bg-[#0e0e12] border border-[#282832]">
           {curr.sdkQuery}
         </pre>
       </div>
 
       {/* Live In-Memory Node State Table */}
-      <div className="rounded-xl border border-[#161d2d] bg-[#090c15] p-4">
+      <div className="rounded-[4px] border border-[#282832] bg-[#17171d] p-4">
         <div className="flex items-center justify-between mb-3 text-xs font-mono">
-          <span className="text-white font-semibold">Live Arkiv Verified Nodes (Aave V3 Snapshot)</span>
-          <span className="text-emerald-400 font-bold">{AAVE_NODES.length} Active Nodes</span>
+          <span className="font-serif font-bold text-[#ececf2]">Live Arkiv Verified Nodes (Aave V3 Snapshot)</span>
+          <span className="text-[#d6d8e4] font-semibold">{AAVE_NODES.length} Active Nodes</span>
         </div>
 
         <div className="overflow-x-auto max-h-72 overflow-y-auto">
           <table className="w-full text-left text-[11px] font-mono">
             <thead>
-              <tr className="border-b border-[#161d2d] text-[#556382] text-[10px] uppercase sticky top-0 bg-[#090c15]">
+              <tr className="border-b border-[#282832] text-[#7d8495] text-[10px] uppercase sticky top-0 bg-[#0e0e12]">
                 <th className="py-2 px-3">Hop</th>
                 <th className="py-2 px-3">Label</th>
                 <th className="py-2 px-3">Address</th>
@@ -274,17 +274,17 @@ const { entities } = await publicClient
                 <th className="py-2 px-3">Score</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#121622] text-[#8e9bb8]">
+            <tbody className="divide-y divide-[#282832] text-[#ececf2]">
               {AAVE_NODES.map((n) => (
-                <tr key={n.id} className="hover:bg-[#0c101a] transition-colors">
-                  <td className="py-1.5 px-3 font-bold text-white">{n.hop}</td>
-                  <td className="py-1.5 px-3 font-semibold text-white">{n.label}</td>
-                  <td className="py-1.5 px-3 text-[#6f7e9f] truncate max-w-[140px]">{n.address}</td>
-                  <td className="py-1.5 px-3 uppercase text-[10px] text-blue-400">{n.category}</td>
-                  <td className="py-1.5 px-3 uppercase text-[10px] text-[#717f9e]">{n.proxyType}</td>
-                  <td className="py-1.5 px-3 capitalize text-[10px] text-[#717f9e]">{n.adminType}</td>
-                  <td className="py-1.5 px-3 text-emerald-400 font-semibold text-[10px]">{n.sourcifyStatus}</td>
-                  <td className="py-1.5 px-3 font-bold text-emerald-400">{n.riskScore}</td>
+                <tr key={n.id} className="hover:bg-[#282832]/40 transition-colors">
+                  <td className="py-1.5 px-3 font-bold text-[#ececf2]">{n.hop}</td>
+                  <td className="py-1.5 px-3 font-semibold text-[#ececf2]">{n.label}</td>
+                  <td className="py-1.5 px-3 text-[#aaaab8] truncate max-w-[140px]">{n.address}</td>
+                  <td className="py-1.5 px-3 uppercase text-[10px] text-[#d6d8e4]">{n.category}</td>
+                  <td className="py-1.5 px-3 uppercase text-[10px] text-[#aaaab8]">{n.proxyType}</td>
+                  <td className="py-1.5 px-3 capitalize text-[10px] text-[#aaaab8]">{n.adminType}</td>
+                  <td className="py-1.5 px-3 text-[#d6d8e4] font-semibold text-[10px]">{n.sourcifyStatus}</td>
+                  <td className="py-1.5 px-3 font-bold text-[#ececf2]">{n.riskScore}</td>
                 </tr>
               ))}
             </tbody>

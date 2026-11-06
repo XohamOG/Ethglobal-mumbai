@@ -14,7 +14,6 @@ import {
   X,
   Columns,
   GitBranch,
-  CheckCircle2,
 } from "lucide-react";
 
 interface ProvenanceGraphCanvasProps {
@@ -45,42 +44,38 @@ export function ProvenanceGraphCanvas({
     setTimeout(() => setCopiedAddress(null), 1800);
   };
 
-  // Category visual styles (pure circular nodes)
+  // Cyber Sigilism visual styling for circular nodes
   const categoryConfig: Record<string, { ring: string; fill: string; glyph: string; name: string }> = {
-    proxy: { ring: "#38bdf8", fill: "#032840", glyph: "P", name: "Proxy" },
-    implementation: { ring: "#34d399", fill: "#033221", glyph: "I", name: "Implementation" },
-    oracle: { ring: "#fbbf24", fill: "#362203", glyph: "O", name: "Oracle" },
-    multisig: { ring: "#c084fc", fill: "#2b0f42", glyph: "S", name: "Safe Multisig" },
-    timelock: { ring: "#818cf8", fill: "#1a153f", glyph: "T", name: "Timelock" },
+    proxy: { ring: "#d6d8e4", fill: "#17171d", glyph: "P", name: "Proxy" },
+    implementation: { ring: "#7d8495", fill: "#17171d", glyph: "I", name: "Implementation" },
+    oracle: { ring: "#b068ff", fill: "#17171d", glyph: "O", name: "Oracle" },
+    multisig: { ring: "#d6d8e4", fill: "#17171d", glyph: "S", name: "Safe Multisig" },
+    timelock: { ring: "#b068ff", fill: "#17171d", glyph: "T", name: "Timelock" },
   };
 
   const getStyle = (cat: string, admin?: string) => {
     if (admin === "timelock") return categoryConfig.timelock;
-    return categoryConfig[cat] || { ring: "#94a3b8", fill: "#131926", glyph: "C", name: "Contract" };
+    return categoryConfig[cat] || { ring: "#7d8495", fill: "#17171d", glyph: "C", name: "Contract" };
   };
 
-  // Pure deterministic coordinates without background cards
+  // Deterministic node coordinates
   const layoutCoordinates: Record<string, { x: number; y: number }> =
     layoutMode === "hierarchy"
       ? {
           // Top-to-Bottom Hierarchical Tree:
-          // Level 0 (Root Seed, Top Center)
           "aave-v3-addresses-provider": { x: 570, y: 70 },
 
-          // Level 1 (Core Diamond Proxies & Oracle)
           "aave-v3-pool": { x: 230, y: 220 },
           "aave-v3-pool-configurator": { x: 460, y: 220 },
           "aave-v3-oracle": { x: 690, y: 220 },
           "aave-v3-acl-manager": { x: 910, y: 220 },
           "aave-v3-data-provider": { x: 1040, y: 220 },
 
-          // Level 2 (Logic Impls & Governance Admin)
           "aave-v3-pool-impl": { x: 200, y: 390 },
           "aave-v3-configurator-impl": { x: 430, y: 390 },
           "aave-v3-governance-executor": { x: 660, y: 390 },
           "aave-v3-emergency-safe": { x: 900, y: 390 },
 
-          // Level 3 (External Chainlink Price Feeds)
           "chainlink-eth-usd": { x: 200, y: 560 },
           "chainlink-btc-usd": { x: 385, y: 560 },
           "chainlink-usdc-usd": { x: 570, y: 560 },
@@ -89,7 +84,6 @@ export function ProvenanceGraphCanvas({
         }
       : {
           // Horizontal Columns (Hop 0 -> Hop 1 -> Hop 2):
-          // Hop 0: Core Architecture (X: 190)
           "aave-v3-addresses-provider": { x: 190, y: 75 },
           "aave-v3-pool": { x: 190, y: 175 },
           "aave-v3-pool-configurator": { x: 190, y: 275 },
@@ -97,13 +91,11 @@ export function ProvenanceGraphCanvas({
           "aave-v3-acl-manager": { x: 190, y: 475 },
           "aave-v3-data-provider": { x: 190, y: 575 },
 
-          // Hop 1: Governance & Implementation (X: 570)
           "aave-v3-pool-impl": { x: 570, y: 140 },
           "aave-v3-configurator-impl": { x: 570, y: 260 },
           "aave-v3-governance-executor": { x: 570, y: 380 },
           "aave-v3-emergency-safe": { x: 570, y: 500 },
 
-          // Hop 2: External Chainlink Oracles (X: 940)
           "chainlink-eth-usd": { x: 940, y: 90 },
           "chainlink-btc-usd": { x: 940, y: 200 },
           "chainlink-usdc-usd": { x: 940, y: 310 },
@@ -156,21 +148,21 @@ export function ProvenanceGraphCanvas({
   };
 
   return (
-    <div className="relative w-full h-[680px] bg-[#07090e] border border-[#161a25] rounded-xl overflow-hidden select-none flex flex-col justify-between">
-      {/* Top Floating Controls & Layout Switcher */}
+    <div className="relative w-full h-[680px] bg-[#0e0e12] border border-[#282832] rounded-[6px] overflow-hidden select-none flex flex-col justify-between">
+      {/* Top Floating Controls */}
       <div className="absolute top-3 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
         <div className="flex items-center gap-2 pointer-events-auto">
-          {/* Minimal Layout Mode Switcher */}
-          <div className="flex items-center bg-[#0a0d16]/95 backdrop-blur border border-[#1f283d] p-0.5 rounded-lg shadow-lg">
+          {/* Layout Mode Switcher */}
+          <div className="flex items-center bg-[#17171d] border border-[#282832] p-0.5 rounded-[2px] shadow-lg">
             <button
               onClick={() => {
                 setLayoutMode("hierarchy");
                 handleReset();
               }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[2px] text-xs font-mono transition-all cursor-pointer ${
                 layoutMode === "hierarchy"
-                  ? "bg-blue-600 text-white font-semibold shadow-md shadow-blue-600/30"
-                  : "text-[#6c7b9b] hover:text-white"
+                  ? "bg-[#282832] text-[#ececf2] font-semibold border border-[#7d8495]/40"
+                  : "text-[#aaaab8] hover:text-[#ececf2]"
               }`}
               title="Hierarchical Tree Layout"
             >
@@ -182,10 +174,10 @@ export function ProvenanceGraphCanvas({
                 setLayoutMode("lanes");
                 handleReset();
               }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[2px] text-xs font-mono transition-all cursor-pointer ${
                 layoutMode === "lanes"
-                  ? "bg-blue-600 text-white font-semibold shadow-md shadow-blue-600/30"
-                  : "text-[#6c7b9b] hover:text-white"
+                  ? "bg-[#282832] text-[#ececf2] font-semibold border border-[#7d8495]/40"
+                  : "text-[#aaaab8] hover:text-[#ececf2]"
               }`}
               title="Hop Columns Layout"
             >
@@ -199,9 +191,9 @@ export function ProvenanceGraphCanvas({
         <div className="flex items-center gap-2 pointer-events-auto">
           <button
             onClick={() => setShowJustificationModal(true)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0e1320] hover:bg-[#161f33] text-blue-300 border border-[#202d48] text-xs font-mono transition-all cursor-pointer shadow-lg"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-[2px] bg-[#17171d] hover:bg-[#282832] text-[#ececf2] border border-[#282832] text-xs font-mono transition-all cursor-pointer shadow-lg"
           >
-            <HelpCircle className="w-3.5 h-3.5 text-blue-400" />
+            <HelpCircle className="w-3.5 h-3.5 text-[#d6d8e4]" />
             <span>Contract Justification</span>
           </button>
         </div>
@@ -224,10 +216,10 @@ export function ProvenanceGraphCanvas({
             transform={`translate(${panOffset.x}, ${panOffset.y}) scale(${zoomLevel})`}
             style={{ transformOrigin: "570px 340px" }}
           >
-            {/* Define Arrowhead Markers */}
+            {/* Arrowhead Markers */}
             <defs>
               <marker
-                id="pure-arrow-default"
+                id="sigil-arrow-default"
                 viewBox="0 -5 10 10"
                 refX="8"
                 refY="0"
@@ -235,10 +227,10 @@ export function ProvenanceGraphCanvas({
                 markerHeight="5"
                 orient="auto"
               >
-                <path d="M0,-4L8,0L0,4" fill="#334155" />
+                <path d="M0,-4L8,0L0,4" fill="#7d8495" />
               </marker>
               <marker
-                id="pure-arrow-active"
+                id="sigil-arrow-active"
                 viewBox="0 -5 10 10"
                 refX="8"
                 refY="0"
@@ -246,10 +238,10 @@ export function ProvenanceGraphCanvas({
                 markerHeight="6"
                 orient="auto"
               >
-                <path d="M0,-4L8,0L0,4" fill="#38bdf8" />
+                <path d="M0,-4L8,0L0,4" fill="#d6d8e4" />
               </marker>
               <marker
-                id="pure-arrow-governance"
+                id="sigil-arrow-accent"
                 viewBox="0 -5 10 10"
                 refX="8"
                 refY="0"
@@ -257,18 +249,7 @@ export function ProvenanceGraphCanvas({
                 markerHeight="6"
                 orient="auto"
               >
-                <path d="M0,-4L8,0L0,4" fill="#c084fc" />
-              </marker>
-              <marker
-                id="pure-arrow-oracle"
-                viewBox="0 -5 10 10"
-                refX="8"
-                refY="0"
-                markerWidth="6"
-                markerHeight="6"
-                orient="auto"
-              >
-                <path d="M0,-4L8,0L0,4" fill="#fbbf24" />
+                <path d="M0,-4L8,0L0,4" fill="#b068ff" />
               </marker>
             </defs>
 
@@ -287,7 +268,7 @@ export function ProvenanceGraphCanvas({
                 let midX = (src.x + tgt.x) / 2;
                 let midY = (src.y + tgt.y) / 2;
 
-                const nodeR = 22; // Circular node radius
+                const nodeR = 22; // Circular seal radius
 
                 if (layoutMode === "hierarchy") {
                   // Hierarchical Top-to-Bottom Flow
@@ -323,22 +304,18 @@ export function ProvenanceGraphCanvas({
                 }
 
                 const strokeColor = isActive
-                  ? edge.type.includes("governance") || edge.type.includes("multisig")
-                    ? "#c084fc"
-                    : edge.type.includes("oracle")
-                    ? "#fbbf24"
-                    : "#38bdf8"
+                  ? edge.type.includes("oracle") || edge.type.includes("governance")
+                    ? "#b068ff"
+                    : "#d6d8e4"
                   : isDimmed
-                  ? "#101520"
-                  : "#1e293b";
+                  ? "#17171d"
+                  : "#282832";
 
                 const marker = isActive
-                  ? edge.type.includes("governance") || edge.type.includes("multisig")
-                    ? "url(#pure-arrow-governance)"
-                    : edge.type.includes("oracle")
-                    ? "url(#pure-arrow-oracle)"
-                    : "url(#pure-arrow-active)"
-                  : "url(#pure-arrow-default)";
+                  ? edge.type.includes("oracle") || edge.type.includes("governance")
+                    ? "url(#sigil-arrow-accent)"
+                    : "url(#sigil-arrow-active)"
+                  : "url(#sigil-arrow-default)";
 
                 return (
                   <g key={edgeKey} className="edge-group">
@@ -348,8 +325,8 @@ export function ProvenanceGraphCanvas({
                         d={d}
                         fill="none"
                         stroke={strokeColor}
-                        strokeWidth="5"
-                        strokeOpacity="0.25"
+                        strokeWidth="4"
+                        strokeOpacity="0.2"
                       />
                     )}
 
@@ -358,28 +335,28 @@ export function ProvenanceGraphCanvas({
                       d={d}
                       fill="none"
                       stroke={strokeColor}
-                      strokeWidth={isActive ? 2.5 : 1.5}
-                      strokeOpacity={isDimmed ? 0.2 : 0.85}
+                      strokeWidth={isActive ? 2 : 1.2}
+                      strokeOpacity={isDimmed ? 0.15 : 0.8}
                       markerEnd={marker}
                       className="transition-all duration-200"
                     />
 
                     {/* Relationship Pill */}
-                    <g transform={`translate(${midX}, ${midY})`} opacity={isDimmed ? 0.2 : 0.9}>
+                    <g transform={`translate(${midX}, ${midY})`} opacity={isDimmed ? 0.2 : 0.85}>
                       <rect
-                        x="-38"
+                        x="-36"
                         y="-7"
-                        width="76"
+                        width="72"
                         height="14"
-                        rx="3"
-                        fill="#07090e"
-                        stroke={isActive ? strokeColor : "#1b2334"}
+                        rx="2"
+                        fill="#0e0e12"
+                        stroke={isActive ? strokeColor : "#282832"}
                         strokeWidth="1"
                       />
                       <text
                         x="0"
                         y="3.5"
-                        fill={isActive ? "#e2e8f0" : "#64748b"}
+                        fill={isActive ? "#ececf2" : "#aaaab8"}
                         fontFamily="ui-monospace, monospace"
                         fontSize="7.5"
                         fontWeight="600"
@@ -393,7 +370,7 @@ export function ProvenanceGraphCanvas({
               })}
             </g>
 
-            {/* Circular Nodes ONLY */}
+            {/* Circular Nodes ONLY (Cyber Sigilism Circular Seals) */}
             <g className="graph-nodes">
               {nodes.map((node) => {
                 const pos = layoutCoordinates[node.id];
@@ -425,10 +402,10 @@ export function ProvenanceGraphCanvas({
                       <circle
                         r={nodeR + 6}
                         fill="transparent"
-                        stroke={style.ring}
-                        strokeWidth="2.5"
+                        stroke={isSelected ? "#b068ff" : "#d6d8e4"}
+                        strokeWidth="1.5"
                         strokeOpacity="0.8"
-                        className="animate-pulse"
+                        strokeDasharray="3 3"
                       />
                     )}
 
@@ -436,18 +413,18 @@ export function ProvenanceGraphCanvas({
                     <circle
                       r={nodeR}
                       fill={style.fill}
-                      stroke={style.ring}
-                      strokeWidth={isSelected ? 3 : 2}
-                      className="transition-transform duration-200 shadow-lg hover:scale-105"
+                      stroke={isSelected ? "#b068ff" : isHovered ? "#d6d8e4" : style.ring}
+                      strokeWidth={isSelected ? 2.5 : 1.5}
+                      className="transition-transform duration-200 hover:scale-105"
                     />
 
                     {/* Inner Glyph Icon */}
                     <text
                       textAnchor="middle"
                       dy=".35em"
-                      fill="#ffffff"
+                      fill="#ececf2"
                       fontFamily="ui-monospace, monospace"
-                      fontSize="12"
+                      fontSize="11"
                       fontWeight="700"
                       pointerEvents="none"
                     >
@@ -458,8 +435,8 @@ export function ProvenanceGraphCanvas({
                     <text
                       y={nodeR + 15}
                       textAnchor="middle"
-                      fill="#f1f5f9"
-                      fontFamily="ui-sans-serif, system-ui, sans-serif"
+                      fill="#ececf2"
+                      fontFamily="Arial, Helvetica, sans-serif"
                       fontSize="11"
                       fontWeight="600"
                       pointerEvents="none"
@@ -471,9 +448,9 @@ export function ProvenanceGraphCanvas({
                     <text
                       y={nodeR + 28}
                       textAnchor="middle"
-                      fill="#64748b"
+                      fill="#aaaab8"
                       fontFamily="ui-monospace, monospace"
-                      fontSize="9"
+                      fontSize="8.5"
                       pointerEvents="none"
                     >
                       {node.address.slice(0, 6)}...{node.address.slice(-4)}
@@ -487,24 +464,24 @@ export function ProvenanceGraphCanvas({
       </div>
 
       {/* Bottom Zoom & Reset Controls */}
-      <div className="absolute bottom-3 left-4 z-20 flex items-center gap-1.5 bg-[#0e121a]/95 backdrop-blur border border-[#1f2637] p-1 rounded-lg shadow-lg">
+      <div className="absolute bottom-3 left-4 z-20 flex items-center gap-1.5 bg-[#17171d] border border-[#282832] p-1 rounded-[2px] shadow-lg">
         <button
           onClick={() => setZoomLevel((z) => Math.min(z + 0.15, 2.0))}
-          className="p-1.5 text-[#8b95ad] hover:text-white rounded hover:bg-[#1a202e] transition-colors cursor-pointer"
+          className="p-1.5 text-[#aaaab8] hover:text-[#ececf2] rounded-[2px] hover:bg-[#282832] transition-colors cursor-pointer"
           title="Zoom In"
         >
           <ZoomIn className="w-4 h-4" />
         </button>
         <button
           onClick={() => setZoomLevel((z) => Math.max(z - 0.15, 0.6))}
-          className="p-1.5 text-[#8b95ad] hover:text-white rounded hover:bg-[#1a202e] transition-colors cursor-pointer"
+          className="p-1.5 text-[#aaaab8] hover:text-[#ececf2] rounded-[2px] hover:bg-[#282832] transition-colors cursor-pointer"
           title="Zoom Out"
         >
           <ZoomOut className="w-4 h-4" />
         </button>
         <button
           onClick={handleReset}
-          className="p-1.5 text-[#8b95ad] hover:text-white rounded hover:bg-[#1a202e] transition-colors cursor-pointer"
+          className="p-1.5 text-[#aaaab8] hover:text-[#ececf2] rounded-[2px] hover:bg-[#282832] transition-colors cursor-pointer"
           title="Reset View"
         >
           <RotateCcw className="w-4 h-4" />
@@ -512,48 +489,48 @@ export function ProvenanceGraphCanvas({
       </div>
 
       {/* Minimal Bottom Legend */}
-      <div className="absolute bottom-3 right-4 z-20 hidden md:flex items-center gap-3 px-3 py-1.5 rounded-lg bg-[#0e121a]/95 backdrop-blur border border-[#1f2637] text-[10px] font-mono text-[#8290ad] shadow-lg">
+      <div className="absolute bottom-3 right-4 z-20 hidden md:flex items-center gap-3 px-3 py-1.5 rounded-[2px] bg-[#17171d] border border-[#282832] text-[10px] font-mono text-[#aaaab8] shadow-lg">
         <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#38bdf8]"></span>
+          <span className="w-2 h-2 rounded-full border border-[#d6d8e4]"></span>
           Proxy
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#34d399]"></span>
+          <span className="w-2 h-2 rounded-full border border-[#7d8495]"></span>
           Impl
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#818cf8]"></span>
+          <span className="w-2 h-2 rounded-full border border-[#b068ff]"></span>
           Timelock
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#c084fc]"></span>
-          Safe Multisig
+          <span className="w-2 h-2 rounded-full border border-[#d6d8e4]"></span>
+          Multisig
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#fbbf24]"></span>
+          <span className="w-2 h-2 rounded-full border border-[#b068ff]"></span>
           Oracle
         </span>
       </div>
 
       {/* Contract Address Justification Slide-Over Modal */}
       {showJustificationModal && (
-        <div className="absolute inset-0 z-40 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 animate-fadeIn">
-          <div className="w-full max-w-4xl max-h-[90%] bg-[#080b13] border border-[#20293e] rounded-xl shadow-2xl flex flex-col overflow-hidden text-[#e2e8f0]">
-            <div className="px-6 py-4 border-b border-[#182033] flex items-center justify-between bg-[#0b0f1a]">
+        <div className="absolute inset-0 z-40 bg-[#0e0e12]/90 backdrop-blur-sm flex items-center justify-center p-6 animate-fadeIn">
+          <div className="w-full max-w-4xl max-h-[90%] bg-[#17171d] border border-[#282832] rounded-[6px] shadow-2xl flex flex-col overflow-hidden text-[#ececf2]">
+            <div className="px-6 py-4 border-b border-[#282832] flex items-center justify-between bg-[#17171d]">
               <div className="flex items-center gap-2.5">
-                <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                <ShieldCheck className="w-5 h-5 text-[#d6d8e4]" />
                 <div>
-                  <h3 className="font-semibold text-white text-sm">
-                    Contract Address Discovery & Lineage Justification
+                  <h3 className="font-serif font-bold text-base text-[#ececf2]">
+                    Contract Discovery & Lineage Justification
                   </h3>
-                  <p className="text-[11px] text-[#6b7b99] font-mono">
+                  <p className="text-[11px] text-[#aaaab8] font-mono">
                     Verifiable cryptographic & on-chain provenance for all 15 Aave V3 contracts
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowJustificationModal(false)}
-                className="p-1.5 text-[#6b7b99] hover:text-white rounded-lg hover:bg-[#141b2d] transition-colors cursor-pointer"
+                className="p-1.5 text-[#aaaab8] hover:text-[#ececf2] rounded-[2px] hover:bg-[#282832] transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -565,63 +542,62 @@ export function ProvenanceGraphCanvas({
                 return (
                   <div
                     key={node.id}
-                    className="p-3.5 rounded-lg bg-[#090d16] border border-[#172030] hover:border-[#263550] transition-colors"
+                    className="p-3.5 rounded-[4px] bg-[#0e0e12] border border-[#282832] hover:border-[#7d8495]/60 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-white text-sm">{node.label}</span>
-                          <span className="text-[10px] px-2 py-0.5 rounded border border-blue-800/60 bg-blue-950/40 text-blue-400">
+                          <span className="font-semibold text-[#ececf2] text-sm">{node.label}</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-[2px] border border-[#282832] bg-[#282832]/60 text-[#d6d8e4]">
                             Hop {node.hop}
                           </span>
-                          <span className="text-[10px] uppercase text-[#677797]">
+                          <span className="text-[10px] uppercase text-[#aaaab8]">
                             ({node.category})
                           </span>
                         </div>
-                        <div className="text-[11px] text-[#8696b5] mt-1 flex items-center gap-2">
+                        <div className="text-[11px] text-[#aaaab8] mt-1 flex items-center gap-2">
                           <span>Address:</span>
-                          <span className="text-white font-semibold">{node.address}</span>
+                          <span className="text-[#ececf2] font-semibold">{node.address}</span>
                           <button
                             onClick={() => copy(node.address)}
-                            className="p-1 hover:text-white text-[#52607e] cursor-pointer"
+                            className="p-1 hover:text-white text-[#7d8495] cursor-pointer"
                             title="Copy Address"
                           >
-                            {copiedAddress === node.address ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                            {copiedAddress === node.address ? <Check className="w-3 h-3 text-[#b068ff]" /> : <Copy className="w-3 h-3" />}
                           </button>
                           <a
                             href={`https://etherscan.io/address/${node.address}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[#52607e] hover:text-white"
+                            className="text-[#7d8495] hover:text-white"
                           >
                             <ExternalLink className="w-3 h-3" />
                           </a>
                         </div>
                       </div>
 
-                      <span className="text-[10px] px-2 py-1 rounded bg-emerald-950/50 text-emerald-400 border border-emerald-800/60 font-semibold flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" />
+                      <span className="text-[10px] px-2 py-0.5 rounded-[2px] bg-[#282832] text-[#d6d8e4] border border-[#7d8495]/40 font-semibold">
                         Sourcify Verified
                       </span>
                     </div>
 
                     {j && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-2 border-t border-[#131a28] text-[11px] text-[#7182a0]">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-2 border-t border-[#282832] text-[11px] text-[#aaaab8]">
                         <div>
-                          <span className="text-[#4e5d7a]">Upstream Source: </span>
-                          <span className="text-[#a4b3d0]">{j.source}</span>
+                          <span className="text-[#7d8495]">Source: </span>
+                          <span className="text-[#ececf2]">{j.source}</span>
                         </div>
                         <div>
-                          <span className="text-[#4e5d7a]">Discovery Method: </span>
-                          <span className="text-[#a4b3d0]">{j.method}</span>
+                          <span className="text-[#7d8495]">Method: </span>
+                          <span className="text-[#ececf2]">{j.method}</span>
                         </div>
                         {j.slot && (
                           <div className="md:col-span-2">
-                            <span className="text-[#4e5d7a]">EVM Storage Slot: </span>
-                            <code className="text-amber-400 text-[10px]">{j.slot}</code>
+                            <span className="text-[#7d8495]">EVM Slot: </span>
+                            <code className="text-[#b068ff] text-[10px]">{j.slot}</code>
                           </div>
                         )}
-                        <div className="md:col-span-2 text-[#8b99b5] text-[11px] leading-relaxed italic">
+                        <div className="md:col-span-2 text-[#aaaab8] text-[11px] leading-relaxed italic">
                           "{j.description}"
                         </div>
                       </div>
@@ -631,11 +607,10 @@ export function ProvenanceGraphCanvas({
               })}
             </div>
 
-            <div className="px-6 py-3 border-t border-[#182033] bg-[#0b0f1a] flex items-center justify-between text-[11px] text-[#6b7b99] font-mono">
-              <span>All 15 contracts verified against Ethereum Mainnet JSON-RPC and Sourcify Registry</span>
+            <div className="px-6 py-3 border-t border-[#282832] bg-[#17171d] flex items-center justify-end">
               <button
                 onClick={() => setShowJustificationModal(false)}
-                className="px-4 py-1.5 rounded-lg bg-[#141b2c] hover:bg-[#1d273f] text-white text-xs font-mono transition-colors cursor-pointer"
+                className="px-4 py-1.5 rounded-[2px] bg-[#282832] hover:bg-[#7d8495]/40 text-[#ececf2] text-xs font-mono transition-colors cursor-pointer"
               >
                 Close
               </button>

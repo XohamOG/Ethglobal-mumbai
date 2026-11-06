@@ -3,8 +3,7 @@
 import React, { useState } from "react";
 import mockGraphData from "@/lib/mock-graph.json";
 import { PROTOCOLS } from "@/lib/graph-data";
-import { GitFork, Copy, Check, FileJson, Hash, ShieldCheck, ExternalLink, HardDrive } from "lucide-react";
-import { ShinyButton } from "@/components/ui/ShinyButton";
+import { Copy, Check, FileJson, Hash, HardDrive } from "lucide-react";
 
 export function SwarmArtifactsTab() {
   const [activeBlob, setActiveBlob] = useState<"full_graph" | "audit_log" | "bytecode_dump" | "protocol_meta">("full_graph");
@@ -105,30 +104,30 @@ export function SwarmArtifactsTab() {
   const curr = blobDefinitions[activeBlob];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-[#ececf2]">
       {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-[#0a0d16] border border-[#182032]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-[4px] bg-[#17171d] border border-[#282832]">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-amber-950/60 border border-amber-800/60 flex items-center justify-center text-amber-400 font-mono">
-            <GitFork className="w-4 h-4" />
+          <div className="w-8 h-8 rounded-[2px] bg-[#282832] border border-[#7d8495]/40 flex items-center justify-center text-[#d6d8e4]">
+            <HardDrive className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-white">Swarm Decentralized Forensic Evidence</h3>
-            <p className="text-xs text-[#717e9c] font-mono">
+            <h3 className="font-serif font-bold text-sm text-[#ececf2]">Swarm Decentralized Forensic Evidence</h3>
+            <p className="text-xs text-[#aaaab8] font-mono">
               Immutable Content-Addressed Blob Storage (BZZ)
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-mono text-emerald-400 px-2.5 py-1 rounded bg-[#0f1422] border border-[#1c2742]">
+          <span className="text-[11px] font-mono text-[#d6d8e4] px-2.5 py-1 rounded-[2px] bg-[#0e0e12] border border-[#282832]">
             Content-Hash Verified
           </span>
         </div>
       </div>
 
       {/* Blob Selector Tabs */}
-      <div className="flex gap-2 border-b border-[#151b2a] pb-3 text-xs font-mono">
+      <div className="flex gap-2 border-b border-[#282832] pb-3 text-xs font-mono">
         {[
           { key: "full_graph", label: "full-graph.json" },
           { key: "audit_log", label: "audit-log.json" },
@@ -138,10 +137,11 @@ export function SwarmArtifactsTab() {
           <button
             key={t.key}
             onClick={() => setActiveBlob(t.key as any)}
-            className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${activeBlob === t.key
-                ? "bg-[#182033] text-white border border-[#2a3754] font-semibold"
-                : "text-[#677595] hover:text-white hover:bg-[#0e121d]"
-              }`}
+            className={`px-3 py-1.5 rounded-[2px] transition-all cursor-pointer ${
+              activeBlob === t.key
+                ? "bg-[#282832] text-[#ececf2] border border-[#7d8495]/40 font-semibold"
+                : "text-[#aaaab8] hover:text-[#ececf2] hover:bg-[#17171d]"
+            }`}
           >
             {t.label}
           </button>
@@ -150,57 +150,57 @@ export function SwarmArtifactsTab() {
 
       {/* Selected Blob Metadata */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs font-mono">
-        <div className="p-3 rounded-lg bg-[#0b0e18] border border-[#161d2d]">
-          <span className="text-[#566483] block text-[10px] uppercase">Artifact Name</span>
-          <span className="text-white font-semibold text-xs mt-0.5 block">{curr.title}</span>
+        <div className="p-3 rounded-[2px] bg-[#17171d] border border-[#282832]">
+          <span className="text-[#7d8495] block text-[10px] uppercase">Artifact Name</span>
+          <span className="text-[#ececf2] font-semibold text-xs mt-0.5 block">{curr.title}</span>
         </div>
-        <div className="p-3 rounded-lg bg-[#0b0e18] border border-[#161d2d]">
-          <span className="text-[#566483] block text-[10px] uppercase">Referenced In Arkiv</span>
-          <span className="text-blue-400 font-semibold text-xs mt-0.5 block truncate">{curr.referencedBy}</span>
+        <div className="p-3 rounded-[2px] bg-[#17171d] border border-[#282832]">
+          <span className="text-[#7d8495] block text-[10px] uppercase">Referenced In Arkiv</span>
+          <span className="text-[#d6d8e4] font-semibold text-xs mt-0.5 block truncate">{curr.referencedBy}</span>
         </div>
-        <div className="p-3 rounded-lg bg-[#0b0e18] border border-[#161d2d]">
-          <span className="text-[#566483] block text-[10px] uppercase">Payload Size</span>
-          <span className="text-emerald-400 font-semibold text-xs mt-0.5 block">{curr.size}</span>
+        <div className="p-3 rounded-[2px] bg-[#17171d] border border-[#282832]">
+          <span className="text-[#7d8495] block text-[10px] uppercase">Payload Size</span>
+          <span className="text-[#ececf2] font-semibold text-xs mt-0.5 block">{curr.size}</span>
         </div>
-        <div className="p-3 rounded-lg bg-[#0b0e18] border border-[#161d2d]">
-          <span className="text-[#566483] block text-[10px] uppercase">Cryptographic Role</span>
-          <span className="text-amber-400 font-semibold text-xs mt-0.5 block truncate">{curr.role}</span>
+        <div className="p-3 rounded-[2px] bg-[#17171d] border border-[#282832]">
+          <span className="text-[#7d8495] block text-[10px] uppercase">Cryptographic Role</span>
+          <span className="text-[#b068ff] font-semibold text-xs mt-0.5 block truncate">{curr.role}</span>
         </div>
       </div>
 
       {/* Swarm Content Hash (BZZ) */}
-      <div className="p-3.5 rounded-xl bg-[#080b14] border border-[#172033] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 font-mono text-xs">
+      <div className="p-3.5 rounded-[4px] bg-[#0e0e12] border border-[#282832] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 font-mono text-xs">
         <div className="flex items-center gap-2">
-          <Hash className="w-4 h-4 text-amber-400 shrink-0" />
-          <span className="text-[#64748b]">Swarm BZZ Content Hash:</span>
-          <span className="text-white font-semibold break-all">{curr.hash}</span>
+          <Hash className="w-4 h-4 text-[#d6d8e4] shrink-0" />
+          <span className="text-[#7d8495]">Swarm BZZ Content Hash:</span>
+          <span className="text-[#ececf2] font-semibold break-all">{curr.hash}</span>
         </div>
         <button
           onClick={() => copy(curr.hash, "hash")}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#101524] border border-[#212b44] text-[#8e9cb8] hover:text-white cursor-pointer ml-auto shrink-0"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-[#282832] border border-[#7d8495]/40 text-[#ececf2] hover:bg-[#7d8495]/40 transition-colors cursor-pointer ml-auto shrink-0"
         >
-          {copiedKey === "hash" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+          {copiedKey === "hash" ? <Check className="w-3.5 h-3.5 text-[#b068ff]" /> : <Copy className="w-3.5 h-3.5 text-[#aaaab8]" />}
           <span>Copy Hash</span>
         </button>
       </div>
 
       {/* Real-time JSON Payload Viewer */}
-      <div className="rounded-xl border border-[#161d2d] bg-[#070910] overflow-hidden text-xs font-mono">
-        <div className="px-4 py-3 border-b border-[#141926] bg-[#090c15] flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[#7d8ca9]">
-            <FileJson className="w-4 h-4 text-amber-400" />
+      <div className="rounded-[4px] border border-[#282832] bg-[#17171d] overflow-hidden text-xs font-mono">
+        <div className="px-4 py-3 border-b border-[#282832] bg-[#0e0e12] flex items-center justify-between">
+          <div className="flex items-center gap-2 text-[#aaaab8]">
+            <FileJson className="w-4 h-4 text-[#d6d8e4]" />
             <span>Raw Verifiable Swarm Payload: {curr.title}</span>
           </div>
           <button
             onClick={() => copy(JSON.stringify(curr.payload, null, 2), "json")}
-            className="flex items-center gap-1 text-[11px] text-[#71809e] hover:text-white cursor-pointer"
+            className="flex items-center gap-1 text-[11px] text-[#aaaab8] hover:text-[#ececf2] cursor-pointer"
           >
-            {copiedKey === "json" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            {copiedKey === "json" ? <Check className="w-3.5 h-3.5 text-[#b068ff]" /> : <Copy className="w-3.5 h-3.5 text-[#7d8495]" />}
             <span>Copy Raw JSON</span>
           </button>
         </div>
 
-        <pre className="p-4 text-emerald-400/90 overflow-x-auto max-h-[460px] overflow-y-auto leading-relaxed">
+        <pre className="p-4 text-[#ececf2] overflow-x-auto max-h-[460px] overflow-y-auto leading-relaxed bg-[#0e0e12]">
           {JSON.stringify(curr.payload, null, 2)}
         </pre>
       </div>
