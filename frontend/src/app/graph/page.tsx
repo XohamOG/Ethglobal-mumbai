@@ -18,8 +18,8 @@ import {
   Zap,
   PanelRightClose,
   PanelRightOpen,
-  Info,
   Compass,
+  Workflow,
 } from "lucide-react";
 
 function GraphViewerContent() {
@@ -27,8 +27,8 @@ function GraphViewerContent() {
   const protocolId = searchParams.get("protocol") || "aave-v3-mainnet";
   const protocol = PROTOCOLS.find((p) => p.protocolId === protocolId) || PROTOCOLS[0];
 
-  // Hop filter: "all" | 0 | 1 | 2
-  const [activeHop, setActiveHop] = useState<number | "all">("all");
+  // Hop filter: "all" | 0 | 1 | 2 | "oracle-chain"
+  const [activeHop, setActiveHop] = useState<number | "all" | "oracle-chain">("all");
 
   // Selected node (default null => ALL nodes active and highlighted)
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
@@ -84,7 +84,7 @@ function GraphViewerContent() {
 
   return (
     <div className="h-screen flex flex-col bg-[#101010] text-[#f3f3f3] overflow-hidden select-none">
-      {/* Top Header Bar — Hyperstudio Specification */}
+      {/* Top Header Bar — Hyperstudio & Graphino Specification */}
       <header className="h-14 border-b border-[#212121] px-4 sm:px-6 flex items-center justify-between bg-[#101010] shrink-0 z-30">
         {/* Left: Brand Link & Title */}
         <div className="flex items-center gap-3">
@@ -105,63 +105,83 @@ function GraphViewerContent() {
           </div>
         </div>
 
-        {/* Center: Hop Filter Tabs */}
-        <div className="flex items-center bg-[#080808] border border-[#212121] p-0.5 rounded-[6px] text-[12px]">
+        {/* Center: Hop Filter Tabs + Oracle Chain Quick Flow Preset */}
+        <div className="flex items-center gap-2">
+          {/* Oracle Chain Preset Button */}
           <button
             onClick={() => {
-              setActiveHop("all");
+              setActiveHop("oracle-chain");
               setSelectedNode(null);
             }}
-            className={`px-3 py-1 rounded-[4px] uppercase tracking-wider transition-colors cursor-pointer ${
-              activeHop === "all"
-                ? "bg-[#1a1a1a] text-[#f3f3f3] border border-[#474747]"
-                : "text-[#9c9c9c] hover:text-[#f3f3f3]"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-[12px] uppercase tracking-wider transition-colors cursor-pointer border ${
+              activeHop === "oracle-chain"
+                ? "bg-[#06b6d4]/15 border-[#06b6d4] text-[#22d3ee] font-medium"
+                : "bg-[#080808] border-[#212121] text-[#9c9c9c] hover:text-[#f3f3f3] hover:border-[#474747]"
             }`}
+            title="Isolate Provider -> Pool -> Oracle -> Chainlink Feeds dependency chain"
           >
-            All Hops ({hopCounts.all})
+            <Workflow className="w-3.5 h-3.5 text-[#22d3ee]" />
+            <span>Oracle Chain</span>
           </button>
 
-          <button
-            onClick={() => {
-              setActiveHop(0);
-              setSelectedNode(null);
-            }}
-            className={`px-3 py-1 rounded-[4px] uppercase tracking-wider transition-colors cursor-pointer ${
-              activeHop === 0
-                ? "bg-[#1a1a1a] text-[#f3f3f3] border border-[#474747]"
-                : "text-[#9c9c9c] hover:text-[#f3f3f3]"
-            }`}
-          >
-            Hop 0 · Core ({hopCounts[0]})
-          </button>
+          {/* Hop Filters */}
+          <div className="flex items-center bg-[#080808] border border-[#212121] p-0.5 rounded-[6px] text-[12px]">
+            <button
+              onClick={() => {
+                setActiveHop("all");
+                setSelectedNode(null);
+              }}
+              className={`px-3 py-1 rounded-[4px] uppercase tracking-wider transition-colors cursor-pointer ${
+                activeHop === "all"
+                  ? "bg-[#1a1a1a] text-[#f3f3f3] border border-[#474747]"
+                  : "text-[#9c9c9c] hover:text-[#f3f3f3]"
+              }`}
+            >
+              All ({hopCounts.all})
+            </button>
 
-          <button
-            onClick={() => {
-              setActiveHop(1);
-              setSelectedNode(null);
-            }}
-            className={`px-3 py-1 rounded-[4px] uppercase tracking-wider transition-colors cursor-pointer ${
-              activeHop === 1
-                ? "bg-[#1a1a1a] text-[#f3f3f3] border border-[#474747]"
-                : "text-[#9c9c9c] hover:text-[#f3f3f3]"
-            }`}
-          >
-            Hop 1 · Logic & Gov ({hopCounts[1]})
-          </button>
+            <button
+              onClick={() => {
+                setActiveHop(0);
+                setSelectedNode(null);
+              }}
+              className={`px-3 py-1 rounded-[4px] uppercase tracking-wider transition-colors cursor-pointer ${
+                activeHop === 0
+                  ? "bg-[#1a1a1a] text-[#f3f3f3] border border-[#474747]"
+                  : "text-[#9c9c9c] hover:text-[#f3f3f3]"
+              }`}
+            >
+              Hop 0 · Core ({hopCounts[0]})
+            </button>
 
-          <button
-            onClick={() => {
-              setActiveHop(2);
-              setSelectedNode(null);
-            }}
-            className={`px-3 py-1 rounded-[4px] uppercase tracking-wider transition-colors cursor-pointer ${
-              activeHop === 2
-                ? "bg-[#1a1a1a] text-[#f3f3f3] border border-[#474747]"
-                : "text-[#9c9c9c] hover:text-[#f3f3f3]"
-            }`}
-          >
-            Hop 2 · Oracles ({hopCounts[2]})
-          </button>
+            <button
+              onClick={() => {
+                setActiveHop(1);
+                setSelectedNode(null);
+              }}
+              className={`px-3 py-1 rounded-[4px] uppercase tracking-wider transition-colors cursor-pointer ${
+                activeHop === 1
+                  ? "bg-[#1a1a1a] text-[#f3f3f3] border border-[#474747]"
+                  : "text-[#9c9c9c] hover:text-[#f3f3f3]"
+              }`}
+            >
+              Hop 1 · Logic ({hopCounts[1]})
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveHop(2);
+                setSelectedNode(null);
+              }}
+              className={`px-3 py-1 rounded-[4px] uppercase tracking-wider transition-colors cursor-pointer ${
+                activeHop === 2
+                  ? "bg-[#1a1a1a] text-[#f3f3f3] border border-[#474747]"
+                  : "text-[#9c9c9c] hover:text-[#f3f3f3]"
+              }`}
+            >
+              Hop 2 · Oracles ({hopCounts[2]})
+            </button>
+          </div>
         </div>
 
         {/* Right: Collapsible Inspector Toggle & Audit Button */}
@@ -177,15 +197,15 @@ function GraphViewerContent() {
             title="Toggle Entity Property Inspector Sheet"
           >
             {isInspectorOpen ? (
-              <PanelRightClose className="w-3.5 h-3.5 text-[#6f6759]" />
+              <PanelRightClose className="w-3.5 h-3.5 text-[#38bdf8]" />
             ) : (
-              <PanelRightOpen className="w-3.5 h-3.5 text-[#6f6759]" />
+              <PanelRightOpen className="w-3.5 h-3.5 text-[#38bdf8]" />
             )}
             <span className="hidden sm:inline">
               {isInspectorOpen ? "Hide Inspector" : "Inspect"}
             </span>
             {selectedNode && (
-              <span className="w-1.5 h-1.5 rounded-full bg-[#98ff38]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#22d3ee]" />
             )}
           </button>
 
@@ -194,7 +214,7 @@ function GraphViewerContent() {
             onClick={() => setIsCreModalOpen(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] border border-[#212121] hover:border-[#474747] bg-[#080808] text-[#f3f3f3] text-[12px] uppercase font-normal tracking-wider transition-colors cursor-pointer"
           >
-            <Zap className="w-3.5 h-3.5 text-[#6f6759]" />
+            <Zap className="w-3.5 h-3.5 text-[#eab308]" />
             <span className="hidden sm:inline">Audit</span>
           </button>
         </div>
@@ -203,7 +223,7 @@ function GraphViewerContent() {
       {/* Main Full-Bleed Graph Presentation Canvas */}
       <div className="flex-1 flex overflow-hidden min-h-0 relative">
         {/* Center Canvas */}
-        <div className="flex-1 bg-[#101010] overflow-hidden flex flex-col min-h-0 relative">
+        <div className="flex-1 bg-[#0d0d0d] overflow-hidden flex flex-col min-h-0 relative">
           <ProvenanceGraphCanvas
             nodes={nodes}
             edges={AAVE_EDGES}
@@ -227,7 +247,7 @@ function GraphViewerContent() {
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-center p-4">
                 <div className="w-10 h-10 rounded-full border border-[#212121] bg-[#101010] flex items-center justify-center mb-3">
-                  <Compass className="w-5 h-5 text-[#6f6759]" />
+                  <Compass className="w-5 h-5 text-[#38bdf8]" />
                 </div>
                 <h4 className="text-[14px] text-[#f3f3f3] font-normal mb-1">
                   Select a Node to Inspect
