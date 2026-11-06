@@ -19,6 +19,7 @@ import {
   Share2,
   HardDrive,
   Zap,
+  Sliders,
 } from "lucide-react";
 
 type ActiveTab = "graph" | "arkiv" | "swarm" | "cre";
@@ -100,6 +101,16 @@ function GraphViewerContent() {
 
         {/* Top Metric Bar (Cyber Sigilism Monochrome) */}
         <div className="flex items-center gap-3">
+          {/* Demo Sandbox Link */}
+          <Link
+            href="/demo"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-[#17171d] hover:bg-[#b068ff]/15 text-[#ececf2] border border-[#b068ff]/40 text-xs font-mono transition-all shadow-[0_0_10px_rgba(176,104,255,0.12)] hover:scale-105"
+            title="Open Interactive Demo Chaos Sandbox"
+          >
+            <Sliders className="w-3 h-3 text-[#b068ff]" />
+            <span className="hidden md:inline font-semibold">Demo Sandbox</span>
+          </Link>
+
           <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-[2px] bg-[#0e0e12] border border-[#282832] text-xs font-mono text-[#aaaab8]">
             <Radio className="w-3 h-3 text-[#b068ff]" />
             <span>Arkiv Rabdi Testnet</span>

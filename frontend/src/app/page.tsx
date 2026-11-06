@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { PROTOCOLS, getRiskScoreConfig } from "@/lib/graph-data";
 import { CreTriggerModal } from "@/components/cre/CreTriggerModal";
 import { SpotlightCard } from "@/components/ui/SpotlightCard";
@@ -20,6 +21,7 @@ import {
   Sparkles,
   Lock,
   Compass,
+  Sliders,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -122,8 +124,17 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-3 text-xs font-mono">
+            {/* Demo Chaos Sandbox Link */}
+            <Link
+              href="/demo"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-[#17171d] hover:bg-[#b068ff]/15 text-[#ececf2] border border-[#b068ff]/40 transition-all shadow-[0_0_12px_rgba(176,104,255,0.15)] hover:scale-105"
+            >
+              <Zap className="w-3 h-3 text-[#b068ff]" />
+              <span className="font-semibold text-[#ececf2]">Demo Sandbox</span>
+            </Link>
+
             {/* Rabdi Testnet Status Badge */}
-            <div className="flex items-center gap-2 px-3 py-1 rounded-[2px] bg-[#17171d]/90 border border-[#b068ff]/30 text-[#d6d8e4] shadow-[0_0_12px_rgba(176,104,255,0.12)]">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-[2px] bg-[#17171d]/90 border border-[#282832] text-[#d6d8e4]">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#b068ff] opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#b068ff]"></span>
@@ -420,14 +431,24 @@ export default function HomePage() {
                   <span>Click initiates real-time Chainlink CRE fingerprint verification</span>
                 </div>
 
-                <button
-                  onClick={() => setIsCreModalOpen(true)}
-                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-[2px] bg-gradient-to-r from-[#d6d8e4] to-[#ececf2] hover:from-[#ececf2] hover:to-[#ffffff] text-[#000000] text-xs font-mono font-bold transition-all cursor-pointer shadow-[0_0_20px_rgba(214,216,228,0.35)] transform hover:-translate-y-0.5 active:translate-y-0"
-                >
-                  <Zap className="w-4 h-4 text-[#000000]" />
-                  <span>Audit Aave V3 & Trigger CRE Consensus</span>
-                  <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                </button>
+                <div className="flex flex-col sm:flex-row items-center gap-2.5">
+                  <Link
+                    href="/demo"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 rounded-[2px] bg-[#17171d] hover:bg-[#282832] text-[#ececf2] border border-[#b068ff]/40 text-xs font-mono font-semibold transition-all cursor-pointer shadow-sm"
+                  >
+                    <Sliders className="w-4 h-4 text-[#b068ff]" />
+                    <span>Demo Chaos Sandbox</span>
+                  </Link>
+
+                  <button
+                    onClick={() => setIsCreModalOpen(true)}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-[2px] bg-gradient-to-r from-[#d6d8e4] to-[#ececf2] hover:from-[#ececf2] hover:to-[#ffffff] text-[#000000] text-xs font-mono font-bold transition-all cursor-pointer shadow-[0_0_20px_rgba(214,216,228,0.35)] transform hover:-translate-y-0.5 active:translate-y-0"
+                  >
+                    <Zap className="w-4 h-4 text-[#000000]" />
+                    <span>Audit Aave V3</span>
+                    <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                  </button>
+                </div>
               </div>
             </div>
           )}

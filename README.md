@@ -272,13 +272,23 @@ The CRE module (`cre/`) runs off-chain consensus through Chainlink Decentralized
 
 ---
 
-## 🎨 Cyber Sigilism Frontend UI
+## 🎨 Cyber Sigilism Frontend UI & Demo Sandbox
 
 The frontend (`frontend/`) adopts a refined **Cyber Sigilism** visual system:
 - **Chrome on Obsidian**: Base palette `#0e0e12`, surfaces `#17171d`, accents `#b068ff` and `#d6d8e4`.
 - **Circular Seals Only**: Zero rectangular tier boxes or dashed background cards; nodes render strictly as interactive circular seals with glowing glass hover reflections.
 - **Dynamic Risk Ring**: Radial score seal automatically alters color (Emerald $\to$ Amber $\to$ Rose) based on composite risk.
 - **Real-Time Rebuild HUD**: When an address mutation or upgrade drift occurs, the canvas displays a pulsating banner and flags mutated contracts with amber drift badges.
+
+### 🧪 Interactive Governance & Chaos Sandbox (`/demo`)
+Navigate to **`http://localhost:3000/demo`** to test our interactive governance attack matrix without affecting live Aave V3 data:
+1. **Scenario 1 (Implementation Upgrade)**: Mutate EIP-1967 slot to unverified V2 logic $\to$ bytecode hash drift rebuilds graph.
+2. **Scenario 2 (Admin Takeover)**: Replace 48h Timelock with hot EOA $\to$ F2 Admin Control explodes from 2 to 20 pts.
+3. **Scenario 3 (Multisig Compromise)**: Lower Safe signers from 5 to 2 and threshold to 1 $\to$ F5 Concentration Risk penalizes $< 3$ signers.
+4. **Scenario 4 (Oracle Redirect)**: Point ETH/USD to unverified aggregator $\to$ F1 Verification jumps to 20 pts.
+5. **Scenario 5 (Oracle Staleness)**: Freeze feed updates to $2.8\times$ heartbeat $\to$ F4 Freshness penalizes 15 pts.
+6. **Scenario 6 (Timelock Delay Reduction)**: Lower delay from 48h to 1h $\to$ F2 penalized for flash loan hijack window.
+- **One-Click Reset**: Instant restoration to safe pristine baseline.
 
 ---
 
