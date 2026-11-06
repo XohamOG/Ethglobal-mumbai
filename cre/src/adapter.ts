@@ -43,19 +43,28 @@ export interface RiskReportInput {
  */
 export function computeProtocolFingerprint(input: ProtocolFingerprintInput): string {
   // Normalize and sort addresses and hashes for determinism
-  const sortedImplHashes = input.implBytecodeHashes.map((h) => h.trim().toLowerCase()).sort();
-  const sortedAdmins = input.adminAddresses.map((a) => a.trim().toLowerCase()).sort();
-  const sortedFeeds = input.oracleFeedAddresses.map((f) => f.trim().toLowerCase()).sort();
-  const sortedDeps = input.depAddresses.map((d) => d.trim().toLowerCase()).sort();
+  const normHashes = [...input.implBytecodeHashes]
+    .map((h) => h.toLowerCase().trim())
+    .sort()
+    .join(":");
 
-  const packed = ethers.concat([
-    ethers.toUtf8Bytes(sortedImplHashes.join("")),
-    ethers.toUtf8Bytes(sortedAdmins.join("")),
-    ethers.toUtf8Bytes(sortedFeeds.join("")),
-    ethers.toUtf8Bytes(sortedDeps.join("")),
-  ]);
+  const normAdmins = [...input.adminAddresses]
+    .map((a) => ethers.getAddress(a).toLowerCase())
+    .sort()
+    .join(":");
 
-  return ethers.keccak256(packed);
+  const normOracles = [...input.oracleFeedAddresses]
+    .map((o) => ethers.getAddress(o).toLowerCase())
+    .sort()
+    .join(":");
+
+  const normDeps = [...input.depAddresses]
+    .map((d) => ethers.getAddress(d).toLowerCase())
+    .sort()
+    .join(":");
+
+  const compositeString = `${normHashes}|${normAdmins}|${normOracles}|${normDeps}`;
+  return ethers.keccak256(ethers.toUtf8Bytes(compositeString));
 }
 
 /**
