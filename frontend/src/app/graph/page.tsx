@@ -53,6 +53,22 @@ function GraphViewerContent() {
 
   const liveRisk = getRiskScoreConfig(compositeScore);
 
+  // Dynamic shared state across Graph canvas and CRE tabs
+  const [nodes, setNodes] = useState<GraphNode[]>(AAVE_NODES);
+  const [compositeScore, setCompositeScore] = useState<number>(protocol.compositeScore || 14.75);
+  const [riskTier, setRiskTier] = useState<string>(protocol.riskTier || "LOW");
+  const [fingerprint, setFingerprint] = useState<string>(
+    protocol.fingerprint || "0x39a7cd678a45f1e63df9441182b58d3e87149bc0d23f82fa05f4fb0b4993e06c"
+  );
+  const [isRebuilding, setIsRebuilding] = useState<boolean>(false);
+  const [mutatedNodeInfo, setMutatedNodeInfo] = useState<{
+    id: string;
+    label: string;
+    oldAddress: string;
+    newAddress: string;
+    reason?: string;
+  } | null>(null);
+
   useEffect(() => {
     const tab = searchParams.get("tab") as ActiveTab;
     if (tab && ["graph", "arkiv", "swarm", "cre"].includes(tab)) {

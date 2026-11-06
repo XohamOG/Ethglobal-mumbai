@@ -34,6 +34,21 @@ export interface GraphNode {
   adminAddress?: string;
   contractName?: string;
   sourcifyStatus: "full_match" | "partial_match" | "not_found";
+  contractName?: string;
+  adminAddress?: string;
+  arkivEntityKey?: string;
+  swarmBytecodeRef?: string;
+  justification?: ContractJustification;
+  breakdown?: {
+    f1_verification: number;
+    f2_admin_control: number;
+    f3_upgradeability: number;
+    f4_oracle_freshness: number;
+    f5_concentration_risk: number;
+    f6_contract_age: number;
+    f7_incident_history: number;
+    totalScore?: number;
+  };
   referencedProtocolId?: string;
   safeOwnerCount?: number;
   safeThreshold?: number;
