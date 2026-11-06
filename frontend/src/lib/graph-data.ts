@@ -476,6 +476,18 @@ export const AAVE_EDGES: GraphEdge[] = [
     type: "registry",
   },
   {
+    from: "aave-v3-addresses-provider",
+    to: "aave-v3-acl-manager",
+    label: "Registers ACL",
+    type: "registry",
+  },
+  {
+    from: "aave-v3-addresses-provider",
+    to: "aave-v3-data-provider",
+    label: "Registers DataProvider",
+    type: "registry",
+  },
+  {
     from: "aave-v3-acl-manager",
     to: "aave-v3-emergency-safe",
     label: "Emergency Admin Safe",

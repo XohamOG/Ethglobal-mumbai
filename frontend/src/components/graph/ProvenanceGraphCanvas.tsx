@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useRef, useState, useMemo } from "react";
-import { GraphNode, GraphEdge } from "@/lib/graph-data";
+import React, { useRef, useState, useMemo, useEffect } from "react";
+import { GraphNode, GraphEdge, getRiskScoreConfig } from "@/lib/graph-data";
 import {
   ZoomIn,
   ZoomOut,
   RotateCcw,
   Move,
+  Check,
+  Copy,
   Zap,
 } from "lucide-react";
 
@@ -19,149 +21,34 @@ interface ProvenanceGraphCanvasProps {
   mutatedNodeId?: string;
   onResetBaseline?: () => void;
   onSwitchToCreTab?: () => void;
-  activeHop?: number | "all" | "oracle-chain";
+  activeHop?: number | "all";
+  onResetLayout?: () => void;
 }
 
 // Canonical balanced layout coordinates for 15 Aave V3 nodes
-// Configured to showcase: PoolAddressesProvider -> Pool (Proxy) -> AaveOracle -> Chainlink Feeds
 const DEFAULT_NODE_COORDINATES: Record<string, { x: number; y: number }> = {
-  // Step 1: Root Address Registry (Left)
-  "aave-v3-addresses-provider": { x: 260, y: 140 },
+  // Layer 0 (y = 75) — Root Protocol Registry
+  "aave-v3-addresses-provider": { x: 570, y: 75 },
 
-  // Step 2: Pool Core Proxy (Center)
-  "aave-v3-pool": { x: 570, y: 140 },
+  // Layer 1 (y = 210) — Hop 0 Core Proxies
+  "aave-v3-pool": { x: 270, y: 210 },
+  "aave-v3-pool-configurator": { x: 470, y: 210 },
+  "aave-v3-acl-manager": { x: 670, y: 210 },
+  "aave-v3-data-provider": { x: 870, y: 210 },
 
-  // Step 3: Aave Oracle (Center Lower)
-  "aave-v3-oracle": { x: 570, y: 340 },
+  // Layer 2 (y = 370) — Hop 1 Implementations, Governance Timelock, Safe & Oracle
+  "aave-v3-pool-impl": { x: 210, y: 370 },
+  "aave-v3-configurator-impl": { x: 390, y: 370 },
+  "aave-v3-oracle": { x: 570, y: 370 },
+  "aave-v3-governance-executor": { x: 750, y: 370 },
+  "aave-v3-emergency-safe": { x: 930, y: 370 },
 
-  // Step 4: Upstream Chainlink Price Feeds (Bottom Arc)
+  // Layer 3 (y = 530) — Hop 2 Chainlink Oracles
   "chainlink-eth-usd": { x: 250, y: 530 },
   "chainlink-btc-usd": { x: 410, y: 530 },
   "chainlink-usdc-usd": { x: 570, y: 530 },
   "chainlink-dai-usd": { x: 730, y: 530 },
   "chainlink-usdt-usd": { x: 890, y: 530 },
-
-  // Implementations & Governance Admins (Surrounding)
-  "aave-v3-pool-impl": { x: 880, y: 140 },
-  "aave-v3-governance-executor": { x: 880, y: 280 },
-  "aave-v3-pool-configurator": { x: 260, y: 280 },
-  "aave-v3-configurator-impl": { x: 260, y: 420 },
-  "aave-v3-acl-manager": { x: 420, y: 240 },
-  "aave-v3-emergency-safe": { x: 720, y: 240 },
-  "aave-v3-data-provider": { x: 880, y: 420 },
-};
-
-// Rich Graphino / Neo4j Color Schemes & Labels by Node
-const NODE_CONFIG: Record<
-  string,
-  { bg: string; border: string; dot: string; lines: [string, string] }
-> = {
-  "aave-v3-addresses-provider": {
-    bg: "#065f46",
-    border: "#10b981",
-    dot: "#34d399",
-    lines: ["Addresses", "Provider"],
-  },
-  "aave-v3-pool": {
-    bg: "#9a3412",
-    border: "#f97316",
-    dot: "#fb923c",
-    lines: ["Aave V3 Pool", "(Proxy)"],
-  },
-  "aave-v3-oracle": {
-    bg: "#854d0e",
-    border: "#eab308",
-    dot: "#fef08a",
-    lines: ["Aave", "Oracle"],
-  },
-  "chainlink-eth-usd": {
-    bg: "#155e75",
-    border: "#06b6d4",
-    dot: "#67e8f9",
-    lines: ["ETH / USD", "Chainlink"],
-  },
-  "chainlink-btc-usd": {
-    bg: "#155e75",
-    border: "#06b6d4",
-    dot: "#67e8f9",
-    lines: ["BTC / USD", "Chainlink"],
-  },
-  "chainlink-usdc-usd": {
-    bg: "#155e75",
-    border: "#06b6d4",
-    dot: "#67e8f9",
-    lines: ["USDC / USD", "Chainlink"],
-  },
-  "chainlink-dai-usd": {
-    bg: "#155e75",
-    border: "#06b6d4",
-    dot: "#67e8f9",
-    lines: ["DAI / USD", "Chainlink"],
-  },
-  "chainlink-usdt-usd": {
-    bg: "#155e75",
-    border: "#06b6d4",
-    dot: "#67e8f9",
-    lines: ["USDT / USD", "Chainlink"],
-  },
-  "aave-v3-pool-impl": {
-    bg: "#3730a3",
-    border: "#6366f1",
-    dot: "#a5b4fc",
-    lines: ["Pool Logic", "(Implementation)"],
-  },
-  "aave-v3-pool-configurator": {
-    bg: "#9a3412",
-    border: "#f97316",
-    dot: "#fb923c",
-    lines: ["Configurator", "(Proxy)"],
-  },
-  "aave-v3-configurator-impl": {
-    bg: "#3730a3",
-    border: "#6366f1",
-    dot: "#a5b4fc",
-    lines: ["Config Logic", "(Implementation)"],
-  },
-  "aave-v3-governance-executor": {
-    bg: "#581c87",
-    border: "#a855f7",
-    dot: "#d8b4fe",
-    lines: ["Governance", "Timelock"],
-  },
-  "aave-v3-emergency-safe": {
-    bg: "#831843",
-    border: "#ec4899",
-    dot: "#f472b6",
-    lines: ["Emergency Safe", "4/7 Multisig"],
-  },
-  "aave-v3-acl-manager": {
-    bg: "#075985",
-    border: "#38bdf8",
-    dot: "#bae6fd",
-    lines: ["ACL", "Manager"],
-  },
-  "aave-v3-data-provider": {
-    bg: "#075985",
-    border: "#38bdf8",
-    dot: "#bae6fd",
-    lines: ["Data", "Provider"],
-  },
-};
-
-// Relationship Type Normalizer (Graphino style: DEPENDS_ON, USES_ORACLE, etc.)
-const EDGE_RELATIONSHIPS: Record<string, string> = {
-  "aave-v3-addresses-provider->aave-v3-pool": "REGISTERS_POOL",
-  "aave-v3-addresses-provider->aave-v3-pool-configurator": "REGISTERS_CONFIG",
-  "aave-v3-pool->aave-v3-oracle": "USES_ORACLE",
-  "aave-v3-pool->aave-v3-pool-impl": "DELEGATES_TO",
-  "aave-v3-pool->aave-v3-governance-executor": "GOVERNED_BY",
-  "aave-v3-pool-configurator->aave-v3-configurator-impl": "DELEGATES_TO",
-  "aave-v3-acl-manager->aave-v3-emergency-safe": "CONTROLLED_BY",
-  "aave-v3-oracle->chainlink-eth-usd": "FETCHES_FEED",
-  "aave-v3-oracle->chainlink-btc-usd": "FETCHES_FEED",
-  "aave-v3-oracle->chainlink-usdc-usd": "FETCHES_FEED",
-  "aave-v3-oracle->chainlink-dai-usd": "FETCHES_FEED",
-  "aave-v3-oracle->chainlink-usdt-usd": "FETCHES_FEED",
 };
 
 export function ProvenanceGraphCanvas({
@@ -217,7 +104,7 @@ export function ProvenanceGraphCanvas({
 
   // Node Drag Handlers
   const handleNodeMouseDown = (e: React.MouseEvent, nodeId: string) => {
-    if (e.button !== 0) return;
+    if (e.button !== 0) return; // Only primary button
     e.stopPropagation();
 
     const pt = getSvgPoint(e);
@@ -274,24 +161,59 @@ export function ProvenanceGraphCanvas({
     setIsPanning(false);
   };
 
+  // Node Category Configuration (Hyperstudio wireframe tokens)
+  const categoryConfig: Record<string, { stroke: string; fill: string; glyph: string; name: string }> = {
+    proxy: { stroke: "#c1c1c1", fill: "#080808", glyph: "P", name: "Proxy" },
+    implementation: { stroke: "#474747", fill: "#080808", glyph: "I", name: "Implementation" },
+    oracle: { stroke: "#6f6759", fill: "#080808", glyph: "O", name: "Oracle" },
+    multisig: { stroke: "#9c9c9c", fill: "#080808", glyph: "S", name: "Safe Multisig" },
+    timelock: { stroke: "#6f6759", fill: "#080808", glyph: "T", name: "Timelock" },
+  };
+
+  const getStyle = (cat: string, admin?: string) => {
+    if (admin === "timelock") return categoryConfig.timelock;
+    return categoryConfig[cat] || { stroke: "#474747", fill: "#080808", glyph: "C", name: "Contract" };
+  };
+
   // Highlight and Dependency Calculation Logic
   // - Default: No node selected + activeHop "all" => ALL nodes & edges active (not dimmed)
-  // - Node clicked => Selected node + its direct dependencies active, rest dimmed
-  // - Hop clicked => Nodes in that hop + relevant edges active, rest dimmed
-  // - "oracle-chain" => PoolAddressesProvider -> Pool -> AaveOracle -> Chainlink Feeds
+  // - Node clicked => Selected node + full upstream ancestor path to root + downstream dependents active
+  // - Hop clicked => Strictly nodes belonging to that hop are highlighted
   const { highlightedNodes, highlightedEdges, hasFilter } = useMemo(() => {
     // 1. If a node is explicitly selected by user:
     if (selectedNodeId) {
       const activeNodes = new Set<string>([selectedNodeId]);
       const activeEdges = new Set<string>();
 
-      edges.forEach((e) => {
-        if (e.from === selectedNodeId || e.to === selectedNodeId) {
-          activeNodes.add(e.from);
-          activeNodes.add(e.to);
-          activeEdges.add(`${e.from}->${e.to}`);
-        }
-      });
+      // Traverse all upstream ancestors back to the root (PoolAddressesProvider)
+      const upQueue = [selectedNodeId];
+      while (upQueue.length > 0) {
+        const curr = upQueue.shift()!;
+        edges.forEach((e) => {
+          if (e.to === curr) {
+            activeEdges.add(`${e.from}->${e.to}`);
+            if (!activeNodes.has(e.from)) {
+              activeNodes.add(e.from);
+              upQueue.push(e.from);
+            }
+          }
+        });
+      }
+
+      // Also traverse all direct downstream dependents
+      const downQueue = [selectedNodeId];
+      while (downQueue.length > 0) {
+        const curr = downQueue.shift()!;
+        edges.forEach((e) => {
+          if (e.from === curr) {
+            activeEdges.add(`${e.from}->${e.to}`);
+            if (!activeNodes.has(e.to)) {
+              activeNodes.add(e.to);
+              downQueue.push(e.to);
+            }
+          }
+        });
+      }
 
       return {
         highlightedNodes: activeNodes,
@@ -300,36 +222,7 @@ export function ProvenanceGraphCanvas({
       };
     }
 
-    // 2. If "oracle-chain" preset is selected:
-    if (activeHop === "oracle-chain") {
-      const chainNodes = new Set<string>([
-        "aave-v3-addresses-provider",
-        "aave-v3-pool",
-        "aave-v3-oracle",
-        "chainlink-eth-usd",
-        "chainlink-btc-usd",
-        "chainlink-usdc-usd",
-        "chainlink-dai-usd",
-        "chainlink-usdt-usd",
-      ]);
-      const chainEdges = new Set<string>([
-        "aave-v3-addresses-provider->aave-v3-pool",
-        "aave-v3-pool->aave-v3-oracle",
-        "aave-v3-oracle->chainlink-eth-usd",
-        "aave-v3-oracle->chainlink-btc-usd",
-        "aave-v3-oracle->chainlink-usdc-usd",
-        "aave-v3-oracle->chainlink-dai-usd",
-        "aave-v3-oracle->chainlink-usdt-usd",
-      ]);
-
-      return {
-        highlightedNodes: chainNodes,
-        highlightedEdges: chainEdges,
-        hasFilter: true,
-      };
-    }
-
-    // 3. If a hop is active (0, 1, or 2):
+    // 2. If a hop is active (0, 1, or 2):
     if (activeHop !== "all") {
       const activeNodes = new Set<string>();
       const activeEdges = new Set<string>();
@@ -340,17 +233,22 @@ export function ProvenanceGraphCanvas({
         }
       });
 
-      // Context bridges
-      if (activeHop === 1) {
-        activeNodes.add("aave-v3-pool");
-        activeNodes.add("aave-v3-pool-configurator");
-      } else if (activeHop === 2) {
-        activeNodes.add("aave-v3-oracle");
-      }
-
+      // Highlight edges connecting within this hop or bridging into this hop
       edges.forEach((e) => {
-        if (activeNodes.has(e.from) && activeNodes.has(e.to)) {
-          activeEdges.add(`${e.from}->${e.to}`);
+        if (activeHop === 0) {
+          if (activeNodes.has(e.from) && activeNodes.has(e.to)) {
+            activeEdges.add(`${e.from}->${e.to}`);
+          }
+        } else if (activeHop === 1) {
+          // Edges pointing from Hop 0 proxies into Hop 1 implementations/governance
+          if (activeNodes.has(e.to)) {
+            activeEdges.add(`${e.from}->${e.to}`);
+          }
+        } else if (activeHop === 2) {
+          // Edges from Oracle into Hop 2 feeds
+          if (activeNodes.has(e.to)) {
+            activeEdges.add(`${e.from}->${e.to}`);
+          }
         }
       });
 
@@ -361,7 +259,7 @@ export function ProvenanceGraphCanvas({
       };
     }
 
-    // 4. Default state: Highlight ALL nodes & edges
+    // 3. Default state: Highlight ALL nodes & edges
     return {
       highlightedNodes: new Set<string>(nodes.map((n) => n.id)),
       highlightedEdges: new Set<string>(edges.map((e) => `${e.from}->${e.to}`)),
@@ -370,10 +268,10 @@ export function ProvenanceGraphCanvas({
   }, [selectedNodeId, activeHop, nodes, edges]);
 
   return (
-    <div className="relative w-full h-full min-h-[580px] bg-[#0d0d0d] overflow-hidden select-none flex flex-col justify-between">
+    <div className="relative w-full h-full min-h-[580px] bg-[#101010] overflow-hidden select-none flex flex-col justify-between">
       {/* Live Rebuild / Mutation Drift HUD Alert */}
       {mutatedNodeId && (
-        <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between p-3 rounded-[6px] bg-[#080808]/95 border border-[#474747] text-[#f3f3f3] text-[12px] font-mono backdrop-blur-md animate-fadeIn">
+        <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between p-3 rounded-[4px] bg-[#080808]/95 border border-[#474747] text-[#f3f3f3] text-[12px] font-mono backdrop-blur-md animate-fadeIn">
           <div className="flex items-center gap-2.5">
             <span className="w-2 h-2 rounded-full bg-[#f59e0b] animate-ping shrink-0" />
             <div>
@@ -432,32 +330,10 @@ export function ProvenanceGraphCanvas({
             transform={`translate(${panOffset.x}, ${panOffset.y}) scale(${zoomLevel})`}
             style={{ transformOrigin: "570px 340px" }}
           >
-            {/* Arrowhead Markers — Graphino Cyan / Teal */}
+            {/* Arrowhead Markers */}
             <defs>
               <marker
-                id="graphino-arrow-default"
-                viewBox="0 -5 10 10"
-                refX="8"
-                refY="0"
-                markerWidth="6"
-                markerHeight="6"
-                orient="auto"
-              >
-                <path d="M0,-4L8,0L0,4" fill="#38bdf8" />
-              </marker>
-              <marker
-                id="graphino-arrow-active"
-                viewBox="0 -5 10 10"
-                refX="8"
-                refY="0"
-                markerWidth="7"
-                markerHeight="7"
-                orient="auto"
-              >
-                <path d="M0,-4L9,0L0,4" fill="#22d3ee" />
-              </marker>
-              <marker
-                id="graphino-arrow-dimmed"
+                id="hyper-arrow-default"
                 viewBox="0 -5 10 10"
                 refX="8"
                 refY="0"
@@ -465,11 +341,33 @@ export function ProvenanceGraphCanvas({
                 markerHeight="5"
                 orient="auto"
               >
-                <path d="M0,-3.5L7,0L0,3.5" fill="#262626" />
+                <path d="M0,-4L8,0L0,4" fill="#474747" />
+              </marker>
+              <marker
+                id="hyper-arrow-active"
+                viewBox="0 -5 10 10"
+                refX="8"
+                refY="0"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto"
+              >
+                <path d="M0,-4L8,0L0,4" fill="#ffffff" />
+              </marker>
+              <marker
+                id="hyper-arrow-gold"
+                viewBox="0 -5 10 10"
+                refX="8"
+                refY="0"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto"
+              >
+                <path d="M0,-4L8,0L0,4" fill="#6f6759" />
               </marker>
             </defs>
 
-            {/* Connecting Directed Curved Edges */}
+            {/* Connecting Directed Edges */}
             <g className="graph-edges">
               {edges.map((edge) => {
                 const fromPos = nodePositions[edge.from] || DEFAULT_NODE_COORDINATES[edge.from];
@@ -480,8 +378,8 @@ export function ProvenanceGraphCanvas({
                 const isEdgeHighlighted = highlightedEdges.has(edgeKey);
                 const isDimmed = hasFilter && !isEdgeHighlighted;
 
-                // Node radius offset (r = 34) so arrow meets circle border cleanly
-                const nodeR = 34;
+                // Node radius offset so arrow meets the circle border cleanly
+                const nodeR = 24;
                 const dx = toPos.x - fromPos.x;
                 const dy = toPos.y - fromPos.y;
                 const dist = Math.hypot(dx, dy);
@@ -505,21 +403,17 @@ export function ProvenanceGraphCanvas({
                 const midX = (startX + endX) / 2;
                 const midY = (startY + endY) / 2;
 
-                const relLabel = EDGE_RELATIONSHIPS[edgeKey] || edge.label.toUpperCase().replace(/\s+/g, "_");
+                const strokeColor = isEdgeHighlighted
+                  ? edge.type === "governance" || edge.type === "oracle"
+                    ? "#6f6759"
+                    : "#ffffff"
+                  : "#474747";
 
-                const strokeColor = isDimmed
-                  ? "#262626"
-                  : isEdgeHighlighted
-                  ? "#22d3ee"
-                  : "#0284c7";
-
-                const strokeWidth = isEdgeHighlighted ? 2.2 : isDimmed ? 0.8 : 1.5;
-                const strokeOpacity = isEdgeHighlighted ? 1.0 : isDimmed ? 0.08 : 0.65;
-                const markerEnd = isDimmed
-                  ? "url(#graphino-arrow-dimmed)"
-                  : isEdgeHighlighted
-                  ? "url(#graphino-arrow-active)"
-                  : "url(#graphino-arrow-default)";
+                const marker = isEdgeHighlighted
+                  ? edge.type === "governance" || edge.type === "oracle"
+                    ? "url(#hyper-arrow-gold)"
+                    : "url(#hyper-arrow-active)"
+                  : "url(#hyper-arrow-default)";
 
                 return (
                   <g key={edgeKey} className="edge-group">
@@ -527,37 +421,35 @@ export function ProvenanceGraphCanvas({
                       d={d}
                       fill="none"
                       stroke={strokeColor}
-                      strokeWidth={strokeWidth}
-                      strokeOpacity={strokeOpacity}
-                      markerEnd={markerEnd}
+                      strokeWidth={isEdgeHighlighted ? 2 : 1}
+                      strokeOpacity={isEdgeHighlighted ? 1.0 : isDimmed ? 0.04 : 0.45}
+                      markerEnd={marker}
                       className="transition-all duration-150"
                     />
 
-                    {/* Edge Label Badge Along the Curve (Graphino style) */}
-                    {!isDimmed && (
+                    {/* Edge Label Badge on Active Highlight */}
+                    {isEdgeHighlighted && (
                       <g transform={`translate(${midX}, ${midY})`} className="pointer-events-none">
                         <rect
-                          x="-38"
+                          x="-42"
                           y="-9"
-                          width="76"
+                          width="84"
                           height="18"
                           rx="4"
                           fill="#080808"
-                          stroke={isEdgeHighlighted ? "#22d3ee" : "#0284c7"}
-                          strokeWidth={isEdgeHighlighted ? "1.2" : "0.8"}
-                          opacity={isEdgeHighlighted ? 1 : 0.8}
+                          stroke={strokeColor}
+                          strokeWidth="1"
                         />
                         <text
                           x="0"
                           y="3.5"
-                          fill={isEdgeHighlighted ? "#67e8f9" : "#38bdf8"}
+                          fill="#f3f3f3"
                           fontFamily="ui-monospace, monospace"
                           fontSize="7.5"
-                          fontWeight="700"
+                          fontWeight="400"
                           textAnchor="middle"
-                          letterSpacing="0.04em"
                         >
-                          {relLabel}
+                          {edge.label.toUpperCase()}
                         </text>
                       </g>
                     )}
@@ -566,7 +458,7 @@ export function ProvenanceGraphCanvas({
               })}
             </g>
 
-            {/* Rich Solid Circular Nodes (Graphino Neo4j Visuals) */}
+            {/* Circular Draggable Nodes */}
             <g className="graph-nodes">
               {nodes.map((node) => {
                 const pos = nodePositions[node.id] || DEFAULT_NODE_COORDINATES[node.id];
@@ -577,15 +469,9 @@ export function ProvenanceGraphCanvas({
                 const isNodeHighlighted = highlightedNodes.has(node.id);
                 const isDimmed = hasFilter && !isNodeHighlighted;
 
-                const config = NODE_CONFIG[node.id] || {
-                  bg: "#1e293b",
-                  border: "#64748b",
-                  dot: "#94a3b8",
-                  lines: [node.label, ""],
-                };
-
+                const style = getStyle(node.category, node.adminType);
                 const isMutated = mutatedNodeId === node.id;
-                const nodeR = 34;
+                const nodeR = 24;
 
                 return (
                   <g
@@ -597,7 +483,7 @@ export function ProvenanceGraphCanvas({
                       e.stopPropagation();
                       if (hasMovedNode) return;
                       if (isSelected) {
-                        onSelectNode(null);
+                        onSelectNode(null); // Deselect on clicking selected node
                       } else {
                         onSelectNode(node);
                       }
@@ -606,16 +492,16 @@ export function ProvenanceGraphCanvas({
                     onMouseLeave={() => setHoveredNodeId(null)}
                     opacity={isDimmed ? 0.15 : 1}
                   >
-                    {/* Active Selected Cyan Glow Ring */}
+                    {/* Active Selected Halo Ring */}
                     {isSelected && (
                       <circle
-                        r={nodeR + 8}
+                        r={nodeR + 7}
                         fill="transparent"
-                        stroke="#22d3ee"
-                        strokeWidth="2"
-                        strokeDasharray="5 3"
+                        stroke="#ffffff"
+                        strokeWidth="1.5"
+                        strokeDasharray="4 3"
                         className="animate-spin"
-                        style={{ animationDuration: "14s" }}
+                        style={{ animationDuration: "12s" }}
                       />
                     )}
 
@@ -624,83 +510,92 @@ export function ProvenanceGraphCanvas({
                       <circle
                         r={nodeR + 5}
                         fill="transparent"
-                        stroke="#38bdf8"
-                        strokeWidth="1.5"
-                        strokeDasharray="4 3"
+                        stroke="#6f6759"
+                        strokeWidth="1"
+                        strokeDasharray="3 3"
                       />
                     )}
+
+                    {/* Node Main Circle */}
+                    <circle
+                      r={nodeR}
+                      fill={style.fill}
+                      stroke={isSelected ? "#ffffff" : isHovered ? "#c1c1c1" : style.stroke}
+                      strokeWidth={isSelected ? 2 : 1}
+                      className="transition-transform duration-150"
+                    />
 
                     {/* Mutated / Drift Ring */}
                     {isMutated && (
                       <circle
-                        r={nodeR + 6}
+                        r={nodeR + 4}
                         fill="transparent"
                         stroke="#f59e0b"
-                        strokeWidth="2"
+                        strokeWidth="1.5"
                         strokeDasharray="4 4"
                       />
                     )}
 
-                    {/* Node Main Solid Colored Circle */}
+                    {/* Status Pip */}
                     <circle
-                      r={nodeR}
-                      fill={config.bg}
-                      stroke={isSelected ? "#ffffff" : isHovered ? "#67e8f9" : config.border}
-                      strokeWidth={isSelected ? 2.5 : 2}
-                      className="transition-all duration-150"
-                      filter="drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6))"
-                    />
-
-                    {/* Status Indicator Pip */}
-                    <circle
-                      cx={nodeR - 6}
-                      cy={-nodeR + 7}
-                      r="4"
-                      fill={isMutated ? "#f59e0b" : config.dot}
+                      cx={nodeR - 5}
+                      cy={-nodeR + 6}
+                      r="3.5"
+                      fill={isMutated ? "#f59e0b" : "#98ff38"}
                       stroke="#080808"
                       strokeWidth="1.5"
                     />
 
-                    {/* Primary Text Inside Node Circle (Line 1) */}
+                    {/* Inner Glyph Icon */}
                     <text
                       textAnchor="middle"
-                      dy={config.lines[1] ? "-3" : "4"}
-                      fill="#ffffff"
+                      dy=".35em"
+                      fill="#f3f3f3"
+                      fontFamily="ui-monospace, monospace"
+                      fontSize="11"
+                      fontWeight="400"
+                      pointerEvents="none"
+                    >
+                      {style.glyph}
+                    </text>
+
+                    {/* Node Label Underneath Circle */}
+                    <text
+                      y={nodeR + 16}
+                      textAnchor="middle"
+                      fill="#f3f3f3"
                       fontFamily="system-ui, -apple-system, sans-serif"
-                      fontSize="10.5"
-                      fontWeight="600"
+                      fontSize="11"
+                      fontWeight="400"
                       letterSpacing="-0.01em"
                       pointerEvents="none"
                     >
-                      {config.lines[0]}
+                      {node.label}
                     </text>
 
-                    {/* Secondary Text Inside Node Circle (Line 2) */}
-                    {config.lines[1] && (
-                      <text
-                        textAnchor="middle"
-                        dy="11"
-                        fill="#e2e8f0"
-                        fontFamily="system-ui, -apple-system, sans-serif"
-                        fontSize="9"
-                        fontWeight="500"
-                        opacity="0.9"
-                        pointerEvents="none"
-                      >
-                        {config.lines[1]}
-                      </text>
-                    )}
-
-                    {/* Address Snippet Below Circle */}
+                    {/* Address Snippet */}
                     <text
-                      y={nodeR + 15}
+                      y={nodeR + 29}
                       textAnchor="middle"
-                      fill="#94a3b8"
+                      fill="#9c9c9c"
                       fontFamily="ui-monospace, monospace"
                       fontSize="8.5"
                       pointerEvents="none"
                     >
                       {node.address.slice(0, 6)}...{node.address.slice(-4)}
+                    </text>
+
+                    {/* Risk Score */}
+                    <text
+                      y={nodeR + 40}
+                      textAnchor="middle"
+                      fill={isMutated ? "#f59e0b" : "#9c9c9c"}
+                      fontFamily="ui-monospace, monospace"
+                      fontSize="8"
+                      fontWeight="400"
+                      pointerEvents="none"
+                    >
+                      {isMutated ? "MUTATED · " + node.riskScore : "RISK: " + node.riskScore}
                     </text>
                   </g>
                 );
@@ -747,52 +642,44 @@ export function ProvenanceGraphCanvas({
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-[11px] uppercase tracking-wider text-[#9c9c9c] hover:text-[#f3f3f3] hover:bg-[#1a1a1a] transition-colors cursor-pointer"
               title="Reset node positions to default layout"
             >
-              <Move className="w-3 h-3 text-[#38bdf8]" />
+              <Move className="w-3 h-3 text-[#6f6759]" />
               <span>Reset Layout</span>
             </button>
           </div>
         </div>
 
-        {/* Center Canvas Flow Indicator */}
-        <div className="hidden md:flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#080808]/90 border border-[#212121] text-[11px] text-[#9c9c9c] pointer-events-auto">
+        {/* Center Canvas Hint */}
+        <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-[#080808]/85 border border-[#212121] text-[11px] text-[#9c9c9c] pointer-events-auto">
           {selectedNodeId ? (
             <span>
               Isolated dependencies for:{" "}
-              <strong className="text-[#38bdf8] font-normal">
+              <strong className="text-[#f3f3f3] font-normal">
                 {nodes.find((n) => n.id === selectedNodeId)?.label}
               </strong>{" "}
-              · Click canvas to clear
-            </span>
-          ) : activeHop === "oracle-chain" ? (
-            <span>
-              <strong className="text-[#38bdf8]">Oracle Dependency Chain Active:</strong> AddressesProvider ➔ Pool (Proxy) ➔ AaveOracle ➔ Chainlink Feeds
+              · Click background to clear
             </span>
           ) : (
-            <span>Click any node to isolate dependencies · Drag nodes to reposition</span>
+            <span>Click any node to highlight dependencies · Drag nodes to reposition</span>
           )}
         </div>
 
         {/* Right Legend */}
         <div className="hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-[6px] bg-[#080808]/90 border border-[#212121] text-[11px] text-[#9c9c9c] uppercase tracking-wider pointer-events-auto">
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#10b981]" />
-            <span>Registry</span>
+            <span className="w-2 h-2 rounded-full border border-[#c1c1c1] bg-transparent" />
+            <span>Proxy (P)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#f97316]" />
-            <span>Proxy</span>
+            <span className="w-2 h-2 rounded-full border border-[#474747] bg-transparent" />
+            <span>Impl (I)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#eab308]" />
-            <span>Oracle</span>
+            <span className="w-2 h-2 rounded-full border border-[#6f6759] bg-transparent" />
+            <span>Oracle (O)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#06b6d4]" />
-            <span>Price Feed</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#6366f1]" />
-            <span>Impl</span>
+            <span className="w-2 h-2 rounded-full border border-[#9c9c9c] bg-transparent" />
+            <span>Safe (S)</span>
           </div>
         </div>
       </div>

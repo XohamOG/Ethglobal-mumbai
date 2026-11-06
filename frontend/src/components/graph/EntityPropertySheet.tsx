@@ -175,8 +175,22 @@ export function EntityPropertySheet({ node, onClose }: EntityPropertySheetProps)
               <span>F6 Contract Age:</span>
               <span className="text-[#f3f3f3]">{node.breakdown.f6_contract_age} pts</span>
             </div>
+            <div className="flex justify-between">
+              <span>F7 Incident History:</span>
+              <span className="text-[#f3f3f3]">{node.breakdown.f7_incident_history ?? 0} pts</span>
+            </div>
           </div>
         )}
+
+        {/* Link to Full Audit & RPC Traces Page */}
+        <div className="pt-2 border-t border-[#212121]">
+          <a href="/audit?protocol=aave-v3-mainnet" className="block w-full">
+            <button className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-[6px] border border-[#212121] hover:border-[#474747] bg-[#080808] text-[11px] text-[#f3f3f3] hover:text-[#98ff38] transition-colors cursor-pointer">
+              <span>View Full RPC Traces & Calculation</span>
+              <ExternalLink className="w-3 h-3 text-[#6f6759]" />
+            </button>
+          </a>
+        </div>
       </div>
 
       {/* Technical Properties Table */}
