@@ -1,40 +1,40 @@
 "use client";
 
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useState, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { PROTOCOLS, AAVE_NODES, AAVE_EDGES, GraphNode, getRiskScoreConfig } from "@/lib/graph-data";
 import { ProvenanceGraphCanvas } from "@/components/graph/ProvenanceGraphCanvas";
 import { EntityPropertySheet } from "@/components/graph/EntityPropertySheet";
 import { CreTriggerModal } from "@/components/cre/CreTriggerModal";
-import { DecryptedText } from "@/components/ui/DecryptedText";
 import {
   ArrowLeft,
-  ShieldCheck,
   Zap,
   Sliders,
+  PanelRightClose,
+  PanelRightOpen,
+  ArrowRight,
 } from "lucide-react";
+
+export type GraphStage = "registry" | "hop0" | "hop1" | "hop2" | "all";
 
 function GraphViewerContent() {
   const searchParams = useSearchParams();
   const protocolId = searchParams.get("protocol") || "aave-v3-mainnet";
-
   const protocol = PROTOCOLS.find((p) => p.protocolId === protocolId) || PROTOCOLS[0];
 
-  const [selectedNode, setSelectedNode] = useState<GraphNode>(AAVE_NODES[0]);
-  const [activeHopFilter, setActiveHopFilter] = useState<number | "all">("all");
+  const [activeStage, setActiveStage] = useState<GraphStage>("registry");
+  const [selectedNode, setSelectedNode] = useState<GraphNode>(AAVE_NODES[1]); // Default to PoolAddressesProvider (Registry)
+  const [isInspectorOpen, setIsInspectorOpen] = useState(false);
   const [isCreModalOpen, setIsCreModalOpen] = useState(false);
 
-  // Dynamic shared state across Graph canvas and CRE modal
+  // Dynamic shared state
   const [nodes, setNodes] = useState<GraphNode[]>(AAVE_NODES);
   const [compositeScore, setCompositeScore] = useState<number>(protocol.compositeScore || 13.7);
   const [isRebuilding, setIsRebuilding] = useState<boolean>(false);
   const [mutatedNodeInfo, setMutatedNodeInfo] = useState<{
     id: string;
     label: string;
-    oldAddress: string;
-    newAddress: string;
-    reason?: string;
   } | null>(null);
 
   const liveRisk = getRiskScoreConfig(compositeScore);
@@ -47,158 +47,171 @@ function GraphViewerContent() {
     setCompositeScore(13.7);
     setMutatedNodeInfo(null);
     setIsRebuilding(false);
-    setSelectedNode(AAVE_NODES[0]);
+    setSelectedNode(AAVE_NODES[1]);
   };
 
-  const filteredNodes =
-    activeHopFilter === "all"
-      ? nodes
-      : nodes.filter((n) => n.hop === activeHopFilter);
+  // Filter nodes based on active stage progression
+  const stageFilteredNodes = useMemo(() => {
+    switch (activeStage) {
+      case "registry":
+        return nodes.filter((n) => n.id === "aave-v3-addresses-provider");
+      case "hop0":
+        return nodes.filter((n) => n.hop === 0);
+      case "hop1":
+        return nodes.filter((n) => n.hop === 0 || n.hop === 1);
+      case "hop2":
+        return nodes.filter((n) => n.hop === 0 || n.hop === 1 || n.hop === 2);
+      case "all":
+      default:
+        return nodes;
+    }
+  }, [nodes, activeStage]);
+
+  // Filter edges based on visible nodes
+  const stageFilteredEdges = useMemo(() => {
+    const visibleIds = new Set(stageFilteredNodes.map((n) => n.id));
+    return AAVE_EDGES.filter((e) => visibleIds.has(e.from) && visibleIds.has(e.to));
+  }, [stageFilteredNodes]);
+
+  const handleAdvanceStage = (next: GraphStage) => {
+    setActiveStage(next);
+  };
+
+  const handleNodeClick = (node: GraphNode) => {
+    setSelectedNode(node);
+    // Auto advance on progressive presentation clicks
+    if (activeStage === "registry") {
+      setActiveStage("hop0");
+    } else if (activeStage === "hop0") {
+      setActiveStage("hop1");
+    } else if (activeStage === "hop1") {
+      setActiveStage("hop2");
+    }
+  };
+
+  const stageLabel = useMemo(() => {
+    switch (activeStage) {
+      case "registry":
+        return "1/4 · Protocol Registry";
+      case "hop0":
+        return "2/4 · Hop 0 (Core Mesh)";
+      case "hop1":
+        return "3/4 · Hop 1 (Governance & Impl)";
+      case "hop2":
+        return "4/4 · Hop 2 (Oracles)";
+      case "all":
+        return "All Hops (15 Nodes)";
+    }
+  }, [activeStage]);
 
   return (
-    <div className="h-screen flex flex-col bg-[#101010] text-[#f3f3f3] overflow-hidden">
-      {/* Top Header Bar — Hyperstudio Specification */}
-      <header className="h-16 border-b border-[#212121] px-6 sm:px-10 flex items-center justify-between bg-[#101010] shrink-0 z-30">
-        <div className="flex items-center gap-4">
+    <div className="h-screen flex flex-col bg-[#101010] text-[#f3f3f3] overflow-hidden select-none">
+      {/* Top Header Bar — Hyperstudio Minimalist Specification */}
+      <header className="h-14 border-b border-[#212121] px-5 flex items-center justify-between bg-[#101010] shrink-0 z-30">
+        <div className="flex items-center gap-3">
           <Link href="/">
-            <button className="flex items-center gap-1.5 text-[13px] text-[#9c9c9c] hover:text-[#f3f3f3] transition-colors cursor-pointer py-1.5 px-3 rounded-[8px] border border-[#212121] hover:border-[#474747] bg-[#080808] uppercase tracking-wider">
+            <button className="flex items-center gap-1.5 text-[12px] text-[#9c9c9c] hover:text-[#f3f3f3] transition-colors cursor-pointer py-1.5 px-3 rounded-[8px] border border-[#212121] hover:border-[#474747] bg-[#080808] uppercase tracking-wider">
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Overview</span>
+              <span>Macaroon</span>
             </button>
           </Link>
           <span className="text-[#212121]">/</span>
           <div className="flex items-center gap-2">
-            <span className="text-[15px] font-normal text-[#f3f3f3] tracking-tight">
-              <DecryptedText text={protocol.name} speed={30} maxIterations={8} animateOn="view" />
+            <span className="text-[14px] font-normal text-[#f3f3f3] tracking-tight">
+              Aave V3 Lineage
             </span>
-            <span className="text-[12px] text-[#9c9c9c] uppercase tracking-wider font-mono">
-              · Topology Graph
+            <span className="text-[11px] text-[#6f6759] uppercase tracking-wider font-mono px-2 py-0.5 rounded bg-[#151515] border border-[#212121]">
+              {stageLabel}
             </span>
           </div>
         </div>
 
-        {/* Hyperstudio Header Actions */}
-        <div className="flex items-center gap-3">
-          {/* Ghost Outline Button — Demo Sandbox */}
-          <Link
-            href="/demo"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-[8px] bg-transparent hover:bg-[#1a1a1a] text-[#9c9c9c] hover:text-[#f3f3f3] border border-[#212121] hover:border-[#474747] text-[12px] uppercase tracking-wider transition-colors"
-            title="Open Interactive Demo Chaos Sandbox"
+        {/* Presentation Controls: Single 'View All Hops' button + Collapsible Inspector */}
+        <div className="flex items-center gap-2.5">
+          {/* View All Hops / Reset Button */}
+          {activeStage !== "all" ? (
+            <button
+              onClick={() => setActiveStage("all")}
+              className="px-4 py-1.5 rounded-full bg-[#ffffff] hover:bg-[#f3f3f3] text-[#101010] text-[12px] uppercase font-normal tracking-wider transition-colors cursor-pointer flex items-center gap-1.5"
+            >
+              <span>View All Hops</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          ) : (
+            <button
+              onClick={() => setActiveStage("registry")}
+              className="px-3.5 py-1.5 rounded-[8px] bg-[#080808] hover:bg-[#1a1a1a] text-[#f3f3f3] border border-[#474747] text-[12px] uppercase font-normal tracking-wider transition-colors cursor-pointer"
+            >
+              Restart Flow
+            </button>
+          )}
+
+          {/* Collapsible Inspector Toggle Button */}
+          <button
+            onClick={() => setIsInspectorOpen(!isInspectorOpen)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12px] uppercase tracking-wider transition-colors cursor-pointer border ${
+              isInspectorOpen
+                ? "bg-[#1a1a1a] border-[#474747] text-[#f3f3f3]"
+                : "bg-[#080808] border-[#212121] text-[#9c9c9c] hover:text-[#f3f3f3] hover:border-[#474747]"
+            }`}
+            title="Toggle Entity Property Inspector Sheet"
           >
-            <Sliders className="w-3.5 h-3.5 text-[#6f6759]" />
-            <span className="hidden md:inline">Simulation Sandbox</span>
-          </Link>
+            {isInspectorOpen ? (
+              <PanelRightClose className="w-3.5 h-3.5 text-[#6f6759]" />
+            ) : (
+              <PanelRightOpen className="w-3.5 h-3.5 text-[#6f6759]" />
+            )}
+            <span>
+              {isInspectorOpen ? "Hide Inspector" : "Inspect"}
+            </span>
+          </button>
 
-          {/* Status Badge Pill */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-[4px] bg-[#1a1a1a] border border-[#212121] text-[12px] uppercase tracking-wider">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#98ff38]" />
-            <span className="text-[#9c9c9c]">Risk:</span>
-            <span className="text-[#98ff38] font-mono">{compositeScore}</span>
-            <span className="text-[#9c9c9c]">({liveRisk.tier})</span>
-          </div>
-
-          {/* White Pill Button — Primary CTA */}
+          {/* Audit Action Button */}
           <button
             onClick={() => setIsCreModalOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#ffffff] hover:bg-[#f3f3f3] text-[#101010] text-[12px] uppercase font-normal tracking-wider transition-colors cursor-pointer"
-            title="Trigger Chainlink CRE Consensus Verification"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] border border-[#212121] hover:border-[#474747] bg-[#080808] text-[#f3f3f3] text-[12px] uppercase font-normal tracking-wider transition-colors cursor-pointer"
           >
-            <Zap className="w-3.5 h-3.5 text-[#101010]" />
-            <span>Audit CRE</span>
+            <Zap className="w-3.5 h-3.5 text-[#6f6759]" />
+            <span>Audit</span>
           </button>
         </div>
       </header>
 
-      {/* Main Graph View - 100% Dedicated */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
-        {/* Left Filter & Layer Sidebar — Carbon Depth (#080808) */}
-        <div className="w-full md:w-60 border-r border-[#212121] bg-[#080808] p-5 flex flex-col justify-between shrink-0 overflow-y-auto">
-          <div className="space-y-6">
-            <div>
-              <div className="text-[11px] uppercase tracking-widest text-[#9c9c9c] mb-3">
-                Provenance Hops
-              </div>
-              <div className="flex flex-col gap-1">
-                {[
-                  { id: "all", label: "All Contracts (15)" },
-                  { id: 0, label: "Hop 0 · Core Mesh (6)" },
-                  { id: 1, label: "Hop 1 · Governance (4)" },
-                  { id: 2, label: "Hop 2 · Oracles (5)" },
-                ].map((item) => (
-                  <button
-                    key={String(item.id)}
-                    onClick={() => setActiveHopFilter(item.id as number | "all")}
-                    className={`w-full text-left px-3 py-2 rounded-[4px] text-[13px] transition-colors cursor-pointer flex items-center justify-between ${
-                      activeHopFilter === item.id
-                        ? "bg-[#1a1a1a] text-[#f3f3f3] border border-[#212121]"
-                        : "text-[#9c9c9c] hover:text-[#f3f3f3] hover:bg-[#101010] border border-transparent"
-                    }`}
-                  >
-                    <span>{item.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Quick Node List */}
-            <div>
-              <div className="text-[11px] uppercase tracking-widest text-[#9c9c9c] mb-3">
-                Active Contracts
-              </div>
-              <div className="space-y-1 max-h-[calc(100vh-340px)] overflow-y-auto pr-1">
-                {filteredNodes.map((n) => {
-                  const nodeRisk = getRiskScoreConfig(n.riskScore);
-                  const isSelected = selectedNode.id === n.id;
-                  return (
-                    <button
-                      key={n.id}
-                      onClick={() => setSelectedNode(n)}
-                      className={`w-full text-left px-3 py-2 rounded-[4px] text-[12px] transition-colors cursor-pointer flex items-center justify-between group ${
-                        isSelected
-                          ? "bg-[#1a1a1a] text-[#f3f3f3] border border-[#474747]"
-                          : "bg-transparent border border-transparent hover:border-[#212121] hover:bg-[#101010] text-[#9c9c9c] hover:text-[#f3f3f3]"
-                      }`}
-                    >
-                      <span className="truncate max-w-[140px] font-normal">{n.label}</span>
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-[4px] bg-[#101010] text-[#9c9c9c] border border-[#212121]">
-                        {n.riskScore}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-[#212121] text-[11px] text-[#9c9c9c] font-mono space-y-1.5 mt-4">
-            <div className="flex justify-between">
-              <span>Arkiv BTL:</span>
-              <span className="text-[#f3f3f3]">50,000 blocks</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Evaluated:</span>
-              <span className="text-[#f3f3f3]">#{protocol.lastEvaluatedBlock}</span>
-            </div>
-          </div>
-        </div>
-
+      {/* Main Full-Bleed Graph Presentation Canvas */}
+      <div className="flex-1 flex overflow-hidden min-h-0 relative">
         {/* Center Canvas */}
-        <div className="flex-1 bg-[#101010] p-4 overflow-hidden flex flex-col min-h-0">
+        <div className="flex-1 bg-[#101010] overflow-hidden flex flex-col min-h-0 relative">
           <ProvenanceGraphCanvas
-            nodes={filteredNodes}
-            edges={AAVE_EDGES}
+            nodes={stageFilteredNodes}
+            edges={stageFilteredEdges}
             selectedNodeId={selectedNode.id}
-            onSelectNode={(node) => setSelectedNode(node)}
+            onSelectNode={handleNodeClick}
             isRebuilding={isRebuilding}
             mutatedNodeId={mutatedNodeInfo?.id}
             onResetBaseline={handleResetBaseline}
+            stage={activeStage}
+            onAdvanceStage={handleAdvanceStage}
           />
         </div>
 
-        {/* Right Property Sheet (Entity Inspector) — Carbon Depth (#080808) */}
-        <div className="w-full md:w-88 border-l border-[#212121] bg-[#080808] p-6 overflow-y-auto shrink-0">
-          <EntityPropertySheet node={selectedNode} />
-        </div>
+        {/* Collapsible Right Property Sheet (Entity Inspector) */}
+        {isInspectorOpen && (
+          <div className="w-full md:w-96 border-l border-[#212121] bg-[#080808] p-5 overflow-y-auto shrink-0 z-20 animate-fadeIn transition-all">
+            <div className="flex items-center justify-between pb-3 border-b border-[#212121] mb-4">
+              <span className="text-[11px] uppercase tracking-wider text-[#9c9c9c]">
+                Entity Inspector
+              </span>
+              <button
+                onClick={() => setIsInspectorOpen(false)}
+                className="text-[#9c9c9c] hover:text-[#f3f3f3] p-1 rounded hover:bg-[#1a1a1a] cursor-pointer"
+                title="Collapse Inspector"
+              >
+                ✕
+              </button>
+            </div>
+            <EntityPropertySheet node={selectedNode} />
+          </div>
+        )}
       </div>
 
       {/* CRE Trigger Modal */}
@@ -215,8 +228,8 @@ export default function GraphViewerPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#0e0e12] flex items-center justify-center text-xs text-[#aaaab8] font-mono">
-          Loading DeFi Provenance Graph...
+        <div className="min-h-screen bg-[#101010] flex items-center justify-center text-xs text-[#9c9c9c] font-mono">
+          Loading Lineage Graph...
         </div>
       }
     >
