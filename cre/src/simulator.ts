@@ -47,7 +47,7 @@ async function main() {
     console.log(`\n>>> [1/2] Simulating Workflow 1: Periodic Cron Sweep (7,200 Blocks / 24h) <<<`);
     const cronResult = await runCronSweep({
       protocolId: PROTOCOL_ID,
-      rpcUrl: "https://eth.llamarpc.com",
+      rpcUrl: "https://cloudflare-eth.com",
       graphServiceUrl: GRAPH_SERVICE_URL,
       riskRegistryAddress: localRegistryAddress || ethers.ZeroAddress,
       signer: signer,

@@ -13,6 +13,19 @@ export interface GraphNode {
   proxyType: "eip1967" | "beacon" | "eip897" | "none";
   adminType: "timelock" | "safe" | "eoa" | "dao" | "none";
   sourcifyStatus: "full_match" | "partial_match" | "not_found";
+  contractName?: string;
+  adminAddress?: string;
+  arkivEntityKey?: string;
+  breakdown?: {
+    f1_verification: number;
+    f2_admin_control: number;
+    f3_upgradeability: number;
+    f4_oracle_freshness: number;
+    f5_concentration_risk: number;
+    f6_contract_age: number;
+    f7_incident_history: number;
+    totalScore?: number;
+  };
   referencedProtocolId?: string;
   safeOwnerCount?: number;
   safeThreshold?: number;
@@ -44,6 +57,7 @@ export const PROTOCOLS = [
     "transitiveDepsCount": 5,
     "fingerprint": "0x39a7cd678a45f1e63df9441182b58d3e87149bc0d23f82fa05f4fb0b4993e06c",
     "swarmGraphRef": "3a5194ce284962a9b0598c0b1e001e96a5d63a573a4a2423b47913b71b2c8e7d",
+    "swarmEvidenceRef": "7b82f109a258c0b1e001e96a5d63a573a4a2423b47913b71b2c8e7d3a5194ce2",
     "arkivRegistryKey": "0xc561566253956c5c8fec52d0cd49af8a5c40e1209c87894b863a5275dd665b50",
     "arkivSnapshotKey": "0xf3ccb8f81475290b38ed5302d715e7931b9f5df445c1acf888fb3e07cab3f435"
   }

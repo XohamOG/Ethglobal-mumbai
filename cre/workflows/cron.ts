@@ -45,7 +45,11 @@ export async function runCronSweep(config: CronWorkflowConfig) {
   console.log(` [CRE Cron Sweep] Initiating sweep for: ${config.protocolId}`);
   console.log(`======================================================`);
 
-  const provider = new ethers.JsonRpcProvider(config.rpcUrl);
+  const provider = new ethers.JsonRpcProvider(
+    config.rpcUrl,
+    { chainId: 1, name: "mainnet" },
+    { staticNetwork: true }
+  );
 
   let poolImpl = "0x5FAab9E1adbddaD0a08734BE8a52185Fd6558E14";
   let poolAdmin = AAVE_V3_CORE.timelockAdmin;
