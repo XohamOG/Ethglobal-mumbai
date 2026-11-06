@@ -56,80 +56,82 @@ function GraphViewerContent() {
       : nodes.filter((n) => n.hop === activeHopFilter);
 
   return (
-    <div className="h-screen flex flex-col bg-[#0e0e12] text-[#ececf2] overflow-hidden">
-      {/* Top Header Bar */}
-      <header className="h-14 border-b border-[#282832] px-6 flex items-center justify-between bg-[#17171d] shrink-0 z-30">
-        <div className="flex items-center gap-3">
+    <div className="h-screen flex flex-col bg-[#101010] text-[#f3f3f3] overflow-hidden">
+      {/* Top Header Bar — Hyperstudio Specification */}
+      <header className="h-16 border-b border-[#212121] px-6 sm:px-10 flex items-center justify-between bg-[#101010] shrink-0 z-30">
+        <div className="flex items-center gap-4">
           <Link href="/">
-            <button className="flex items-center gap-1.5 text-xs font-mono text-[#aaaab8] hover:text-[#ececf2] transition-colors cursor-pointer py-1 px-2 rounded-[2px] hover:bg-[#282832]">
+            <button className="flex items-center gap-1.5 text-[13px] text-[#9c9c9c] hover:text-[#f3f3f3] transition-colors cursor-pointer py-1.5 px-3 rounded-[8px] border border-[#212121] hover:border-[#474747] bg-[#080808] uppercase tracking-wider">
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Protocols</span>
+              <span>Overview</span>
             </button>
           </Link>
-          <span className="text-[#282832]">/</span>
+          <span className="text-[#212121]">/</span>
           <div className="flex items-center gap-2">
-            <span className="font-bold text-sm text-[#ececf2] tracking-tight">
+            <span className="text-[15px] font-normal text-[#f3f3f3] tracking-tight">
               <DecryptedText text={protocol.name} speed={30} maxIterations={8} animateOn="view" />
             </span>
-            <span className="text-xs font-mono text-[#7d8495]">· Provenance Engine</span>
+            <span className="text-[12px] text-[#9c9c9c] uppercase tracking-wider font-mono">
+              · Topology Graph
+            </span>
           </div>
         </div>
 
-        {/* Minimal Actions Bar */}
+        {/* Hyperstudio Header Actions */}
         <div className="flex items-center gap-3">
-          {/* Demo Sandbox Link */}
+          {/* Ghost Outline Button — Demo Sandbox */}
           <Link
             href="/demo"
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-[#17171d] hover:bg-[#b068ff]/15 text-[#ececf2] border border-[#b068ff]/40 text-xs font-mono transition-all shadow-[0_0_10px_rgba(176,104,255,0.12)] hover:scale-105"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-[8px] bg-transparent hover:bg-[#1a1a1a] text-[#9c9c9c] hover:text-[#f3f3f3] border border-[#212121] hover:border-[#474747] text-[12px] uppercase tracking-wider transition-colors"
             title="Open Interactive Demo Chaos Sandbox"
           >
-            <Sliders className="w-3 h-3 text-[#b068ff]" />
-            <span className="hidden md:inline font-semibold">Demo Sandbox</span>
+            <Sliders className="w-3.5 h-3.5 text-[#6f6759]" />
+            <span className="hidden md:inline">Simulation Sandbox</span>
           </Link>
 
-          {/* CRE Trigger & Score Button with Dynamic Risk Color & Glass Hover */}
+          {/* Status Badge Pill */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-[4px] bg-[#1a1a1a] border border-[#212121] text-[12px] uppercase tracking-wider">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#98ff38]" />
+            <span className="text-[#9c9c9c]">Risk:</span>
+            <span className="text-[#98ff38] font-mono">{compositeScore}</span>
+            <span className="text-[#9c9c9c]">({liveRisk.tier})</span>
+          </div>
+
+          {/* White Pill Button — Primary CTA */}
           <button
             onClick={() => setIsCreModalOpen(true)}
-            className={`flex items-center gap-2 px-3 py-1 rounded-[2px] border ${liveRisk.borderColor} hover:border-[#b068ff]/70 bg-[#17171d]/80 backdrop-blur-md hover:bg-[#282832]/80 text-xs font-mono transition-all duration-300 cursor-pointer text-[#ececf2] shadow-sm`}
-            title="Click to Trigger Real-Time CRE Fingerprint Verification"
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#ffffff] hover:bg-[#f3f3f3] text-[#101010] text-[12px] uppercase font-normal tracking-wider transition-colors cursor-pointer"
+            title="Trigger Chainlink CRE Consensus Verification"
           >
-            <ShieldCheck className={`w-3.5 h-3.5 ${liveRisk.textColor}`} />
-            <span className="text-[#aaaab8]">Score:</span>
-            <span className={`font-bold ${liveRisk.textColor}`}>{compositeScore}</span>
-            <span className={`text-[10px] uppercase font-semibold ${liveRisk.textColor}`}>
-              ({liveRisk.tier})
-            </span>
-            <span className="text-[10px] bg-[#d6d8e4] text-[#000000] px-1.5 py-0.2 rounded-[2px] font-semibold flex items-center gap-1 ml-1 hover:bg-white transition-colors">
-              <Zap className="w-2.5 h-2.5" />
-              Audit
-            </span>
+            <Zap className="w-3.5 h-3.5 text-[#101010]" />
+            <span>Audit CRE</span>
           </button>
         </div>
       </header>
 
       {/* Main Graph View - 100% Dedicated */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
-        {/* Left Filter & Layer Sidebar */}
-        <div className="w-full md:w-56 border-r border-[#282832] bg-[#17171d] p-4 flex flex-col justify-between shrink-0 overflow-y-auto">
-          <div className="space-y-5">
+        {/* Left Filter & Layer Sidebar — Carbon Depth (#080808) */}
+        <div className="w-full md:w-60 border-r border-[#212121] bg-[#080808] p-5 flex flex-col justify-between shrink-0 overflow-y-auto">
+          <div className="space-y-6">
             <div>
-              <div className="text-[10px] font-mono uppercase tracking-widest text-[#7d8495] mb-2.5">
+              <div className="text-[11px] uppercase tracking-widest text-[#9c9c9c] mb-3">
                 Provenance Hops
               </div>
               <div className="flex flex-col gap-1">
                 {[
                   { id: "all", label: "All Contracts (15)" },
-                  { id: 0, label: "Hop 0 · Core (6)" },
+                  { id: 0, label: "Hop 0 · Core Mesh (6)" },
                   { id: 1, label: "Hop 1 · Governance (4)" },
                   { id: 2, label: "Hop 2 · Oracles (5)" },
                 ].map((item) => (
                   <button
                     key={String(item.id)}
                     onClick={() => setActiveHopFilter(item.id as number | "all")}
-                    className={`w-full text-left px-2.5 py-1.5 rounded-[2px] text-xs font-mono transition-all cursor-pointer flex items-center justify-between ${
+                    className={`w-full text-left px-3 py-2 rounded-[4px] text-[13px] transition-colors cursor-pointer flex items-center justify-between ${
                       activeHopFilter === item.id
-                        ? "bg-[#282832] text-[#ececf2] border border-[#7d8495]/40 font-semibold"
-                        : "text-[#aaaab8] hover:text-[#ececf2] hover:bg-[#282832]/50"
+                        ? "bg-[#1a1a1a] text-[#f3f3f3] border border-[#212121]"
+                        : "text-[#9c9c9c] hover:text-[#f3f3f3] hover:bg-[#101010] border border-transparent"
                     }`}
                   >
                     <span>{item.label}</span>
@@ -138,12 +140,12 @@ function GraphViewerContent() {
               </div>
             </div>
 
-            {/* Quick Node List with Glass Hover & Semantic Risk Colors */}
+            {/* Quick Node List */}
             <div>
-              <div className="text-[10px] font-mono uppercase tracking-widest text-[#7d8495] mb-2">
+              <div className="text-[11px] uppercase tracking-widest text-[#9c9c9c] mb-3">
                 Active Contracts
               </div>
-              <div className="space-y-1 max-h-[calc(100vh-320px)] overflow-y-auto pr-1">
+              <div className="space-y-1 max-h-[calc(100vh-340px)] overflow-y-auto pr-1">
                 {filteredNodes.map((n) => {
                   const nodeRisk = getRiskScoreConfig(n.riskScore);
                   const isSelected = selectedNode.id === n.id;
@@ -151,14 +153,14 @@ function GraphViewerContent() {
                     <button
                       key={n.id}
                       onClick={() => setSelectedNode(n)}
-                      className={`w-full text-left px-2.5 py-1.5 rounded-[2px] text-[11px] font-mono transition-all duration-200 cursor-pointer flex items-center justify-between group ${
+                      className={`w-full text-left px-3 py-2 rounded-[4px] text-[12px] transition-colors cursor-pointer flex items-center justify-between group ${
                         isSelected
-                          ? `bg-[#282832] text-[#ececf2] border ${nodeRisk.borderColor} shadow-sm`
-                          : "bg-[#17171d]/60 backdrop-blur-sm border border-transparent hover:border-[#282832] hover:bg-[#282832]/80 text-[#aaaab8] hover:text-[#ececf2]"
+                          ? "bg-[#1a1a1a] text-[#f3f3f3] border border-[#474747]"
+                          : "bg-transparent border border-transparent hover:border-[#212121] hover:bg-[#101010] text-[#9c9c9c] hover:text-[#f3f3f3]"
                       }`}
                     >
-                      <span className="truncate max-w-[130px] group-hover:text-white transition-colors">{n.label}</span>
-                      <span className={`text-[9.5px] font-mono font-bold px-1.5 py-0.2 rounded-[2px] ${nodeRisk.badgeBg} ${nodeRisk.textColor} border ${nodeRisk.borderColor}`}>
+                      <span className="truncate max-w-[140px] font-normal">{n.label}</span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-[4px] bg-[#101010] text-[#9c9c9c] border border-[#212121]">
                         {n.riskScore}
                       </span>
                     </button>
@@ -168,20 +170,20 @@ function GraphViewerContent() {
             </div>
           </div>
 
-          <div className="pt-3 border-t border-[#282832] text-[10px] text-[#7d8495] font-mono space-y-1 mt-4">
+          <div className="pt-4 border-t border-[#212121] text-[11px] text-[#9c9c9c] font-mono space-y-1.5 mt-4">
             <div className="flex justify-between">
               <span>Arkiv BTL:</span>
-              <span className="text-[#ececf2]">50k blocks</span>
+              <span className="text-[#f3f3f3]">50,000 blocks</span>
             </div>
             <div className="flex justify-between">
               <span>Evaluated:</span>
-              <span className="text-[#ececf2]">#{protocol.lastEvaluatedBlock}</span>
+              <span className="text-[#f3f3f3]">#{protocol.lastEvaluatedBlock}</span>
             </div>
           </div>
         </div>
 
         {/* Center Canvas */}
-        <div className="flex-1 bg-[#0e0e12] p-4 overflow-hidden flex flex-col min-h-0">
+        <div className="flex-1 bg-[#101010] p-4 overflow-hidden flex flex-col min-h-0">
           <ProvenanceGraphCanvas
             nodes={filteredNodes}
             edges={AAVE_EDGES}
@@ -193,8 +195,8 @@ function GraphViewerContent() {
           />
         </div>
 
-        {/* Right Property Sheet (Entity Inspector) */}
-        <div className="w-full md:w-84 border-l border-[#282832] bg-[#17171d] p-5 overflow-y-auto shrink-0">
+        {/* Right Property Sheet (Entity Inspector) — Carbon Depth (#080808) */}
+        <div className="w-full md:w-88 border-l border-[#212121] bg-[#080808] p-6 overflow-y-auto shrink-0">
           <EntityPropertySheet node={selectedNode} />
         </div>
       </div>

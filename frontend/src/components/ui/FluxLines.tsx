@@ -175,21 +175,21 @@ void main() {
   float field = smin(peaks, peaks2, max(uFluidity, 0.001));
 
   float slope = length(vec2(dFdx(field), dFdy(field)));
-  float linesFreq = 7.0;
+  float linesFreq = 6.5;
   float fFrac = fract(field * linesFreq);
-  float gap = min(fFrac, 1.0 - fFrac) / linesFreq;
-  float pixels = gap / max(slope, 1e-6);
-  float halfBand = max(uRimWidth, 0.001) * 0.5;
-  float across = min(1.0, max(gap / halfBand, pixels / uMaxHalf));
-  float band = 4.0 * uRimWidth * (1.0 - across);
-  float mouseGlow = smoothstep(0.1, 0.75, pull);
-  float reveal = max(0.5, mouseGlow);
-  float shimmer = vn(p + dir * (t * spd * 0.5), 60.0, 12.0) * uShimmer * 0.25;
-  float lit = clamp(band - shimmer, 0.0, 1.0);
-  float glow = pow(lit, max(0.4, uSharpness * 0.55)) * uGlow * (1.0 + mouseGlow * 1.8);
-  float core = uLine > 0.0 ? smoothstep(uLine + 1.2, uLine - 0.5, pixels) * max(smoothstep(0.05, 0.5, glow), reveal) : 0.0;
-  float shine = clamp(glow, 0.0, 1.0);
-  float energy = max(shine * shine, core * 0.9) * max(0.6, uReveal);
+  float distToLine = min(fFrac, 1.0 - fFrac) / linesFreq;
+  float pixelDist = distToLine / max(slope, 1e-5);
+
+  // Razor-sharp architectural hairline contour line
+  float lineW = max(uLine, 0.85);
+  float lineCore = smoothstep(lineW + 1.2, lineW - 0.4, pixelDist);
+
+  // Ethereal blueprint aura glow
+  float lineGlow = exp(-pixelDist * 0.14) * 0.45;
+
+  // Dynamic mouse reactivity
+  float mouseGlow = smoothstep(0.04, 0.7, pull);
+  float energy = (lineCore * 0.95 + lineGlow * 0.4) * (1.0 + mouseGlow * 1.8);
 
   float h = clamp(0.5 + (peaks - peaks2) * 0.8, 0.0, 1.0);
   vec3 tint = palette(h);

@@ -535,38 +535,38 @@ export function getRiskScoreConfig(score: number): RiskScoreConfig {
   if (score <= 15) {
     return {
       tier: "LOW",
-      textColor: "text-emerald-400",
-      borderColor: "border-emerald-500/40",
-      borderHover: "hover:border-emerald-400/80",
-      badgeBg: "bg-emerald-950/50",
-      badgeText: "text-emerald-300",
-      glow: "shadow-[0_0_20px_rgba(16,185,129,0.22)]",
-      hex: "#10b981",
-      barColor: "bg-emerald-400",
+      textColor: "text-[#98ff38]",
+      borderColor: "border-[#212121]",
+      borderHover: "hover:border-[#474747]",
+      badgeBg: "bg-[#101010]",
+      badgeText: "text-[#98ff38]",
+      glow: "",
+      hex: "#98ff38",
+      barColor: "bg-[#98ff38]",
     };
   } else if (score <= 35) {
     return {
       tier: "MEDIUM",
-      textColor: "text-amber-400",
-      borderColor: "border-amber-500/40",
-      borderHover: "hover:border-amber-400/80",
-      badgeBg: "bg-amber-950/50",
-      badgeText: "text-amber-300",
-      glow: "shadow-[0_0_20px_rgba(245,158,11,0.22)]",
-      hex: "#f59e0b",
-      barColor: "bg-amber-400",
+      textColor: "text-[#c1c1c1]",
+      borderColor: "border-[#212121]",
+      borderHover: "hover:border-[#474747]",
+      badgeBg: "bg-[#101010]",
+      badgeText: "text-[#c1c1c1]",
+      glow: "",
+      hex: "#c1c1c1",
+      barColor: "bg-[#c1c1c1]",
     };
   } else {
     return {
       tier: "HIGH",
-      textColor: "text-rose-400",
-      borderColor: "border-rose-500/40",
-      borderHover: "hover:border-rose-400/80",
-      badgeBg: "bg-rose-950/50",
-      badgeText: "text-rose-300",
-      glow: "shadow-[0_0_20px_rgba(244,63,94,0.22)]",
-      hex: "#f43f5e",
-      barColor: "bg-rose-400",
+      textColor: "text-[#f3f3f3]",
+      borderColor: "border-[#474747]",
+      borderHover: "hover:border-[#ffffff]",
+      badgeBg: "bg-[#101010]",
+      badgeText: "text-[#f3f3f3]",
+      glow: "",
+      hex: "#f3f3f3",
+      barColor: "bg-[#f3f3f3]",
     };
   }
 }

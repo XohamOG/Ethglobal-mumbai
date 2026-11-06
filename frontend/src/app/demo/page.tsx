@@ -6,7 +6,6 @@ import {
   DEMO_BASELINE_NODES,
   DEMO_BASELINE_EDGES,
   DEMO_SCENARIOS,
-  DemoScenario,
   scoreDemoNode,
   calculateDemoCompositeRisk,
   computeDemoFingerprint,
@@ -22,9 +21,9 @@ import {
   ChevronDown,
   ChevronUp,
   Sliders,
-  Flame,
   ShieldCheck,
   CheckCircle2,
+  ArrowUpRight,
 } from "lucide-react";
 
 export default function DemoPage() {
@@ -246,56 +245,70 @@ export default function DemoPage() {
   ];
 
   return (
-    <div className="h-screen w-screen bg-[#0e0e12] text-[#ececf2] flex flex-col font-sans overflow-hidden">
-      {/* Sleek Top Navigation Header */}
-      <header className="h-12 shrink-0 border-b border-[#282832] bg-[#17171d]/90 backdrop-blur-md px-4 flex items-center justify-between z-30">
-        <div className="flex items-center gap-3">
+    <div className="h-screen w-screen bg-[#101010] text-[#f3f3f3] flex flex-col font-sans overflow-hidden">
+      {/* Top Header — Hyperstudio Specification */}
+      <header className="h-16 shrink-0 border-b border-[#212121] bg-[#101010] px-6 flex items-center justify-between z-30">
+        <div className="flex items-center gap-4">
           <Link
             href="/graph"
-            className="flex items-center gap-1.5 text-xs font-mono text-[#aaaab8] hover:text-[#ececf2] transition-colors px-2 py-1 rounded-[2px] hover:bg-[#282832]"
-            title="Return to Live Aave V3 Graph"
+            className="flex items-center gap-1.5 text-[12px] text-[#9c9c9c] hover:text-[#f3f3f3] transition-colors px-3 py-1.5 rounded-[8px] border border-[#212121] hover:border-[#474747] bg-[#080808] uppercase tracking-wider"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Aave V3 Live</span>
+            <span>Aave V3 Live</span>
           </Link>
 
-          <span className="text-[#282832]">/</span>
+          <span className="text-[#212121]">/</span>
 
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#b068ff] animate-pulse" />
-            <h1 className="font-bold text-sm text-[#ececf2] tracking-tight">
-              Simulation Sandbox
-            </h1>
+            <span className="text-[15px] font-normal text-[#f3f3f3] tracking-tight">
+              Chaos Sandbox
+            </span>
+            <span className="text-[12px] text-[#9c9c9c] uppercase tracking-wider font-mono">
+              · 6 Simulation Scenarios
+            </span>
           </div>
         </div>
 
         {/* Live Score Seal & Actions */}
-        <div className="flex items-center gap-3 text-xs font-mono">
-          <div
-            className={`flex items-center gap-2 px-2.5 py-1 rounded-[2px] border ${riskConfig.borderColor} ${riskConfig.badgeBg} ${riskConfig.badgeText} transition-all`}
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Score:</span>
-            <span className="font-bold">{liveRiskAnalysis.compositeScore}</span>
-            <span className="text-[10px] font-semibold">({liveRiskAnalysis.riskTier})</span>
+        <div className="flex items-center gap-3">
+          {/* Status Badge Pill */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-[4px] bg-[#1a1a1a] border border-[#212121] text-[12px] uppercase tracking-wider">
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                isFingerprintDrifted ? "bg-[#f59e0b] animate-ping" : "bg-[#98ff38]"
+              }`}
+            />
+            <span className="text-[#9c9c9c]">Risk:</span>
+            <span className="text-[#f3f3f3] font-mono">{liveRiskAnalysis.compositeScore}</span>
+            <span className="text-[#9c9c9c]">({liveRiskAnalysis.riskTier})</span>
           </div>
 
+          {/* Ghost Outline Reset Button */}
           <button
             onClick={handleResetBaseline}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-[#282832] hover:bg-[#7d8495]/40 text-[#ececf2] border border-[#7d8495]/40 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-transparent hover:bg-[#1a1a1a] text-[#f3f3f3] border border-[#212121] hover:border-[#474747] text-[12px] uppercase tracking-wider transition-colors cursor-pointer"
             title="Reset All Parameters to Baseline"
           >
-            <RotateCcw className="w-3 h-3 text-[#d6d8e4]" />
-            <span className="hidden sm:inline">Reset</span>
+            <RotateCcw className="w-3 h-3 text-[#6f6759]" />
+            <span>Reset Baseline</span>
           </button>
+
+          {/* White Pill Button */}
+          <Link
+            href="/graph?protocol=aave-v3-mainnet"
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#ffffff] hover:bg-[#f3f3f3] text-[#101010] text-[12px] font-normal uppercase tracking-wider transition-colors"
+          >
+            <span>Live Graph</span>
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
       </header>
 
       {/* Clean Scenario Control Bar */}
-      <div className="h-11 shrink-0 border-b border-[#282832] bg-[#0e0e12] px-4 flex items-center justify-between gap-2 overflow-x-auto z-20">
-        <div className="flex items-center gap-1.5 shrink-0">
-          <span className="text-[11px] font-mono text-[#7d8495] uppercase tracking-wider mr-1 hidden md:inline">
-            Scenarios:
+      <div className="h-12 shrink-0 border-b border-[#212121] bg-[#080808] px-6 flex items-center justify-between gap-3 overflow-x-auto z-20">
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-[11px] text-[#9c9c9c] uppercase tracking-wider mr-1 hidden sm:inline">
+            Simulate Drift:
           </span>
           {scenarioShortButtons.map((btn) => {
             const isActive = activeScenarioId === btn.id;
@@ -303,17 +316,17 @@ export default function DemoPage() {
               <button
                 key={btn.id}
                 onClick={() => handleTriggerScenario(btn.id)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] text-xs font-mono transition-all cursor-pointer border shrink-0 ${
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-[12px] uppercase tracking-wider transition-colors cursor-pointer border shrink-0 ${
                   isActive
-                    ? "bg-amber-500/20 border-amber-500 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.25)] font-semibold"
-                    : "bg-[#17171d] border-[#282832] text-[#aaaab8] hover:text-[#ececf2] hover:border-[#7d8495]/60"
+                    ? "bg-[#1a1a1a] border-[#ffffff] text-[#f3f3f3]"
+                    : "bg-[#101010] border-[#212121] text-[#9c9c9c] hover:text-[#f3f3f3] hover:border-[#474747]"
                 }`}
               >
-                {isActive ? (
-                  <Flame className="w-3 h-3 text-amber-400 animate-pulse" />
-                ) : (
-                  <span className="text-[#7d8495] text-[10px]">●</span>
-                )}
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    isActive ? "bg-[#f59e0b] animate-ping" : "bg-[#474747]"
+                  }`}
+                />
                 <span>{btn.label}</span>
               </button>
             );
@@ -323,15 +336,15 @@ export default function DemoPage() {
         {/* Toggle Terminal Button */}
         <button
           onClick={() => setShowTerminal(!showTerminal)}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] text-xs font-mono transition-colors shrink-0 border ${
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-[12px] uppercase tracking-wider transition-colors shrink-0 border cursor-pointer ${
             showTerminal
-              ? "bg-[#282832] border-[#7d8495]/60 text-[#ececf2]"
-              : "bg-[#17171d] border-[#282832] text-[#aaaab8] hover:text-[#ececf2]"
+              ? "bg-[#1a1a1a] border-[#474747] text-[#f3f3f3]"
+              : "bg-[#101010] border-[#212121] text-[#9c9c9c] hover:text-[#f3f3f3]"
           }`}
           title="Toggle Consensus Stream Console"
         >
-          <Terminal className="w-3 h-3 text-[#d6d8e4]" />
-          <span className="hidden sm:inline">Stream</span>
+          <Terminal className="w-3.5 h-3.5 text-[#6f6759]" />
+          <span>Stream Log</span>
           {showTerminal ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         </button>
       </div>
@@ -360,29 +373,29 @@ export default function DemoPage() {
 
         {/* Floating Minimal Terminal Drawer (Collapsible) */}
         {showTerminal && (
-          <div className="absolute bottom-4 left-4 z-40 w-96 max-w-[calc(100vw-2rem)] rounded-[4px] border border-[#282832] bg-[#17171d]/95 backdrop-blur-md shadow-2xl overflow-hidden font-mono text-[11px] animate-fadeIn">
-            <div className="px-3 py-2 border-b border-[#282832] bg-[#0e0e12] flex items-center justify-between text-[#aaaab8]">
-              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-[#d6d8e4]">
-                <Terminal className="w-3 h-3 text-[#b068ff]" />
-                <span>Chainlink CRE DON Consensus</span>
+          <div className="absolute bottom-4 left-4 z-40 w-96 max-w-[calc(100vw-2rem)] rounded-[8px] border border-[#212121] bg-[#080808]/98 backdrop-blur-md overflow-hidden font-mono text-[11px] animate-fadeIn">
+            <div className="px-3.5 py-2.5 border-b border-[#212121] bg-[#101010] flex items-center justify-between text-[#9c9c9c]">
+              <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[#f3f3f3]">
+                <Terminal className="w-3.5 h-3.5 text-[#6f6759]" />
+                <span>Chainlink CRE Consensus Stream</span>
               </div>
               <button
                 onClick={() => setShowTerminal(false)}
-                className="text-[#7d8495] hover:text-[#ececf2] cursor-pointer"
+                className="text-[#9c9c9c] hover:text-[#f3f3f3] cursor-pointer"
               >
                 ✕
               </button>
             </div>
-            <div className="p-3 max-h-48 overflow-y-auto space-y-1">
+            <div className="p-3.5 max-h-48 overflow-y-auto space-y-1.5 text-[#9c9c9c]">
               {logs.map((log, idx) => (
                 <div
                   key={idx}
                   className={
                     log.startsWith("[!]")
-                      ? "text-amber-300 font-semibold"
+                      ? "text-[#f59e0b] font-medium"
                       : log.startsWith("[+]")
-                      ? "text-[#ececf2]"
-                      : "text-[#aaaab8]"
+                      ? "text-[#f3f3f3]"
+                      : "text-[#9c9c9c]"
                   }
                 >
                   {log}

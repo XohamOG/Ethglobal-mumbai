@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Terminal,
   X,
+  Cpu,
 } from "lucide-react";
 
 interface CreTriggerModalProps {
@@ -68,7 +69,7 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
       setLogs((prev) => [
         ...prev,
         `[+] Computed Fingerprint: ${currentFingerprint.slice(0, 16)}...`,
-        "[*] Querying RiskRegistry.sol (0x5FbDB231...) for on-chain fingerprint drift...",
+        "[*] Querying RiskRegistry.sol for on-chain fingerprint drift...",
       ]);
     }, 1200);
 
@@ -159,24 +160,24 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0e0e12]/90 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-      <div className="w-full max-w-2xl bg-[#17171d] border border-[#282832] rounded-[6px] shadow-2xl overflow-hidden flex flex-col text-[#ececf2] animate-fadeIn">
+    <div className="fixed inset-0 z-50 bg-[#101010]/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn">
+      <div className="w-full max-w-2xl bg-[#080808] border border-[#212121] rounded-[8px] overflow-hidden flex flex-col text-[#f3f3f3]">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[#282832] flex items-center justify-between bg-[#17171d]">
+        <div className="px-6 py-4 border-b border-[#212121] flex items-center justify-between bg-[#101010]">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-[2px] bg-[#282832] border border-[#7d8495]/40 flex items-center justify-center">
-              <Zap className="w-3.5 h-3.5 text-[#d6d8e4]" />
+            <div className="w-7 h-7 rounded-[4px] bg-[#1a1a1a] border border-[#212121] flex items-center justify-center">
+              <Zap className="w-3.5 h-3.5 text-[#6f6759]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-serif font-bold text-base text-[#ececf2]">
+                <h3 className="font-normal text-[16px] text-[#f3f3f3] uppercase tracking-wider">
                   Chainlink CRE Attestation
                 </h3>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-[2px] border border-[#282832] bg-[#282832]/60 text-[#aaaab8]">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-[4px] border border-[#212121] bg-[#1a1a1a] text-[#9c9c9c] uppercase">
                   Runtime
                 </span>
               </div>
-              <p className="text-[11px] font-mono text-[#aaaab8]">
+              <p className="text-[12px] text-[#9c9c9c] mt-0.5">
                 Real-time Keccak256 fingerprint verification & on-chain score consensus
               </p>
             </div>
@@ -184,7 +185,7 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
 
           <button
             onClick={onClose}
-            className="p-1.5 text-[#aaaab8] hover:text-[#ececf2] rounded-[2px] hover:bg-[#282832] transition-colors cursor-pointer"
+            className="p-1.5 text-[#9c9c9c] hover:text-[#f3f3f3] rounded-[4px] hover:bg-[#1a1a1a] transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -192,8 +193,8 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
 
         {/* Content */}
         <div className="p-6 space-y-5">
-          {/* Progress Steps (Cyber Sigilism chrome/monochrome) */}
-          <div className="grid grid-cols-4 gap-2 text-xs font-mono">
+          {/* Progress Steps */}
+          <div className="grid grid-cols-4 gap-2 text-[12px] font-mono">
             {[
               { id: "reading_rpc", label: "1. Scan", desc: "Block #26354138" },
               { id: "hashing_fingerprint", label: "2. Fingerprint", desc: "Keccak256" },
@@ -210,28 +211,28 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
               return (
                 <div
                   key={step.id}
-                  className={`p-2.5 rounded-[2px] border transition-all ${
+                  className={`p-2.5 rounded-[4px] border transition-colors ${
                     isDone
-                      ? "bg-[#282832]/40 border-[#7d8495]/60 text-[#d6d8e4]"
+                      ? "bg-[#101010] border-[#474747] text-[#f3f3f3]"
                       : isCurrent
-                      ? "bg-[#282832] border-[#b068ff] text-[#ececf2] shadow-sm"
-                      : "bg-[#0e0e12] border-[#282832] text-[#aaaab8]/50"
+                      ? "bg-[#1a1a1a] border-[#ffffff] text-[#f3f3f3]"
+                      : "bg-[#080808] border-[#212121] text-[#9c9c9c]/50"
                   }`}
                 >
-                  <div className="font-semibold text-[11px] flex items-center justify-between">
+                  <div className="text-[11px] uppercase tracking-wider flex items-center justify-between">
                     <span>{step.label}</span>
-                    {isDone && <CheckCircle2 className="w-3 h-3 text-[#d6d8e4]" />}
+                    {isDone && <CheckCircle2 className="w-3 h-3 text-[#98ff38]" />}
                   </div>
-                  <div className="text-[10px] text-[#aaaab8] truncate mt-0.5">{step.desc}</div>
+                  <div className="text-[10px] text-[#9c9c9c] truncate mt-0.5">{step.desc}</div>
                 </div>
               );
             })}
           </div>
 
           {/* Terminal Logs Output */}
-          <div className="p-3.5 rounded-[4px] bg-[#0e0e12] border border-[#282832] font-mono text-[11px] text-[#aaaab8] space-y-1 max-h-32 overflow-y-auto">
-            <div className="flex items-center gap-1.5 text-[10px] text-[#7d8495] uppercase tracking-wider mb-1 pb-1 border-b border-[#282832]">
-              <Terminal className="w-3 h-3 text-[#d6d8e4]" />
+          <div className="p-3.5 rounded-[4px] bg-[#101010] border border-[#212121] font-mono text-[11px] text-[#9c9c9c] space-y-1 max-h-32 overflow-y-auto">
+            <div className="flex items-center gap-1.5 text-[10px] text-[#9c9c9c] uppercase tracking-wider mb-1 pb-1 border-b border-[#212121]">
+              <Terminal className="w-3 h-3 text-[#6f6759]" />
               <span>Consensus Stream</span>
             </div>
             {logs.map((log, i) => (
@@ -239,10 +240,10 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
                 key={i}
                 className={
                   log.startsWith("[!]")
-                    ? "text-[#b068ff] font-semibold"
+                    ? "text-[#f59e0b] font-medium"
                     : log.startsWith("[+]")
-                    ? "text-[#ececf2]"
-                    : "text-[#aaaab8]"
+                    ? "text-[#f3f3f3]"
+                    : "text-[#9c9c9c]"
                 }
               >
                 {log}
@@ -262,11 +263,13 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
                 isFingerprintChanged={isDriftSimulated}
               />
 
-              {/* Simulation Drift Button (Subtle & Monochrome) */}
-              <div className="p-3.5 rounded-[4px] bg-[#0e0e12] border border-[#282832] flex items-center justify-between gap-3 text-xs font-mono">
+              {/* Simulation Drift Button */}
+              <div className="p-3.5 rounded-[4px] bg-[#101010] border border-[#212121] flex items-center justify-between gap-3 text-[12px]">
                 <div>
-                  <div className="text-[#ececf2] font-semibold">Test Upgrade Drift Detection</div>
-                  <p className="text-[10.5px] text-[#aaaab8] mt-0.5">
+                  <div className="text-[#f3f3f3] font-medium uppercase tracking-wider text-[11px]">
+                    Test Upgrade Drift Detection
+                  </div>
+                  <p className="text-[11px] text-[#9c9c9c] mt-0.5">
                     Simulate proxy upgrade event to trigger automatic consensus rebuild.
                   </p>
                 </div>
@@ -274,9 +277,9 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
                 <button
                   onClick={triggerSimulatedUpgrade}
                   disabled={stage !== "completed"}
-                  className="px-3 py-1.5 rounded-[2px] bg-[#282832] hover:bg-[#7d8495]/40 text-[#ececf2] border border-[#7d8495]/40 text-xs font-mono transition-colors cursor-pointer flex items-center gap-1.5 shrink-0"
+                  className="px-3 py-1.5 rounded-[8px] border border-[#474747] hover:border-[#ffffff] bg-transparent text-[#f3f3f3] text-[12px] uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5 shrink-0"
                 >
-                  <RefreshCw className="w-3 h-3 text-[#d6d8e4]" />
+                  <RefreshCw className="w-3 h-3 text-[#6f6759]" />
                   <span>Simulate Drift</span>
                 </button>
               </div>
@@ -284,11 +287,11 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
           )}
         </div>
 
-        {/* Modal Footer (Cleaned Up: No Arkiv Valid / Swarm Anchored) */}
-        <div className="px-6 py-4 border-t border-[#282832] bg-[#17171d] flex items-center justify-end gap-3">
+        {/* Modal Footer */}
+        <div className="px-6 py-4 border-t border-[#212121] bg-[#101010] flex items-center justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-[2px] text-xs font-mono text-[#aaaab8] hover:text-[#ececf2] transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-[8px] text-[12px] uppercase tracking-wider text-[#9c9c9c] hover:text-[#f3f3f3] transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -299,10 +302,10 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
               router.push("/graph?protocol=aave-v3-mainnet");
             }}
             disabled={stage !== "completed"}
-            className={`flex items-center gap-2 px-5 py-2 rounded-[2px] text-xs font-mono font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-5 py-2 rounded-full text-[12px] uppercase font-normal tracking-wider transition-colors cursor-pointer ${
               stage === "completed"
-                ? "bg-[#d6d8e4] text-[#000000] hover:bg-[#ececf2] shadow-sm"
-                : "bg-[#282832] text-[#aaaab8]/50 cursor-not-allowed"
+                ? "bg-[#ffffff] text-[#101010] hover:bg-[#f3f3f3]"
+                : "bg-[#212121] text-[#9c9c9c] cursor-not-allowed"
             }`}
           >
             <span>View Dependency Graph</span>

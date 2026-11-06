@@ -1,55 +1,105 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0e0e12;
-  --surface: #17171d;
-  --surface-2: #282832;
-  --foreground: #ececf2;
-  --text-muted: #aaaab8;
-  --primary: #d6d8e4;
-  --accent: #b068ff;
-  --chrome: #7d8495;
-  --border: #282832;
+  /* Hyperstudio Colors */
+  --color-obsidian: #101010;
+  --color-carbon: #080808;
+  --color-chalk: #f3f3f3;
+  --color-smoke: #9c9c9c;
+  --color-ash: #c1c1c1;
+  --color-graphite: #212121;
+  --color-iron: #474747;
+  --color-signal-white: #ffffff;
+  --color-compass-gold: #6f6759;
+  --color-card-slate: #3b3d45;
+  --color-pulse-green: #98ff38;
+
+  /* Typography — Scale */
+  --text-caption: 13px;
+  --leading-caption: 2.69;
+  --text-body: 16px;
+  --leading-body: 1.25;
+  --text-heading-xs: 18px;
+  --leading-heading-xs: 1.31;
+  --text-subheading: 21px;
+  --leading-subheading: 0.95;
+  --text-heading-sm: 23px;
+  --leading-heading-sm: 1.07;
+  --text-heading: 34px;
+  --leading-heading: 1.03;
+  --text-heading-lg: 44px;
+  --leading-heading-lg: 1.07;
+  --tracking-heading-lg: -0.31px;
+  --text-display: 63px;
+  --leading-display: 1.05;
+  --tracking-display: -0.69px;
+
+  /* Typography — Weights */
+  --font-weight-regular: 400;
+  --font-weight-bold: 700;
+
+  /* Spacing */
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-40: 40px;
+
+  /* Border Radius */
+  --radius-tags: 4px;
+  --radius-cards: 8px;
+  --radius-icons: 99px;
+  --radius-buttons: 9999px;
+
+  /* Surfaces */
+  --surface-obsidian-canvas: #101010;
+  --surface-carbon-depth: #080808;
+  --surface-hairline-grid: #212121;
+}
+
+@theme {
+  --color-obsidian: #101010;
+  --color-carbon: #080808;
+  --color-chalk: #f3f3f3;
+  --color-smoke: #9c9c9c;
+  --color-ash: #c1c1c1;
+  --color-graphite: #212121;
+  --color-iron: #474747;
+  --color-signal-white: #ffffff;
+  --color-compass-gold: #6f6759;
+  --color-card-slate: #3b3d45;
+  --color-pulse-green: #98ff38;
+
+  --font-aeonik: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-input: 'IBM Plex Mono', 'Space Mono', ui-monospace, monospace;
 }
 
 body {
-  background-color: #0e0e12;
-  color: #ececf2;
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #101010;
+  color: #f3f3f3;
+  font-family: var(--font-aeonik, 'Inter', system-ui, sans-serif);
   overflow-x: hidden;
+  font-weight: 400;
   letter-spacing: -0.01em;
 }
 
-h1, h2, h3, .font-serif {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
-  letter-spacing: -0.025em;
+/* Hyperstudio Mandate: Weight 400 across all headings — never bold shouting. Authority through scale and tracking alone. */
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-weight: 400 !important;
+  color: #f3f3f3;
 }
 
-/* Cyber Sigilism Subtle Grid Pattern */
-.bg-grid {
-  background-size: 32px 32px;
-  background-image: 
-    linear-gradient(to right, rgba(214, 216, 228, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(214, 216, 228, 0.03) 1px, transparent 1px);
-}
-
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin-slow {
-  animation: spin-slow 90s linear infinite;
+/* Hyperstudio Mandate: Elevation is achieved through hairline 1px Graphite (#212121) borders. No drop shadows. */
+* {
+  box-shadow: none !important;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(2px);
   }
   to {
     opacity: 1;
@@ -58,7 +108,7 @@ h1, h2, h3, .font-serif {
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.3s ease-out forwards;
+  animation: fadeIn 0.2s ease-out forwards;
 }
 
 /* Minimal Custom Scrollbar */
@@ -67,12 +117,12 @@ h1, h2, h3, .font-serif {
   height: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: #0e0e12;
+  background: #101010;
 }
 ::-webkit-scrollbar-thumb {
-  background: #282832;
+  background: #212121;
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #7d8495;
+  background: #474747;
 }
