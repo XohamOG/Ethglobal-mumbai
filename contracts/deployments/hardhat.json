@@ -1,0 +1,264 @@
+{
+  "contractName": "RiskRegistry",
+  "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "network": "hardhat",
+  "chainId": 31337,
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "creForwarder": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "deployedAtBlock": 1,
+  "deployedAtTimestamp": "2026-11-06T06:48:26.726Z",
+  "transactionHash": "0x4d098829a28880bb3906da41fa22ae08c158141755575fc90d7aecebb44150d7",
+  "abi": [
+    {
+      "type": "constructor",
+      "stateMutability": "undefined",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "_creForwarder"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "InvalidAddress",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "UnauthorizedForwarder",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "UnauthorizedOwner",
+      "inputs": []
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "ForwarderUpdated",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "previousForwarder",
+          "indexed": true
+        },
+        {
+          "type": "address",
+          "name": "newForwarder",
+          "indexed": true
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "OwnershipTransferred",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "previousOwner",
+          "indexed": true
+        },
+        {
+          "type": "address",
+          "name": "newOwner",
+          "indexed": true
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "RiskReported",
+      "inputs": [
+        {
+          "type": "string",
+          "name": "protocolId",
+          "indexed": true
+        },
+        {
+          "type": "uint256",
+          "name": "compositeScore",
+          "indexed": false
+        },
+        {
+          "type": "string",
+          "name": "riskTier",
+          "indexed": false
+        },
+        {
+          "type": "string",
+          "name": "snapshotId",
+          "indexed": false
+        },
+        {
+          "type": "uint256",
+          "name": "blockNumber",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "creForwarder",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "getRisk",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "string",
+          "name": "protocolId"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "tuple",
+          "name": "",
+          "components": [
+            {
+              "type": "uint256",
+              "name": "compositeScore"
+            },
+            {
+              "type": "string",
+              "name": "riskTier"
+            },
+            {
+              "type": "string",
+              "name": "snapshotId"
+            },
+            {
+              "type": "uint256",
+              "name": "blockNumber"
+            },
+            {
+              "type": "uint256",
+              "name": "reportedAt"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "latestReports",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "string",
+          "name": ""
+        }
+      ],
+      "outputs": [
+        {
+          "type": "uint256",
+          "name": "compositeScore"
+        },
+        {
+          "type": "string",
+          "name": "riskTier"
+        },
+        {
+          "type": "string",
+          "name": "snapshotId"
+        },
+        {
+          "type": "uint256",
+          "name": "blockNumber"
+        },
+        {
+          "type": "uint256",
+          "name": "reportedAt"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "owner",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "reportRisk",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "string",
+          "name": "protocolId"
+        },
+        {
+          "type": "uint256",
+          "name": "compositeScore"
+        },
+        {
+          "type": "string",
+          "name": "riskTier"
+        },
+        {
+          "type": "string",
+          "name": "snapshotId"
+        },
+        {
+          "type": "uint256",
+          "name": "blockNumber"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "setCreForwarder",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "_newForwarder"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "transferOwnership",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "_newOwner"
+        }
+      ],
+      "outputs": []
+    }
+  ]
+}

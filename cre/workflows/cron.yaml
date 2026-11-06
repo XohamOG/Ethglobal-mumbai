@@ -1,0 +1,41 @@
+# Chainlink Runtime Environment (CRE) Workflow Specification
+# Workflow: Cron Sweep & Fingerprint Drift Detection
+id: aave-v3-cron-sweep
+name: "DeFi Provenance Graph - Cron Sweep"
+version: 1.0.0
+description: "Periodically computes protocol fingerprint, detects on-chain dependency drift, and triggers graph rebuild."
+
+trigger:
+  type: cron
+  schedule: "0 */4 * * *" # Every 4 hours (~1,200 Ethereum blocks, adjustable for testnet)
+  timezone: UTC
+
+consensus:
+  type: bft
+  threshold: "2/3"
+
+runtime:
+  engine: quickjs-wasm
+  entrypoint: ./cron.ts
+
+inputs:
+  protocolId: "aave-v3-mainnet"
+  targetRpcUrl: "https://eth.llamarpc.com"
+  graphServiceUrl: "http://localhost:3001"
+  riskRegistryAddress: "${RISK_REGISTRY_ADDRESS}"
+
+actions:
+  - id: check-fingerprint
+    name: "Compute On-Chain Fingerprint & Compare with Arkiv Snapshot"
+    action: compute-and-diff
+
+  - id: rebuild-graph
+    name: "Request Graph Rebuild if Drift Detected"
+    action: http-post
+    dependsOn: check-fingerprint
+    condition: "steps.check-fingerprint.outputs.hasDrift == true"
+
+  - id: report-onchain
+    name: "Attest Risk Score to RiskRegistry.sol"
+    action: evm-write
+    dependsOn: rebuild-graph

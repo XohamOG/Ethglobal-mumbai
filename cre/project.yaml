@@ -1,0 +1,37 @@
+name: defi-provenance-cre
+version: 1.0.0
+description: "Chainlink Runtime Environment workflows for DeFi Provenance Graph asset risk scoring and verification"
+
+environment:
+  network: ethereum-mainnet
+  don: don-staging-1
+  runtime: wasm-quickjs
+
+workflows:
+  - id: aave-v3-cron-sweep
+    name: "Aave V3 Cron Sweep & Drift Detection"
+    spec: ./workflows/cron.yaml
+    entrypoint: ./workflows/cron.ts
+    schedule: "0 */4 * * *" # Every 4 hours (equivalent to periodic block sweep)
+
+  - id: aave-v3-log-trigger
+    name: "Aave V3 Upgrade & Admin Log Trigger"
+    spec: ./workflows/log_trigger.yaml
+    entrypoint: ./workflows/log_trigger.ts
+    events:
+      - "Upgraded(address)"
+      - "AdminChanged(address,address)"
+
+contracts:
+  RiskRegistry:
+    abi: ./abis/RiskRegistry.json
+    networks:
+      sepolia: "0x0000000000000000000000000000000000000000"
+      fuji: "0x0000000000000000000000000000000000000000"
+      rabdi: "0x0000000000000000000000000000000000000000"
+      localhost: "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+
+services:
+  graphService:
+    url: "http://localhost:3001"
+    rebuildEndpoint: "/rebuild"
