@@ -274,3 +274,4 @@ export function Neo4jPropertySheet({ node }: Neo4jPropertySheetProps) {
     </div>
   );
 }
+
