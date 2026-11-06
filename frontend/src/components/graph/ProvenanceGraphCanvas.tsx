@@ -430,6 +430,8 @@ export function ProvenanceGraphCanvas({
                 const style = getStyle(node.category, node.adminType);
                 const nodeRisk = getRiskScoreConfig(node.riskScore);
                 const isMutated = mutatedNodeId === node.id;
+                const nodeRisk = getRiskScoreConfig(node.riskScore);
+                const isMutated = mutatedNodeId === node.id;
                 const nodeR = 22;
 
                 return (
@@ -497,6 +499,27 @@ export function ProvenanceGraphCanvas({
                       />
                     )}
 
+                    {/* Small Risk Level Pip Indicator */}
+                    <circle
+                      cx={nodeR - 5}
+                      cy={-nodeR + 6}
+                      r="3.5"
+                      fill={isMutated ? "#f59e0b" : nodeRisk.hex}
+                      stroke="#0e0e12"
+                      strokeWidth="1.2"
+                    />
+
+                    {/* Mutated / Drifted Glowing Outer Ring */}
+                    {isMutated && (
+                      <circle
+                        r={nodeR + 6}
+                        fill="transparent"
+                        stroke="#f59e0b"
+                        strokeWidth="2"
+                        strokeDasharray="4 4"
+                      />
+                    )}
+
                     {/* Inner Glyph Icon */}
                     <text
                       textAnchor="middle"
@@ -533,6 +556,19 @@ export function ProvenanceGraphCanvas({
                       pointerEvents="none"
                     >
                       {node.address.slice(0, 6)}...{node.address.slice(-4)}
+                    </text>
+
+                    {/* Dynamic Risk Score Badge */}
+                    <text
+                      y={nodeR + 38}
+                      textAnchor="middle"
+                      fill={isMutated ? "#f59e0b" : nodeRisk.hex}
+                      fontFamily="ui-monospace, monospace"
+                      fontSize="8"
+                      fontWeight="700"
+                      pointerEvents="none"
+                    >
+                      {isMutated ? "MUTATED · RISK " + node.riskScore : "RISK " + node.riskScore}
                     </text>
 
                     {/* Dynamic Risk Score Badge */}
