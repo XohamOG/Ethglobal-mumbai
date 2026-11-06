@@ -138,11 +138,10 @@ export function SwarmArtifactsTab() {
           <button
             key={t.key}
             onClick={() => setActiveBlob(t.key as any)}
-            className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
-              activeBlob === t.key
+            className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${activeBlob === t.key
                 ? "bg-[#182033] text-white border border-[#2a3754] font-semibold"
                 : "text-[#677595] hover:text-white hover:bg-[#0e121d]"
-            }`}
+              }`}
           >
             {t.label}
           </button>
@@ -208,4 +207,3 @@ export function SwarmArtifactsTab() {
     </div>
   );
 }
-

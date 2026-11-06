@@ -26,31 +26,39 @@ const RPC_ENDPOINTS = [
 async function getWorkingProvider(): Promise<ethers.JsonRpcProvider> {
   for (const url of RPC_ENDPOINTS) {
     try {
-      const p = new ethers.JsonRpcProvider(url);
+      const p = new ethers.JsonRpcProvider(
+        url,
+        { chainId: 1, name: "mainnet" },
+        { staticNetwork: true }
+      );
       await p.getBlockNumber();
       return p;
     } catch {
       continue;
     }
   }
-  return new ethers.JsonRpcProvider(RPC_ENDPOINTS[0]);
+  return new ethers.JsonRpcProvider(
+    RPC_ENDPOINTS[0],
+    { chainId: 1, name: "mainnet" },
+    { staticNetwork: true }
+  );
 }
 
-// Canonical Aave V3 Mainnet Reference addresses
+// Canonical Aave V3 Mainnet Reference addresses with exact EIP-55 checksums
 const AAVE_V3_CONFIG = {
   protocolId: "aave-v3-mainnet",
-  poolProxy: "0x87870Bca3F3fD6335c3F4ce8392D69350B4fA4E2",
-  addressesProvider: "0x2f39d218133AFaB8F2B819B1066c7f434ad94e9e",
-  configurator: "0x64b761D848206f447Fe2dd461b0c635Ec39EbB27",
-  aaveOracle: "0x54586bE6333240e3ef4a78248c410Bf33060Ca0C",
-  timelockAdmin: "0xEE56e2B3D491590B5b31738cC34d5232F378a8D5",
-  guardianSafe: "0x2CFe3ec4d5a6811f4B8067F0DE7e47DfA938Aa30",
+  poolProxy: ethers.getAddress("0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2"),
+  addressesProvider: ethers.getAddress("0x2f39d218133afab8f2b819b1066c7f434ad94e9e"),
+  configurator: ethers.getAddress("0x64b761d848206f447fe2dd461b0c635ec39ebb27"),
+  aaveOracle: ethers.getAddress("0x54586be6333240e3ef4a78248c410bf33060ca0c"),
+  timelockAdmin: ethers.getAddress("0xee56e2b3d491590b5b31738cc34d5232f378a8d5"),
+  guardianSafe: ethers.getAddress("0x2cfe3ec4d5a6811f4b8067f0de7e47dfa938aa30"),
   oracleFeeds: [
-    "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419", // ETH/USD
-    "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6", // USDC/USD
-    "0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c", // BTC/USD
-    "0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9", // DAI/USD
-    "0x3E7d1eAB13ad0104d2750B8863b489D65364e32D", // USDT/USD
+    ethers.getAddress("0x5f4ec3df9cbd43714fe2740f5e3616155c5b8419"), // ETH/USD
+    ethers.getAddress("0x8fffffd4afb6115b954bd326cbe7b4ba576818f6"), // USDC/USD
+    ethers.getAddress("0xf4030086522a5beea4988f8ca5b36dbc97bee88c"), // BTC/USD
+    ethers.getAddress("0xaed0c38402a5d19df6e4c03f4e2dced6e29c1ee9"), // DAI/USD
+    ethers.getAddress("0x3e7d1eab13ad0104d2750b8863b489d65364e32d"), // USDT/USD
   ],
 };
 

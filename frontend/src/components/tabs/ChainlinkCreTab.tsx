@@ -365,11 +365,10 @@ export function ChainlinkCreTab() {
         {/* Workflow 1: Log Trigger */}
         <div
           onClick={() => setActiveWorkflow("log_trigger")}
-          className={`p-4 rounded-xl border transition-all cursor-pointer ${
-            activeWorkflow === "log_trigger"
+          className={`p-4 rounded-xl border transition-all cursor-pointer ${activeWorkflow === "log_trigger"
               ? "bg-[#0e1322] border-blue-500/80 shadow-md shadow-blue-500/5"
               : "bg-[#090c14] border-[#161d2d] hover:border-[#26334d]"
-          }`}
+            }`}
         >
           <div className="flex items-center justify-between mb-2">
             <span className="flex items-center gap-1.5 text-blue-400 font-semibold">
@@ -396,11 +395,10 @@ export function ChainlinkCreTab() {
         {/* Workflow 2: Cron Sweep */}
         <div
           onClick={() => setActiveWorkflow("cron_sweep")}
-          className={`p-4 rounded-xl border transition-all cursor-pointer ${
-            activeWorkflow === "cron_sweep"
+          className={`p-4 rounded-xl border transition-all cursor-pointer ${activeWorkflow === "cron_sweep"
               ? "bg-[#0e1322] border-blue-500/80 shadow-md shadow-blue-500/5"
               : "bg-[#090c14] border-[#161d2d] hover:border-[#26334d]"
-          }`}
+            }`}
         >
           <div className="flex items-center justify-between mb-2">
             <span className="flex items-center gap-1.5 text-amber-400 font-semibold">
@@ -466,13 +464,12 @@ export function ChainlinkCreTab() {
             {simSteps.map((s) => (
               <div
                 key={s.step}
-                className={`p-3 rounded-lg border transition-all flex items-start gap-3 ${
-                  s.status === "done"
+                className={`p-3 rounded-lg border transition-all flex items-start gap-3 ${s.status === "done"
                     ? "bg-[#0b101c] border-[#182338] text-white"
                     : s.status === "running"
-                    ? "bg-[#111728] border-blue-500/80 text-white animate-pulse"
-                    : "bg-[#070910] border-[#111520] text-[#4d5770]"
-                }`}
+                      ? "bg-[#111728] border-blue-500/80 text-white animate-pulse"
+                      : "bg-[#070910] border-[#111520] text-[#4d5770]"
+                  }`}
               >
                 <div className="mt-0.5">
                   {s.status === "done" ? (
@@ -582,4 +579,3 @@ export function ChainlinkCreTab() {
     </div>
   );
 }
-
