@@ -295,3 +295,4 @@ const { entities } = await publicClient
     </div>
   );
 }
+
