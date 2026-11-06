@@ -10,15 +10,11 @@ import {
   ExternalLink,
   Copy,
   Check,
-  FileCode,
-  CheckCircle2,
-  Database,
-  Layers,
   HelpCircle,
   X,
-  Code2,
   Columns,
   GitBranch,
+  CheckCircle2,
 } from "lucide-react";
 
 interface ProvenanceGraphCanvasProps {
@@ -34,7 +30,7 @@ export function ProvenanceGraphCanvas({
   selectedNodeId,
   onSelectNode,
 }: ProvenanceGraphCanvasProps) {
-  const [layoutMode, setLayoutMode] = useState<"lanes" | "hierarchy">("lanes");
+  const [layoutMode, setLayoutMode] = useState<"hierarchy" | "lanes">("hierarchy");
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
@@ -49,25 +45,51 @@ export function ProvenanceGraphCanvas({
     setTimeout(() => setCopiedAddress(null), 1800);
   };
 
-  // Category visual styles
-  const categoryConfig: Record<string, { color: string; border: string; ring: string; glyph: string; name: string }> = {
-    proxy: { color: "bg-sky-950/80 text-sky-400", border: "border-sky-800/70", ring: "#38bdf8", glyph: "P", name: "Proxy" },
-    implementation: { color: "bg-emerald-950/80 text-emerald-400", border: "border-emerald-800/70", ring: "#34d399", glyph: "I", name: "Impl" },
-    oracle: { color: "bg-amber-950/80 text-amber-400", border: "border-amber-800/70", ring: "#fbbf24", glyph: "O", name: "Oracle" },
-    multisig: { color: "bg-purple-950/80 text-purple-400", border: "border-purple-800/70", ring: "#c084fc", glyph: "S", name: "Multisig" },
-    timelock: { color: "bg-indigo-950/80 text-indigo-400", border: "border-indigo-800/70", ring: "#818cf8", glyph: "T", name: "Timelock" },
+  // Category visual styles (pure circular nodes)
+  const categoryConfig: Record<string, { ring: string; fill: string; glyph: string; name: string }> = {
+    proxy: { ring: "#38bdf8", fill: "#032840", glyph: "P", name: "Proxy" },
+    implementation: { ring: "#34d399", fill: "#033221", glyph: "I", name: "Implementation" },
+    oracle: { ring: "#fbbf24", fill: "#362203", glyph: "O", name: "Oracle" },
+    multisig: { ring: "#c084fc", fill: "#2b0f42", glyph: "S", name: "Safe Multisig" },
+    timelock: { ring: "#818cf8", fill: "#1a153f", glyph: "T", name: "Timelock" },
   };
 
   const getStyle = (cat: string, admin?: string) => {
     if (admin === "timelock") return categoryConfig.timelock;
-    return categoryConfig[cat] || { color: "bg-slate-900 text-slate-400", border: "border-slate-800", ring: "#94a3b8", glyph: "C", name: "Contract" };
+    return categoryConfig[cat] || { ring: "#94a3b8", fill: "#131926", glyph: "C", name: "Contract" };
   };
 
-  // Deterministic, non-overlapping coordinate mappings for both modes:
+  // Pure deterministic coordinates without background cards
   const layoutCoordinates: Record<string, { x: number; y: number }> =
-    layoutMode === "lanes"
+    layoutMode === "hierarchy"
       ? {
-          // Hop 0: Core Architecture (Lane X: 190)
+          // Top-to-Bottom Hierarchical Tree:
+          // Level 0 (Root Seed, Top Center)
+          "aave-v3-addresses-provider": { x: 570, y: 70 },
+
+          // Level 1 (Core Diamond Proxies & Oracle)
+          "aave-v3-pool": { x: 230, y: 220 },
+          "aave-v3-pool-configurator": { x: 460, y: 220 },
+          "aave-v3-oracle": { x: 690, y: 220 },
+          "aave-v3-acl-manager": { x: 910, y: 220 },
+          "aave-v3-data-provider": { x: 1040, y: 220 },
+
+          // Level 2 (Logic Impls & Governance Admin)
+          "aave-v3-pool-impl": { x: 200, y: 390 },
+          "aave-v3-configurator-impl": { x: 430, y: 390 },
+          "aave-v3-governance-executor": { x: 660, y: 390 },
+          "aave-v3-emergency-safe": { x: 900, y: 390 },
+
+          // Level 3 (External Chainlink Price Feeds)
+          "chainlink-eth-usd": { x: 200, y: 560 },
+          "chainlink-btc-usd": { x: 385, y: 560 },
+          "chainlink-usdc-usd": { x: 570, y: 560 },
+          "chainlink-dai-usd": { x: 755, y: 560 },
+          "chainlink-usdt-usd": { x: 940, y: 560 },
+        }
+      : {
+          // Horizontal Columns (Hop 0 -> Hop 1 -> Hop 2):
+          // Hop 0: Core Architecture (X: 190)
           "aave-v3-addresses-provider": { x: 190, y: 75 },
           "aave-v3-pool": { x: 190, y: 175 },
           "aave-v3-pool-configurator": { x: 190, y: 275 },
@@ -75,43 +97,18 @@ export function ProvenanceGraphCanvas({
           "aave-v3-acl-manager": { x: 190, y: 475 },
           "aave-v3-data-provider": { x: 190, y: 575 },
 
-          // Hop 1: Governance & Implementation (Lane X: 570)
-          "aave-v3-pool-impl": { x: 570, y: 135 },
-          "aave-v3-configurator-impl": { x: 570, y: 245 },
-          "aave-v3-governance-executor": { x: 570, y: 365 },
-          "aave-v3-emergency-safe": { x: 570, y: 495 },
+          // Hop 1: Governance & Implementation (X: 570)
+          "aave-v3-pool-impl": { x: 570, y: 140 },
+          "aave-v3-configurator-impl": { x: 570, y: 260 },
+          "aave-v3-governance-executor": { x: 570, y: 380 },
+          "aave-v3-emergency-safe": { x: 570, y: 500 },
 
-          // Hop 2: External Chainlink Oracles (Lane X: 940)
-          "chainlink-eth-usd": { x: 940, y: 85 },
-          "chainlink-btc-usd": { x: 940, y: 195 },
-          "chainlink-usdc-usd": { x: 940, y: 305 },
-          "chainlink-dai-usd": { x: 940, y: 415 },
-          "chainlink-usdt-usd": { x: 940, y: 525 },
-        }
-      : {
-          // Hierarchical Top-to-Bottom Layout:
-          // Level 0: Root Entry Point (Top Center Y: 65)
-          "aave-v3-addresses-provider": { x: 570, y: 65 },
-
-          // Level 1: Core Proxies & Orchestration (Y: 200)
-          "aave-v3-pool": { x: 230, y: 200 },
-          "aave-v3-pool-configurator": { x: 460, y: 200 },
-          "aave-v3-oracle": { x: 690, y: 200 },
-          "aave-v3-acl-manager": { x: 920, y: 200 },
-          "aave-v3-data-provider": { x: 1070, y: 200 },
-
-          // Level 2: Implementations & Governance Admin (Y: 380)
-          "aave-v3-pool-impl": { x: 190, y: 380 },
-          "aave-v3-configurator-impl": { x: 420, y: 380 },
-          "aave-v3-governance-executor": { x: 650, y: 380 },
-          "aave-v3-emergency-safe": { x: 890, y: 380 },
-
-          // Level 3: External Chainlink Oracles (Bottom Y: 560)
-          "chainlink-eth-usd": { x: 200, y: 560 },
-          "chainlink-btc-usd": { x: 385, y: 560 },
-          "chainlink-usdc-usd": { x: 570, y: 560 },
-          "chainlink-dai-usd": { x: 755, y: 560 },
-          "chainlink-usdt-usd": { x: 940, y: 560 },
+          // Hop 2: External Chainlink Oracles (X: 940)
+          "chainlink-eth-usd": { x: 940, y: 90 },
+          "chainlink-btc-usd": { x: 940, y: 200 },
+          "chainlink-usdc-usd": { x: 940, y: 310 },
+          "chainlink-dai-usd": { x: 940, y: 420 },
+          "chainlink-usdt-usd": { x: 940, y: 530 },
         };
 
   const activeTargetId = hoveredNodeId || selectedNodeId;
@@ -159,27 +156,12 @@ export function ProvenanceGraphCanvas({
   };
 
   return (
-    <div className="relative w-full h-[680px] bg-[#07090e] border border-[#161a25] rounded-xl overflow-hidden select-none bg-grid flex flex-col justify-between">
+    <div className="relative w-full h-[680px] bg-[#07090e] border border-[#161a25] rounded-xl overflow-hidden select-none flex flex-col justify-between">
       {/* Top Floating Controls & Layout Switcher */}
       <div className="absolute top-3 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
         <div className="flex items-center gap-2 pointer-events-auto">
-          {/* Layout Mode Toggle */}
+          {/* Minimal Layout Mode Switcher */}
           <div className="flex items-center bg-[#0a0d16]/95 backdrop-blur border border-[#1f283d] p-0.5 rounded-lg shadow-lg">
-            <button
-              onClick={() => {
-                setLayoutMode("lanes");
-                handleReset();
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono transition-all cursor-pointer ${
-                layoutMode === "lanes"
-                  ? "bg-blue-600 text-white font-semibold shadow-md shadow-blue-600/30"
-                  : "text-[#6c7b9b] hover:text-white"
-              }`}
-              title="Hop Columns (Left to Right)"
-            >
-              <Columns className="w-3.5 h-3.5" />
-              <span>Hop Lanes</span>
-            </button>
             <button
               onClick={() => {
                 setLayoutMode("hierarchy");
@@ -190,18 +172,26 @@ export function ProvenanceGraphCanvas({
                   ? "bg-blue-600 text-white font-semibold shadow-md shadow-blue-600/30"
                   : "text-[#6c7b9b] hover:text-white"
               }`}
-              title="Hierarchical Tree (Top to Bottom)"
+              title="Hierarchical Tree Layout"
             >
               <GitBranch className="w-3.5 h-3.5" />
-              <span>Hierarchical Tree</span>
+              <span>Hierarchical</span>
             </button>
-          </div>
-
-          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0e121a]/95 backdrop-blur border border-[#1f2637] text-xs font-mono text-[#8b95ad] shadow-lg">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>{layoutMode === "lanes" ? "3 Segregated Hop Lanes" : "4-Tier Hierarchy DAG"}</span>
-            <span className="text-[#3b445a]">·</span>
-            <span className="text-blue-400">15 Verified Contracts</span>
+            <button
+              onClick={() => {
+                setLayoutMode("lanes");
+                handleReset();
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono transition-all cursor-pointer ${
+                layoutMode === "lanes"
+                  ? "bg-blue-600 text-white font-semibold shadow-md shadow-blue-600/30"
+                  : "text-[#6c7b9b] hover:text-white"
+              }`}
+              title="Hop Columns Layout"
+            >
+              <Columns className="w-3.5 h-3.5" />
+              <span>Columns</span>
+            </button>
           </div>
         </div>
 
@@ -209,13 +199,10 @@ export function ProvenanceGraphCanvas({
         <div className="flex items-center gap-2 pointer-events-auto">
           <button
             onClick={() => setShowJustificationModal(true)}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-blue-950/70 hover:bg-blue-900/80 text-blue-300 border border-blue-800/80 text-xs font-mono transition-all cursor-pointer shadow-lg hover:shadow-blue-950/50"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0e1320] hover:bg-[#161f33] text-blue-300 border border-[#202d48] text-xs font-mono transition-all cursor-pointer shadow-lg"
           >
             <HelpCircle className="w-3.5 h-3.5 text-blue-400" />
-            <span className="font-semibold">Contract Sources & Justification</span>
-            <span className="text-[10px] bg-blue-900/80 px-1.5 py-0.2 rounded border border-blue-700/60 text-white">
-              15 Proofs
-            </span>
+            <span>Contract Justification</span>
           </button>
         </div>
       </div>
@@ -237,157 +224,10 @@ export function ProvenanceGraphCanvas({
             transform={`translate(${panOffset.x}, ${panOffset.y}) scale(${zoomLevel})`}
             style={{ transformOrigin: "570px 340px" }}
           >
-            {/* Background Panels depending on Layout Mode */}
-            {layoutMode === "lanes" ? (
-              // Mode 1: Vertical Hop Columns
-              <g className="layout-columns">
-                {/* Hop 0 Panel */}
-                <g className="hop-column-0">
-                  <rect
-                    x="30"
-                    y="20"
-                    width="320"
-                    height="640"
-                    rx="14"
-                    fill="#080c16"
-                    stroke="#172238"
-                    strokeWidth="1.5"
-                    strokeDasharray="6 4"
-                  />
-                  <rect x="30" y="20" width="320" height="38" rx="14" fill="#0d1424" />
-                  <text x="50" y="44" fill="#38bdf8" fontFamily="ui-monospace, monospace" fontSize="11" fontWeight="700" letterSpacing="0.08em">
-                    HOP 0 · CORE ARCHITECTURE (6)
-                  </text>
-                  <text x="270" y="44" fill="#64748b" fontFamily="ui-monospace, monospace" fontSize="9" textAnchor="end">
-                    Root Proxies & Reg
-                  </text>
-                </g>
-
-                {/* Hop 1 Panel */}
-                <g className="hop-column-1">
-                  <rect
-                    x="410"
-                    y="20"
-                    width="320"
-                    height="640"
-                    rx="14"
-                    fill="#0c0a17"
-                    stroke="#2b1a47"
-                    strokeWidth="1.5"
-                    strokeDasharray="6 4"
-                  />
-                  <rect x="410" y="20" width="320" height="38" rx="14" fill="#18132d" />
-                  <text x="430" y="44" fill="#c084fc" fontFamily="ui-monospace, monospace" fontSize="11" fontWeight="700" letterSpacing="0.08em">
-                    HOP 1 · GOVERNANCE & LOGIC (4)
-                  </text>
-                  <text x="650" y="44" fill="#7e6d9b" fontFamily="ui-monospace, monospace" fontSize="9" textAnchor="end">
-                    Timelocks & Impls
-                  </text>
-                </g>
-
-                {/* Hop 2 Panel */}
-                <g className="hop-column-2">
-                  <rect
-                    x="780"
-                    y="20"
-                    width="320"
-                    height="640"
-                    rx="14"
-                    fill="#120e09"
-                    stroke="#3d270c"
-                    strokeWidth="1.5"
-                    strokeDasharray="6 4"
-                  />
-                  <rect x="780" y="20" width="320" height="38" rx="14" fill="#22170c" />
-                  <text x="800" y="44" fill="#fbbf24" fontFamily="ui-monospace, monospace" fontSize="11" fontWeight="700" letterSpacing="0.08em">
-                    HOP 2 · EXTERNAL ORACLES (5)
-                  </text>
-                  <text x="1020" y="44" fill="#947c54" fontFamily="ui-monospace, monospace" fontSize="9" textAnchor="end">
-                    Chainlink EAC Feeds
-                  </text>
-                </g>
-              </g>
-            ) : (
-              // Mode 2: Horizontal Hierarchical Tier Shelves (Top-to-Bottom)
-              <g className="layout-hierarchy">
-                {/* Tier 0 Shelf: Root Seed */}
-                <g className="tier-0">
-                  <rect
-                    x="30"
-                    y="20"
-                    width="1080"
-                    height="90"
-                    rx="12"
-                    fill="#080c16"
-                    stroke="#172238"
-                    strokeWidth="1.2"
-                    strokeDasharray="4 4"
-                  />
-                  <text x="50" y="40" fill="#38bdf8" fontFamily="ui-monospace, monospace" fontSize="10" fontWeight="700" letterSpacing="0.08em">
-                    TIER 0 · PROTOCOL SEED & ROOT REGISTRY ANCHOR
-                  </text>
-                </g>
-
-                {/* Tier 1 Shelf: Core Diamond Proxies */}
-                <g className="tier-1">
-                  <rect
-                    x="30"
-                    y="135"
-                    width="1080"
-                    height="130"
-                    rx="12"
-                    fill="#0a0e1a"
-                    stroke="#1c2842"
-                    strokeWidth="1.2"
-                    strokeDasharray="4 4"
-                  />
-                  <text x="50" y="155" fill="#38bdf8" fontFamily="ui-monospace, monospace" fontSize="10" fontWeight="700" letterSpacing="0.08em">
-                    TIER 1 · CORE DIAMOND PROXIES, ORACLE & ACL
-                  </text>
-                </g>
-
-                {/* Tier 2 Shelf: Implementations & Governance */}
-                <g className="tier-2">
-                  <rect
-                    x="30"
-                    y="300"
-                    width="1080"
-                    height="145"
-                    rx="12"
-                    fill="#0e0a1b"
-                    stroke="#2b1a47"
-                    strokeWidth="1.2"
-                    strokeDasharray="4 4"
-                  />
-                  <text x="50" y="320" fill="#c084fc" fontFamily="ui-monospace, monospace" fontSize="10" fontWeight="700" letterSpacing="0.08em">
-                    TIER 2 · LOGIC IMPLEMENTATIONS & GOVERNANCE ADMIN CONTROLLERS
-                  </text>
-                </g>
-
-                {/* Tier 3 Shelf: External Oracles */}
-                <g className="tier-3">
-                  <rect
-                    x="30"
-                    y="480"
-                    width="1080"
-                    height="150"
-                    rx="12"
-                    fill="#130d07"
-                    stroke="#3d270c"
-                    strokeWidth="1.2"
-                    strokeDasharray="4 4"
-                  />
-                  <text x="50" y="500" fill="#fbbf24" fontFamily="ui-monospace, monospace" fontSize="10" fontWeight="700" letterSpacing="0.08em">
-                    TIER 3 · TRANSITIVE EXTERNAL CHAINLINK PRICE FEEDS
-                  </text>
-                </g>
-              </g>
-            )}
-
             {/* Define Arrowhead Markers */}
             <defs>
               <marker
-                id="dag-arrow-default"
+                id="pure-arrow-default"
                 viewBox="0 -5 10 10"
                 refX="8"
                 refY="0"
@@ -398,7 +238,7 @@ export function ProvenanceGraphCanvas({
                 <path d="M0,-4L8,0L0,4" fill="#334155" />
               </marker>
               <marker
-                id="dag-arrow-active"
+                id="pure-arrow-active"
                 viewBox="0 -5 10 10"
                 refX="8"
                 refY="0"
@@ -409,7 +249,7 @@ export function ProvenanceGraphCanvas({
                 <path d="M0,-4L8,0L0,4" fill="#38bdf8" />
               </marker>
               <marker
-                id="dag-arrow-governance"
+                id="pure-arrow-governance"
                 viewBox="0 -5 10 10"
                 refX="8"
                 refY="0"
@@ -420,7 +260,7 @@ export function ProvenanceGraphCanvas({
                 <path d="M0,-4L8,0L0,4" fill="#c084fc" />
               </marker>
               <marker
-                id="dag-arrow-oracle"
+                id="pure-arrow-oracle"
                 viewBox="0 -5 10 10"
                 refX="8"
                 refY="0"
@@ -432,8 +272,8 @@ export function ProvenanceGraphCanvas({
               </marker>
             </defs>
 
-            {/* Render Smooth Cubic Bezier Edges */}
-            <g className="dag-edges">
+            {/* Connecting Edges */}
+            <g className="graph-edges">
               {edges.map((edge) => {
                 const src = layoutCoordinates[edge.from];
                 const tgt = layoutCoordinates[edge.to];
@@ -447,37 +287,39 @@ export function ProvenanceGraphCanvas({
                 let midX = (src.x + tgt.x) / 2;
                 let midY = (src.y + tgt.y) / 2;
 
-                if (layoutMode === "lanes") {
-                  // Mode 1: Horizontal Flow
+                const nodeR = 22; // Circular node radius
+
+                if (layoutMode === "hierarchy") {
+                  // Hierarchical Top-to-Bottom Flow
+                  const y1 = src.y + nodeR;
+                  const x1 = src.x;
+                  const y2 = tgt.y - nodeR;
+                  const x2 = tgt.x;
+                  const dy = y2 - y1;
+
+                  d = `M ${x1} ${y1} C ${x1} ${y1 + dy * 0.5}, ${x2} ${y2 - dy * 0.5}, ${x2} ${y2}`;
+                  midX = (x1 + x2) / 2;
+                  midY = (y1 + y2) / 2;
+                } else {
+                  // Hop Columns Left-to-Right Flow
                   const isSameColumn = Math.abs(src.x - tgt.x) < 50;
 
                   if (isSameColumn) {
-                    const arcX = src.x - 120;
-                    d = `M ${src.x - 100} ${src.y} C ${arcX} ${src.y}, ${arcX} ${tgt.y}, ${tgt.x - 100} ${tgt.y}`;
+                    const arcX = src.x - 70;
+                    d = `M ${src.x - nodeR} ${src.y} C ${arcX} ${src.y}, ${arcX} ${tgt.y}, ${tgt.x - nodeR} ${tgt.y}`;
                     midX = arcX + 15;
                     midY = (src.y + tgt.y) / 2;
                   } else {
-                    const x1 = src.x + 105;
+                    const x1 = src.x + nodeR;
                     const y1 = src.y;
-                    const x2 = tgt.x - 105;
+                    const x2 = tgt.x - nodeR;
                     const y2 = tgt.y;
                     const dx = x2 - x1;
+
                     d = `M ${x1} ${y1} C ${x1 + dx * 0.45} ${y1}, ${x2 - dx * 0.45} ${y2}, ${x2} ${y2}`;
                     midX = (x1 + x2) / 2;
                     midY = (y1 + y2) / 2;
                   }
-                } else {
-                  // Mode 2: Vertical Hierarchical Flow (Top-to-Bottom)
-                  const y1 = src.y + 22;
-                  const x1 = src.x;
-                  const y2 = tgt.y - 22;
-                  const x2 = tgt.x;
-                  const dy = y2 - y1;
-
-                  // Smooth vertical cubic bezier curve
-                  d = `M ${x1} ${y1} C ${x1} ${y1 + dy * 0.5}, ${x2} ${y2 - dy * 0.5}, ${x2} ${y2}`;
-                  midX = (x1 + x2) / 2;
-                  midY = (y1 + y2) / 2;
                 }
 
                 const strokeColor = isActive
@@ -487,20 +329,20 @@ export function ProvenanceGraphCanvas({
                     ? "#fbbf24"
                     : "#38bdf8"
                   : isDimmed
-                  ? "#111622"
+                  ? "#101520"
                   : "#1e293b";
 
                 const marker = isActive
                   ? edge.type.includes("governance") || edge.type.includes("multisig")
-                    ? "url(#dag-arrow-governance)"
+                    ? "url(#pure-arrow-governance)"
                     : edge.type.includes("oracle")
-                    ? "url(#dag-arrow-oracle)"
-                    : "url(#dag-arrow-active)"
-                  : "url(#dag-arrow-default)";
+                    ? "url(#pure-arrow-oracle)"
+                    : "url(#pure-arrow-active)"
+                  : "url(#pure-arrow-default)";
 
                 return (
                   <g key={edgeKey} className="edge-group">
-                    {/* Path glow on active */}
+                    {/* Active glow on edge */}
                     {isActive && (
                       <path
                         d={d}
@@ -511,7 +353,7 @@ export function ProvenanceGraphCanvas({
                       />
                     )}
 
-                    {/* Main Bezier Curve */}
+                    {/* Edge Main Path */}
                     <path
                       d={d}
                       fill="none"
@@ -522,16 +364,16 @@ export function ProvenanceGraphCanvas({
                       className="transition-all duration-200"
                     />
 
-                    {/* Midpoint Label Pill */}
-                    <g transform={`translate(${midX}, ${midY})`} opacity={isDimmed ? 0.2 : 0.95}>
+                    {/* Relationship Pill */}
+                    <g transform={`translate(${midX}, ${midY})`} opacity={isDimmed ? 0.2 : 0.9}>
                       <rect
-                        x="-48"
-                        y="-8"
-                        width="96"
-                        height="16"
-                        rx="4"
-                        fill="#090d16"
-                        stroke={isActive ? strokeColor : "#1c2538"}
+                        x="-38"
+                        y="-7"
+                        width="76"
+                        height="14"
+                        rx="3"
+                        fill="#07090e"
+                        stroke={isActive ? strokeColor : "#1b2334"}
                         strokeWidth="1"
                       />
                       <text
@@ -539,7 +381,7 @@ export function ProvenanceGraphCanvas({
                         y="3.5"
                         fill={isActive ? "#e2e8f0" : "#64748b"}
                         fontFamily="ui-monospace, monospace"
-                        fontSize="8"
+                        fontSize="7.5"
                         fontWeight="600"
                         textAnchor="middle"
                       >
@@ -551,8 +393,8 @@ export function ProvenanceGraphCanvas({
               })}
             </g>
 
-            {/* Render Nodes as Modern Sleek Cards */}
-            <g className="dag-nodes">
+            {/* Circular Nodes ONLY */}
+            <g className="graph-nodes">
               {nodes.map((node) => {
                 const pos = layoutCoordinates[node.id];
                 if (!pos) return null;
@@ -563,6 +405,7 @@ export function ProvenanceGraphCanvas({
                 const isDimmed = activeTargetId && !isSelected && !isHovered && !isConnected;
 
                 const style = getStyle(node.category, node.adminType);
+                const nodeR = 22;
 
                 return (
                   <g
@@ -575,99 +418,66 @@ export function ProvenanceGraphCanvas({
                     }}
                     onMouseEnter={() => setHoveredNodeId(node.id)}
                     onMouseLeave={() => setHoveredNodeId(null)}
-                    opacity={isDimmed ? 0.22 : 1}
+                    opacity={isDimmed ? 0.2 : 1}
                   >
-                    {/* Active Halo Glow */}
+                    {/* Active Halo Ring */}
                     {(isSelected || isHovered) && (
-                      <rect
-                        x="-106"
-                        y="-26"
-                        width="212"
-                        height="52"
-                        rx="12"
+                      <circle
+                        r={nodeR + 6}
                         fill="transparent"
                         stroke={style.ring}
                         strokeWidth="2.5"
                         strokeOpacity="0.8"
+                        className="animate-pulse"
                       />
                     )}
 
-                    {/* Node Card Body */}
-                    <rect
-                      x="-102"
-                      y="-22"
-                      width="204"
-                      height="44"
-                      rx="9"
-                      fill={isSelected ? "#131929" : "#0a0e18"}
-                      stroke={isSelected ? style.ring : isHovered ? "#38bdf8" : "#1b2438"}
-                      strokeWidth={isSelected ? "1.8" : "1.2"}
-                      className="transition-colors duration-150 shadow-md"
+                    {/* Node Main Circle */}
+                    <circle
+                      r={nodeR}
+                      fill={style.fill}
+                      stroke={style.ring}
+                      strokeWidth={isSelected ? 3 : 2}
+                      className="transition-transform duration-200 shadow-lg hover:scale-105"
                     />
 
-                    {/* Category Glyph Badge (Left) */}
-                    <g transform="translate(-86, 0)">
-                      <circle
-                        r="12"
-                        fill="#0e1526"
-                        stroke={style.ring}
-                        strokeWidth="1.5"
-                      />
-                      <text
-                        textAnchor="middle"
-                        dy=".35em"
-                        fill="#ffffff"
-                        fontFamily="ui-monospace, monospace"
-                        fontWeight="700"
-                        fontSize="10"
-                      >
-                        {style.glyph}
-                      </text>
-                    </g>
+                    {/* Inner Glyph Icon */}
+                    <text
+                      textAnchor="middle"
+                      dy=".35em"
+                      fill="#ffffff"
+                      fontFamily="ui-monospace, monospace"
+                      fontSize="12"
+                      fontWeight="700"
+                      pointerEvents="none"
+                    >
+                      {style.glyph}
+                    </text>
 
-                    {/* Node Text & Address */}
-                    <g transform="translate(-68, -4)">
-                      <text
-                        fill="#ffffff"
-                        fontFamily="ui-sans-serif, system-ui, sans-serif"
-                        fontSize="10.5"
-                        fontWeight="600"
-                      >
-                        {node.label.length > 17 ? `${node.label.slice(0, 16)}…` : node.label}
-                      </text>
-                      <text
-                        y="14"
-                        fill="#5e6f8d"
-                        fontFamily="ui-monospace, monospace"
-                        fontSize="8.5"
-                      >
-                        {node.address.slice(0, 8)}...{node.address.slice(-6)}
-                      </text>
-                    </g>
+                    {/* Node Label Underneath Circle */}
+                    <text
+                      y={nodeR + 15}
+                      textAnchor="middle"
+                      fill="#f1f5f9"
+                      fontFamily="ui-sans-serif, system-ui, sans-serif"
+                      fontSize="11"
+                      fontWeight="600"
+                      pointerEvents="none"
+                    >
+                      {node.label}
+                    </text>
 
-                    {/* Risk Badge (Right) */}
-                    <g transform="translate(80, 0)">
-                      <rect
-                        x="-16"
-                        y="-8"
-                        width="30"
-                        height="16"
-                        rx="4"
-                        fill={node.riskScore === 0 ? "#064e3b" : node.riskScore <= 10 ? "#065f46" : "#78350f"}
-                        stroke={node.riskScore === 0 ? "#10b981" : node.riskScore <= 10 ? "#34d399" : "#f59e0b"}
-                        strokeWidth="0.8"
-                      />
-                      <text
-                        textAnchor="middle"
-                        dy="3.5"
-                        fill={node.riskScore === 0 ? "#a7f3d0" : node.riskScore <= 10 ? "#6ee7b7" : "#fde68a"}
-                        fontFamily="ui-monospace, monospace"
-                        fontSize="8.5"
-                        fontWeight="700"
-                      >
-                        {node.riskScore}
-                      </text>
-                    </g>
+                    {/* Address Snippet */}
+                    <text
+                      y={nodeR + 28}
+                      textAnchor="middle"
+                      fill="#64748b"
+                      fontFamily="ui-monospace, monospace"
+                      fontSize="9"
+                      pointerEvents="none"
+                    >
+                      {node.address.slice(0, 6)}...{node.address.slice(-4)}
+                    </text>
                   </g>
                 );
               })}
@@ -701,26 +511,26 @@ export function ProvenanceGraphCanvas({
         </button>
       </div>
 
-      {/* Bottom Legend */}
+      {/* Minimal Bottom Legend */}
       <div className="absolute bottom-3 right-4 z-20 hidden md:flex items-center gap-3 px-3 py-1.5 rounded-lg bg-[#0e121a]/95 backdrop-blur border border-[#1f2637] text-[10px] font-mono text-[#8290ad] shadow-lg">
         <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[#0284c7]"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#38bdf8]"></span>
           Proxy
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[#059669]"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#34d399]"></span>
           Impl
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[#4f46e5]"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#818cf8]"></span>
           Timelock
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[#9333ea]"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#c084fc]"></span>
           Safe Multisig
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[#d97706]"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#fbbf24]"></span>
           Oracle
         </span>
       </div>
@@ -729,7 +539,6 @@ export function ProvenanceGraphCanvas({
       {showJustificationModal && (
         <div className="absolute inset-0 z-40 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 animate-fadeIn">
           <div className="w-full max-w-4xl max-h-[90%] bg-[#080b13] border border-[#20293e] rounded-xl shadow-2xl flex flex-col overflow-hidden text-[#e2e8f0]">
-            {/* Modal Header */}
             <div className="px-6 py-4 border-b border-[#182033] flex items-center justify-between bg-[#0b0f1a]">
               <div className="flex items-center gap-2.5">
                 <ShieldCheck className="w-5 h-5 text-emerald-400" />
@@ -750,15 +559,6 @@ export function ProvenanceGraphCanvas({
               </button>
             </div>
 
-            {/* Justification Methodology Explainer */}
-            <div className="px-6 py-3 bg-[#0d1220] border-b border-[#182033] text-xs font-mono text-[#8a98b4] flex items-center justify-between gap-4">
-              <div>
-                <span className="text-white font-semibold">Discovery Pipeline: </span>
-                Seed via canonical <code className="text-blue-400">@bgd-labs/aave-address-book</code> → Dynamic RPC queries to <code className="text-indigo-400">PoolAddressesProvider</code> → Low-level <code className="text-amber-400">eth_getStorageAt</code> for EIP-1967 proxy slots → Oracle source mapping on <code className="text-emerald-400">AaveOracle</code>.
-              </div>
-            </div>
-
-            {/* Justification Table */}
             <div className="flex-1 overflow-y-auto p-6 space-y-3 font-mono text-xs">
               {nodes.map((node) => {
                 const j = node.justification || CONTRACT_JUSTIFICATIONS[node.id];
@@ -831,7 +631,6 @@ export function ProvenanceGraphCanvas({
               })}
             </div>
 
-            {/* Modal Footer */}
             <div className="px-6 py-3 border-t border-[#182033] bg-[#0b0f1a] flex items-center justify-between text-[11px] text-[#6b7b99] font-mono">
               <span>All 15 contracts verified against Ethereum Mainnet JSON-RPC and Sourcify Registry</span>
               <button

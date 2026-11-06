@@ -277,7 +277,7 @@ export default function HomePage() {
             <Zap className="w-3.5 h-3.5 text-emerald-400" /> Chainlink CRE
           </span>
         </div>
-        <span>ETHGlobal Mumbai · 100% Decentralized Persistence</span>
+        <span>ETHGlobal Mumbai</span>
       </footer>
 
       {/* Interactive CRE Trigger Modal */}

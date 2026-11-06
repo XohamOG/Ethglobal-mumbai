@@ -67,7 +67,7 @@ function GraphViewerContent() {
             <span className="font-semibold text-sm text-white tracking-tight">
               <DecryptedText text={protocol.name} speed={30} maxIterations={8} animateOn="view" />
             </span>
-            <span className="text-xs font-mono text-[#54607b]">· Decentralized Provenance Engine</span>
+            <span className="text-xs font-mono text-[#54607b]">· Provenance Engine</span>
           </div>
         </div>
 
@@ -161,15 +161,6 @@ function GraphViewerContent() {
             </span>
           </button>
         </div>
-
-        <div className="hidden lg:flex items-center gap-3 text-xs font-mono text-[#54607b]">
-          <span className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            Decentralized Persistence
-          </span>
-          <span className="text-[#252c3e]">|</span>
-          <span>Zero Centralized DBs</span>
-        </div>
       </div>
 
       {/* Main Content Area */}
@@ -184,7 +175,7 @@ function GraphViewerContent() {
                 </div>
                 <div className="flex flex-col gap-1">
                   {[
-                    { id: "all", label: "All Layers (15)", count: AAVE_NODES.length },
+                    { id: "all", label: "All Contracts (15)", count: AAVE_NODES.length },
                     { id: 0, label: "Hop 0 · Core (6)", count: AAVE_NODES.filter((n) => n.hop === 0).length },
                     { id: 1, label: "Hop 1 · Governance (4)", count: AAVE_NODES.filter((n) => n.hop === 1).length },
                     { id: 2, label: "Hop 2 · Oracles (5)", count: AAVE_NODES.filter((n) => n.hop === 2).length },
