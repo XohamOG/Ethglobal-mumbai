@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { PROTOCOLS } from "@/lib/graph-data";
+import { PROTOCOLS, getRiskScoreConfig } from "@/lib/graph-data";
 import { CreTriggerModal } from "@/components/cre/CreTriggerModal";
 import { SpotlightCard } from "@/components/ui/SpotlightCard";
 import { DecryptedText } from "@/components/ui/DecryptedText";
@@ -24,6 +24,7 @@ import {
 
 export default function HomePage() {
   const protocol = PROTOCOLS[0];
+  const protocolRisk = getRiskScoreConfig(protocol.compositeScore);
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreModalOpen, setIsCreModalOpen] = useState(false);
 
@@ -316,12 +317,12 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Circular Seal Score Pill */}
+                {/* Circular Seal Score Pill with Dynamic Risk Color & Glass Hover */}
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-3 px-4 py-2.5 rounded-[4px] border border-[#282832] group-hover:border-[#b068ff]/50 bg-[#0e0e12] text-xs font-mono shadow-inner transition-colors">
+                  <div className={`flex items-center gap-3 px-4 py-2.5 rounded-[4px] border ${protocolRisk.borderColor} hover:border-[#b068ff]/70 bg-[#0e0e12]/80 backdrop-blur-md text-xs font-mono shadow-inner hover:bg-[#17171d]/90 transition-all duration-300 cursor-pointer`}>
                     {/* Mini Circular Seal */}
-                    <div className="w-10 h-10 rounded-full border border-[#b068ff]/60 flex flex-col items-center justify-center bg-[#17171d] shadow-[0_0_10px_rgba(176,104,255,0.25)]">
-                      <span className="text-xs font-bold text-[#ececf2] font-mono leading-none">
+                    <div className={`w-10 h-10 rounded-full border ${protocolRisk.borderColor} flex flex-col items-center justify-center bg-gradient-to-b from-[#17171d]/90 to-[#0e0e12]/90 backdrop-blur-sm ${protocolRisk.glow} hover:scale-105 transition-transform duration-200`}>
+                      <span className={`text-xs font-bold ${protocolRisk.textColor} font-mono leading-none`}>
                         {protocol.compositeScore}
                       </span>
                       <span className="text-[6.5px] font-mono text-[#aaaab8] uppercase mt-0.5">
@@ -333,9 +334,9 @@ export default function HomePage() {
                       <span className="text-[9.5px] text-[#aaaab8] uppercase font-mono tracking-wider">
                         CRE Attestation
                       </span>
-                      <span className="text-[#ececf2] font-bold text-sm flex items-center gap-1.5">
+                      <span className={`font-bold text-sm flex items-center gap-1.5 ${protocolRisk.textColor}`}>
                         <span>{protocol.riskTier} RISK</span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#b068ff] inline-block"></span>
+                        <span className={`w-1.5 h-1.5 rounded-full ${protocolRisk.barColor} inline-block animate-pulse`}></span>
                       </span>
                     </div>
                   </div>

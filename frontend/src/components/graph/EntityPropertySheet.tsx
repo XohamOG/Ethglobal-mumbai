@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { GraphNode } from "@/lib/graph-data";
+import { GraphNode, getRiskScoreConfig } from "@/lib/graph-data";
 import {
   ExternalLink,
   Copy,
@@ -25,6 +25,8 @@ export function EntityPropertySheet({ node }: EntityPropertySheetProps) {
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [copiedSwarm, setCopiedSwarm] = useState(false);
   const [showSwarmPayload, setShowSwarmPayload] = useState(false);
+
+  const nodeRisk = getRiskScoreConfig(node.riskScore);
 
   const copyText = (text: string, type: "addr" | "swarm") => {
     navigator.clipboard.writeText(text);
@@ -67,8 +69,8 @@ export function EntityPropertySheet({ node }: EntityPropertySheetProps) {
           <span className="text-[10px] font-mono px-2 py-0.5 rounded-[2px] border border-[#282832] bg-[#282832]/60 text-[#d6d8e4]">
             {hopInfo.title}
           </span>
-          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-[2px] border border-[#282832] bg-[#0e0e12] text-[#aaaab8]">
-            {node.category}
+          <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded-[2px] border ${nodeRisk.borderColor} ${nodeRisk.badgeBg} ${nodeRisk.badgeText} font-semibold shadow-sm`}>
+            Risk {node.riskScore} · {nodeRisk.tier}
           </span>
         </div>
 
@@ -137,7 +139,12 @@ export function EntityPropertySheet({ node }: EntityPropertySheetProps) {
             </div>
             <div className="grid grid-cols-2 p-2">
               <span className="text-[#aaaab8]">riskScore</span>
-              <span className="text-[#ececf2] font-bold">{node.riskScore}</span>
+              <span className="flex items-center gap-1.5">
+                <span className={`font-bold ${nodeRisk.textColor}`}>{node.riskScore}</span>
+                <span className={`text-[9px] uppercase px-1.5 py-0.2 rounded-[2px] ${nodeRisk.badgeBg} ${nodeRisk.badgeText} border ${nodeRisk.borderColor} font-semibold`}>
+                  {nodeRisk.tier}
+                </span>
+              </span>
             </div>
             <div className="grid grid-cols-2 p-2 bg-[#17171d]/60">
               <span className="text-[#aaaab8]">proxyType</span>

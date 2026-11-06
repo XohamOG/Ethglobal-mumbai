@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { DecryptedText } from "./DecryptedText";
 import { Copy, Check, ChevronDown, ChevronUp, ShieldCheck } from "lucide-react";
-import { ScoreBreakdown } from "@/lib/graph-data";
+import { ScoreBreakdown, getRiskScoreConfig } from "@/lib/graph-data";
 
 interface AnimatedScoreCardProps {
   score: number;
@@ -28,6 +28,8 @@ export function AnimatedScoreCard({
   const [displayScore, setDisplayScore] = useState(0);
   const [copiedFp, setCopiedFp] = useState(false);
   const [showFactors, setShowFactors] = useState(false);
+
+  const riskConfig = getRiskScoreConfig(score);
 
   useEffect(() => {
     let start = 0;
@@ -58,15 +60,20 @@ export function AnimatedScoreCard({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-[6px] border border-[#282832] bg-[#17171d] p-6 text-[#ececf2] shadow-xl ${className}`}
+      className={`relative overflow-hidden rounded-[6px] border border-[#282832] bg-[#17171d]/85 backdrop-blur-md p-6 text-[#ececf2] shadow-xl hover:border-[#7d8495]/60 hover:shadow-2xl transition-all duration-300 group ${className}`}
     >
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        {/* Left: Circular Seal & Composite Score */}
+      {/* Subtle glass reflection highlight */}
+      <div className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.03)] to-transparent" />
+
+      <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        {/* Left: Circular Seal & Composite Score with Dynamic Risk Color */}
         <div className="flex items-center gap-5">
           <div className="relative flex items-center justify-center">
-            {/* Spined / Thorned Circular Seal Border */}
-            <div className="w-20 h-20 rounded-full border border-[#7d8495]/40 flex flex-col items-center justify-center bg-[#0e0e12] shadow-inner">
-              <span className="text-2xl font-bold font-mono tracking-tight text-[#ececf2]">
+            {/* Circular Seal with Glass Hover and Green/Yellow/Red Ring */}
+            <div
+              className={`w-20 h-20 rounded-full border ${riskConfig.borderColor} flex flex-col items-center justify-center bg-gradient-to-b from-[#17171d]/90 to-[#0e0e12]/90 backdrop-blur-md ${riskConfig.glow} hover:scale-105 transition-all duration-300 cursor-pointer shadow-inner`}
+            >
+              <span className={`text-2xl font-bold font-mono tracking-tight ${riskConfig.textColor}`}>
                 {displayScore.toFixed(1)}
               </span>
               <span className="text-[8.5px] font-mono uppercase tracking-widest text-[#aaaab8]">
@@ -76,11 +83,13 @@ export function AnimatedScoreCard({
           </div>
 
           <div>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
               <span className="text-[11px] font-mono uppercase tracking-widest text-[#aaaab8]">
                 CRE Consensus Attestation
               </span>
-              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-[2px] border border-[#282832] bg-[#282832]/60 text-[#d6d8e4] font-semibold">
+              <span
+                className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded-[2px] border ${riskConfig.borderColor} ${riskConfig.badgeBg} ${riskConfig.badgeText} font-semibold shadow-sm`}
+              >
                 <DecryptedText text={riskTier} speed={30} maxIterations={8} animateOn="view" /> RISK
               </span>
             </div>
@@ -98,7 +107,7 @@ export function AnimatedScoreCard({
           <div className="text-[10px] font-mono text-[#aaaab8] uppercase tracking-wider">
             Keccak256 Protocol Fingerprint
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-[2px] bg-[#0e0e12] border border-[#282832] font-mono text-xs text-[#d6d8e4]">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-[2px] bg-[#0e0e12]/80 backdrop-blur-sm border border-[#282832] font-mono text-xs text-[#d6d8e4]">
             <span className="truncate max-w-[190px]" title={fingerprint}>
               {fingerprint.slice(0, 10)}...{fingerprint.slice(-8)}
             </span>
@@ -112,7 +121,7 @@ export function AnimatedScoreCard({
           </div>
 
           {isFingerprintChanged && (
-            <div className="text-[11px] font-mono text-[#b068ff] flex items-center gap-1">
+            <div className="text-[11px] font-mono text-amber-400 flex items-center gap-1">
               <span>●</span>
               <span>Fingerprint Drift Detected — Rebuilt</span>
             </div>
@@ -125,7 +134,7 @@ export function AnimatedScoreCard({
         <div className="mt-5 pt-4 border-t border-[#282832] flex items-center justify-between">
           <button
             onClick={() => setShowFactors(!showFactors)}
-            className="flex items-center gap-1.5 text-xs font-mono text-[#aaaab8] hover:text-[#d6d8e4] transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 text-xs font-mono text-[#aaaab8] hover:text-[#ececf2] transition-colors cursor-pointer"
           >
             <span>{showFactors ? "Hide Factor Breakdown" : "View Factor Details (7 Metrics)"}</span>
             {showFactors ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -133,7 +142,7 @@ export function AnimatedScoreCard({
         </div>
       )}
 
-      {/* Collapsible Factor Breakdown (Hidden by Default) */}
+      {/* Collapsible Factor Breakdown with Glass Hover & Green/Yellow/Red Metrics */}
       {showFactors && breakdown && (
         <div className="pt-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5 text-xs font-mono animate-fadeIn">
           {[
@@ -144,21 +153,40 @@ export function AnimatedScoreCard({
             { key: "f5", label: "F5 Concentr", val: breakdown.f5_concentration_risk, max: 10 },
             { key: "f6", label: "F6 Age", val: breakdown.f6_contract_age, max: 10 },
             { key: "f7", label: "F7 Incident", val: breakdown.f7_incident_history, max: 5 },
-          ].map((item) => (
-            <div key={item.key} className="p-2 rounded-[2px] bg-[#0e0e12] border border-[#282832] space-y-1">
-              <div className="text-[9.5px] text-[#aaaab8] uppercase truncate">{item.label}</div>
-              <div className="flex items-center justify-between">
-                <span className="text-[#ececf2] font-semibold">{item.val}</span>
-                <span className="text-[9px] text-[#7d8495]">/{item.max}</span>
+          ].map((item) => {
+            const factorRatio = item.val / item.max;
+            const factorTextColor =
+              factorRatio <= 0.3
+                ? "text-emerald-400"
+                : factorRatio <= 0.6
+                ? "text-amber-400"
+                : "text-rose-400";
+            const factorBarColor =
+              factorRatio <= 0.3
+                ? "bg-emerald-400"
+                : factorRatio <= 0.6
+                ? "bg-amber-400"
+                : "bg-rose-400";
+
+            return (
+              <div
+                key={item.key}
+                className="p-2.5 rounded-[3px] bg-[#0e0e12]/80 backdrop-blur-sm border border-[#282832] hover:border-[#7d8495]/60 hover:bg-[#17171d]/90 transition-all duration-200 space-y-1.5"
+              >
+                <div className="text-[9.5px] text-[#aaaab8] uppercase truncate">{item.label}</div>
+                <div className="flex items-center justify-between">
+                  <span className={`font-semibold ${factorTextColor}`}>{item.val}</span>
+                  <span className="text-[9px] text-[#7d8495]">/{item.max}</span>
+                </div>
+                <div className="w-full bg-[#17171d] h-1.5 rounded-[1px] overflow-hidden">
+                  <div
+                    className={`h-full ${factorBarColor} rounded-[1px] transition-all duration-300`}
+                    style={{ width: `${Math.min(100, factorRatio * 100)}%` }}
+                  />
+                </div>
               </div>
-              <div className="w-full bg-[#17171d] h-1 rounded-[1px] overflow-hidden">
-                <div
-                  className="h-full bg-[#d6d8e4] rounded-[1px] transition-all duration-300"
-                  style={{ width: `${Math.min(100, (item.val / item.max) * 100)}%` }}
-                />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

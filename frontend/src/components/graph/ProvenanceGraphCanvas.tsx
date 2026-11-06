@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useMemo } from "react";
-import { GraphNode, GraphEdge, CONTRACT_JUSTIFICATIONS } from "@/lib/graph-data";
+import { GraphNode, GraphEdge, CONTRACT_JUSTIFICATIONS, getRiskScoreConfig } from "@/lib/graph-data";
 import {
   ZoomIn,
   ZoomOut,
@@ -382,6 +382,7 @@ export function ProvenanceGraphCanvas({
                 const isDimmed = activeTargetId && !isSelected && !isHovered && !isConnected;
 
                 const style = getStyle(node.category, node.adminType);
+                const nodeRisk = getRiskScoreConfig(node.riskScore);
                 const nodeR = 22;
 
                 return (
@@ -397,25 +398,45 @@ export function ProvenanceGraphCanvas({
                     onMouseLeave={() => setHoveredNodeId(null)}
                     opacity={isDimmed ? 0.2 : 1}
                   >
-                    {/* Active Halo Ring */}
+                    {/* Active Glass Glow Ring matching Risk Level */}
                     {(isSelected || isHovered) && (
-                      <circle
-                        r={nodeR + 6}
-                        fill="transparent"
-                        stroke={isSelected ? "#b068ff" : "#d6d8e4"}
-                        strokeWidth="1.5"
-                        strokeOpacity="0.8"
-                        strokeDasharray="3 3"
-                      />
+                      <>
+                        <circle
+                          r={nodeR + 8}
+                          fill={nodeRisk.hex}
+                          fillOpacity="0.08"
+                          stroke={nodeRisk.hex}
+                          strokeWidth="1"
+                          strokeOpacity="0.4"
+                        />
+                        <circle
+                          r={nodeR + 4}
+                          fill="transparent"
+                          stroke={isSelected ? "#b068ff" : nodeRisk.hex}
+                          strokeWidth="1.5"
+                          strokeOpacity="0.8"
+                          strokeDasharray="3 3"
+                        />
+                      </>
                     )}
 
-                    {/* Node Main Circle */}
+                    {/* Node Main Circle with Glass Effect */}
                     <circle
                       r={nodeR}
                       fill={style.fill}
-                      stroke={isSelected ? "#b068ff" : isHovered ? "#d6d8e4" : style.ring}
+                      stroke={isSelected ? "#b068ff" : isHovered ? nodeRisk.hex : style.ring}
                       strokeWidth={isSelected ? 2.5 : 1.5}
                       className="transition-transform duration-200 hover:scale-105"
+                    />
+
+                    {/* Small Risk Level Pip Indicator */}
+                    <circle
+                      cx={nodeR - 5}
+                      cy={-nodeR + 6}
+                      r="3.5"
+                      fill={nodeRisk.hex}
+                      stroke="#0e0e12"
+                      strokeWidth="1.2"
                     />
 
                     {/* Inner Glyph Icon */}
@@ -446,7 +467,7 @@ export function ProvenanceGraphCanvas({
 
                     {/* Address Snippet */}
                     <text
-                      y={nodeR + 28}
+                      y={nodeR + 27}
                       textAnchor="middle"
                       fill="#aaaab8"
                       fontFamily="ui-monospace, monospace"
@@ -454,6 +475,19 @@ export function ProvenanceGraphCanvas({
                       pointerEvents="none"
                     >
                       {node.address.slice(0, 6)}...{node.address.slice(-4)}
+                    </text>
+
+                    {/* Dynamic Risk Score Badge */}
+                    <text
+                      y={nodeR + 38}
+                      textAnchor="middle"
+                      fill={nodeRisk.hex}
+                      fontFamily="ui-monospace, monospace"
+                      fontSize="8"
+                      fontWeight="700"
+                      pointerEvents="none"
+                    >
+                      RISK {node.riskScore}
                     </text>
                   </g>
                 );

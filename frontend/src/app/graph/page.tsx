@@ -3,7 +3,7 @@
 import React, { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { PROTOCOLS, AAVE_NODES, AAVE_EDGES, GraphNode } from "@/lib/graph-data";
+import { PROTOCOLS, AAVE_NODES, AAVE_EDGES, GraphNode, getRiskScoreConfig } from "@/lib/graph-data";
 import { ProvenanceGraphCanvas } from "@/components/graph/ProvenanceGraphCanvas";
 import { EntityPropertySheet } from "@/components/graph/EntityPropertySheet";
 import { ArkivSchemaTab } from "@/components/tabs/ArkivSchemaTab";
@@ -35,6 +35,8 @@ function GraphViewerContent() {
   const [activeHopFilter, setActiveHopFilter] = useState<number | "all">("all");
   const [isCreModalOpen, setIsCreModalOpen] = useState(false);
   const [liveScore, setLiveScore] = useState(protocol.compositeScore);
+
+  const liveRisk = getRiskScoreConfig(liveScore);
 
   useEffect(() => {
     const tab = searchParams.get("tab") as ActiveTab;
@@ -77,19 +79,19 @@ function GraphViewerContent() {
             <span className="text-[#d6d8e4]">#7794095</span>
           </div>
 
-          {/* CRE Trigger & Score Button */}
+          {/* CRE Trigger & Score Button with Dynamic Risk Color & Glass Hover */}
           <button
             onClick={() => setIsCreModalOpen(true)}
-            className="flex items-center gap-2 px-3 py-1 rounded-[2px] border border-[#282832] bg-[#282832]/60 hover:bg-[#282832] text-xs font-mono transition-all cursor-pointer text-[#ececf2]"
+            className={`flex items-center gap-2 px-3 py-1 rounded-[2px] border ${liveRisk.borderColor} hover:border-[#b068ff]/70 bg-[#17171d]/80 backdrop-blur-md hover:bg-[#282832]/80 text-xs font-mono transition-all duration-300 cursor-pointer text-[#ececf2] shadow-sm`}
             title="Click to Trigger Real-Time CRE Fingerprint Verification"
           >
-            <ShieldCheck className="w-3.5 h-3.5 text-[#d6d8e4]" />
+            <ShieldCheck className={`w-3.5 h-3.5 ${liveRisk.textColor}`} />
             <span className="text-[#aaaab8]">Score:</span>
-            <span className="text-[#ececf2] font-bold">{liveScore}</span>
-            <span className="text-[10px] text-[#aaaab8] uppercase">
-              ({liveScore < 15 ? "LOW" : "MEDIUM"})
+            <span className={`font-bold ${liveRisk.textColor}`}>{liveScore}</span>
+            <span className={`text-[10px] uppercase font-semibold ${liveRisk.textColor}`}>
+              ({liveRisk.tier})
             </span>
-            <span className="text-[10px] bg-[#d6d8e4] text-[#000000] px-1.5 py-0.2 rounded-[2px] font-semibold flex items-center gap-1 ml-1">
+            <span className="text-[10px] bg-[#d6d8e4] text-[#000000] px-1.5 py-0.2 rounded-[2px] font-semibold flex items-center gap-1 ml-1 hover:bg-white transition-colors">
               <Zap className="w-2.5 h-2.5" />
               Audit
             </span>
@@ -194,28 +196,32 @@ function GraphViewerContent() {
                 </div>
               </div>
 
-              {/* Quick Node List */}
+              {/* Quick Node List with Glass Hover & Semantic Risk Colors */}
               <div>
                 <div className="text-[10px] font-mono uppercase tracking-widest text-[#7d8495] mb-2">
                   Active Contracts
                 </div>
                 <div className="space-y-1 max-h-[360px] overflow-y-auto pr-1">
-                  {filteredNodes.map((n) => (
-                    <button
-                      key={n.id}
-                      onClick={() => setSelectedNode(n)}
-                      className={`w-full text-left px-2 py-1.5 rounded-[2px] text-[11px] font-mono transition-all cursor-pointer flex items-center justify-between ${
-                        selectedNode.id === n.id
-                          ? "bg-[#282832] text-[#ececf2] border border-[#b068ff]"
-                          : "text-[#aaaab8] hover:text-[#ececf2] hover:bg-[#282832]/40"
-                      }`}
-                    >
-                      <span className="truncate max-w-[130px]">{n.label}</span>
-                      <span className="text-[9.5px] font-mono text-[#d6d8e4]">
-                        {n.riskScore}
-                      </span>
-                    </button>
-                  ))}
+                  {filteredNodes.map((n) => {
+                    const nodeRisk = getRiskScoreConfig(n.riskScore);
+                    const isSelected = selectedNode.id === n.id;
+                    return (
+                      <button
+                        key={n.id}
+                        onClick={() => setSelectedNode(n)}
+                        className={`w-full text-left px-2.5 py-1.5 rounded-[2px] text-[11px] font-mono transition-all duration-200 cursor-pointer flex items-center justify-between group ${
+                          isSelected
+                            ? `bg-[#282832] text-[#ececf2] border ${nodeRisk.borderColor} shadow-sm`
+                            : "bg-[#17171d]/60 backdrop-blur-sm border border-transparent hover:border-[#282832] hover:bg-[#282832]/80 text-[#aaaab8] hover:text-[#ececf2]"
+                        }`}
+                      >
+                        <span className="truncate max-w-[130px] group-hover:text-white transition-colors">{n.label}</span>
+                        <span className={`text-[9.5px] font-mono font-bold px-1.5 py-0.2 rounded-[2px] ${nodeRisk.badgeBg} ${nodeRisk.textColor} border ${nodeRisk.borderColor}`}>
+                          {n.riskScore}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
