@@ -24,6 +24,10 @@ interface ProvenanceGraphCanvasProps {
   edges: GraphEdge[];
   selectedNodeId: string;
   onSelectNode: (node: GraphNode) => void;
+  isRebuilding?: boolean;
+  mutatedNodeId?: string;
+  onResetBaseline?: () => void;
+  onSwitchToCreTab?: () => void;
 }
 
 export function ProvenanceGraphCanvas({
@@ -31,6 +35,10 @@ export function ProvenanceGraphCanvas({
   edges,
   selectedNodeId,
   onSelectNode,
+  isRebuilding = false,
+  mutatedNodeId,
+  onResetBaseline,
+  onSwitchToCreTab,
 }: ProvenanceGraphCanvasProps) {
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -158,6 +166,39 @@ export function ProvenanceGraphCanvas({
           </button>
         </div>
       </div>
+
+      {/* Dynamic CRE Rebuilding / Drift HUD Overlay */}
+      {isRebuilding && (
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 bg-[#120e06]/95 border border-amber-500/80 px-4 py-2 rounded-full shadow-2xl backdrop-blur font-mono text-xs text-amber-300 animate-pulse">
+          <div className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+          <span className="font-semibold">Chainlink CRE: Rebuilding Provenance Lineage & Propagating Risk Scores...</span>
+        </div>
+      )}
+
+      {!isRebuilding && mutatedNodeId && (
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 bg-[#0c121e]/95 border border-amber-600/70 px-4 py-1.5 rounded-full shadow-xl backdrop-blur font-mono text-xs text-amber-200">
+          <span className="flex items-center gap-1.5 font-medium">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <span>Lineage Rebuilt · Fingerprint Drift Detected</span>
+          </span>
+          {onSwitchToCreTab && (
+            <button
+              onClick={onSwitchToCreTab}
+              className="text-[11px] text-blue-400 hover:text-white underline cursor-pointer"
+            >
+              View CRE Trace →
+            </button>
+          )}
+          {onResetBaseline && (
+            <button
+              onClick={onResetBaseline}
+              className="text-[10px] px-2 py-0.5 rounded bg-amber-950 border border-amber-700/80 hover:bg-amber-900 text-amber-300 font-semibold cursor-pointer"
+            >
+              Reset
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Main SVG Visualization Workspace */}
       <div
@@ -425,6 +466,29 @@ export function ProvenanceGraphCanvas({
                     onMouseLeave={() => setHoveredNodeId(null)}
                     opacity={isDimmed ? 0.22 : 1}
                   >
+                    {/* Mutated / Drifted Indicator Halo */}
+                    {node.id === mutatedNodeId && (
+                      <g>
+                        <rect
+                          x="-106"
+                          y="-26"
+                          width="212"
+                          height="52"
+                          rx="12"
+                          fill="none"
+                          stroke="#f59e0b"
+                          strokeWidth="2.5"
+                          strokeDasharray="6 3"
+                        />
+                        <g transform="translate(64, -24)">
+                          <rect x="-24" y="-7" width="48" height="14" rx="3" fill="#78350f" stroke="#f59e0b" strokeWidth="0.8" />
+                          <text textAnchor="middle" dy="3.5" fill="#fef08a" fontFamily="ui-monospace, monospace" fontSize="7.5" fontWeight="700">
+                            DRIFTED
+                          </text>
+                        </g>
+                      </g>
+                    )}
+
                     {/* Active Halo Glow */}
                     {(isSelected || isHovered) && (
                       <rect

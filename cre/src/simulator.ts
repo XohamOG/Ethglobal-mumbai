@@ -47,7 +47,7 @@ async function main() {
     console.log(`\n>>> [1/2] Simulating Workflow 1: Periodic Cron Sweep (7,200 Blocks / 24h) <<<`);
     const cronResult = await runCronSweep({
       protocolId: PROTOCOL_ID,
-      rpcUrl: "https://cloudflare-eth.com",
+      rpcUrl: "https://ethereum-rpc.publicnode.com",
       graphServiceUrl: GRAPH_SERVICE_URL,
       riskRegistryAddress: localRegistryAddress || ethers.ZeroAddress,
       signer: signer,
@@ -68,7 +68,7 @@ async function main() {
       protocolId: PROTOCOL_ID,
       eventPayload: {
         eventName: "Upgraded",
-        contractAddress: "0x87870Bca3F3fD6335c3F4cE8392d69350b4F4E2", // Aave Pool Proxy
+        contractAddress: "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2", // Aave Pool Proxy
         newImplementation: "0x7777777777777777777777777777777777777777",
         txHash: "0x9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b",
         blockNumber: 21105420,

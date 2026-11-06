@@ -34,6 +34,22 @@ function GraphViewerContent() {
   const [selectedNode, setSelectedNode] = useState<GraphNode>(AAVE_NODES[0]);
   const [activeHopFilter, setActiveHopFilter] = useState<number | "all">("all");
 
+  // Dynamic shared state across Graph canvas and CRE tabs
+  const [nodes, setNodes] = useState<GraphNode[]>(AAVE_NODES);
+  const [compositeScore, setCompositeScore] = useState<number>(protocol.compositeScore || 14.75);
+  const [riskTier, setRiskTier] = useState<string>(protocol.riskTier || "LOW");
+  const [fingerprint, setFingerprint] = useState<string>(
+    protocol.fingerprint || "0x39a7cd678a45f1e63df9441182b58d3e87149bc0d23f82fa05f4fb0b4993e06c"
+  );
+  const [isRebuilding, setIsRebuilding] = useState<boolean>(false);
+  const [mutatedNodeInfo, setMutatedNodeInfo] = useState<{
+    id: string;
+    label: string;
+    oldAddress: string;
+    newAddress: string;
+    reason?: string;
+  } | null>(null);
+
   useEffect(() => {
     const tab = searchParams.get("tab") as ActiveTab;
     if (tab && ["graph", "arkiv", "swarm", "cre"].includes(tab)) {
@@ -41,10 +57,23 @@ function GraphViewerContent() {
     }
   }, [searchParams]);
 
+  const handleResetBaseline = async () => {
+    try {
+      await fetch("http://localhost:3002/api/cre/reset", { method: "POST" }).catch(() => null);
+    } catch {}
+    setNodes(AAVE_NODES);
+    setCompositeScore(14.75);
+    setRiskTier("LOW");
+    setFingerprint("0x39a7cd678a45f1e63df9441182b58d3e87149bc0d23f82fa05f4fb0b4993e06c");
+    setMutatedNodeInfo(null);
+    setIsRebuilding(false);
+    setSelectedNode(AAVE_NODES[0]);
+  };
+
   const filteredNodes =
     activeHopFilter === "all"
-      ? AAVE_NODES
-      : AAVE_NODES.filter((n) => n.hop === activeHopFilter);
+      ? nodes
+      : nodes.filter((n) => n.hop === activeHopFilter);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#07080d] text-[#e2e8f0]">
@@ -64,7 +93,7 @@ function GraphViewerContent() {
             <span className="font-semibold text-sm text-white tracking-tight">
               <DecryptedText text={protocol.name} speed={30} maxIterations={8} animateOn="view" />
             </span>
-            <span className="text-xs font-mono text-[#54607b]">· Decentralized Provenance Engine</span>
+            <span className="text-xs font-mono text-[#54607b]">· Provenance Engine</span>
           </div>
         </div>
 
@@ -72,18 +101,29 @@ function GraphViewerContent() {
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#0d1019] border border-[#1b2234] text-xs font-mono text-[#7885a2]">
             <Radio className="w-3 h-3 text-emerald-400 animate-pulse" />
-            <span>Arkiv Rabdi Testnet</span>
+            <span>Arkiv Rabdi</span>
             <span className="text-[#323d54]">·</span>
             <span className="text-blue-400">#7794095</span>
           </div>
 
-          <div className="flex items-center gap-2 px-3 py-1 rounded-md border border-emerald-900/60 bg-emerald-950/40 text-xs font-mono">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+          <div
+            className={`flex items-center gap-2 px-3 py-1 rounded-md border text-xs font-mono transition-colors ${
+              mutatedNodeInfo
+                ? "border-amber-800/80 bg-amber-950/40 text-amber-300"
+                : "border-emerald-900/60 bg-emerald-950/40 text-emerald-400"
+            }`}
+          >
+            <ShieldCheck
+              className={`w-3.5 h-3.5 ${mutatedNodeInfo ? "text-amber-400 animate-pulse" : "text-emerald-400"}`}
+            />
             <span className="text-[#7f8da8]">Composite Risk:</span>
-            <span className="text-emerald-400 font-bold">{protocol.compositeScore}</span>
-            <span className="text-[10px] text-emerald-400 font-semibold uppercase">
-              ({protocol.riskTier})
-            </span>
+            <span className="font-bold">{compositeScore}</span>
+            <span className="text-[10px] font-semibold uppercase">({riskTier})</span>
+            {mutatedNodeInfo && (
+              <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-900/80 text-amber-200 uppercase font-semibold">
+                Drift Recalculated
+              </span>
+            )}
           </div>
         </div>
       </header>
@@ -102,6 +142,9 @@ function GraphViewerContent() {
             <Share2 className="w-3.5 h-3.5 text-blue-400" />
             <span>Provenance Graph</span>
             <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#0a0d14] text-[#828fa9]">15 Nodes</span>
+            {mutatedNodeInfo && (
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+            )}
           </button>
 
           <button
@@ -113,7 +156,7 @@ function GraphViewerContent() {
             }`}
           >
             <Database className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Arkiv Relational Schemas</span>
+            <span>Arkiv Schemas</span>
             <span className="text-[10px] px-1.5 py-0.2 rounded bg-indigo-950/60 text-indigo-400 border border-indigo-800/40">
               3 Entities
             </span>
@@ -128,7 +171,7 @@ function GraphViewerContent() {
             }`}
           >
             <HardDrive className="w-3.5 h-3.5 text-amber-400" />
-            <span>Swarm Forensic Evidence</span>
+            <span>Swarm Evidence</span>
             <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-950/60 text-amber-400 border border-amber-800/40">
               4 Blobs
             </span>
@@ -143,20 +186,18 @@ function GraphViewerContent() {
             }`}
           >
             <Zap className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Chainlink CRE & Consensus</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-950/60 text-emerald-400 border border-emerald-800/40 animate-pulse">
-              Simulator
+            <span>Chainlink CRE</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">
+              Orchestrator
             </span>
           </button>
         </div>
 
-        <div className="hidden lg:flex items-center gap-3 text-xs font-mono text-[#54607b]">
-          <span className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            Decentralized Architecture
-          </span>
-          <span className="text-[#252c3e]">|</span>
-          <span>Zero Centralized DBs</span>
+        {/* Right Info */}
+        <div className="hidden lg:flex items-center gap-3 text-xs font-mono text-[#5f6c8a]">
+          <span>Evaluated Block: <strong className="text-white">#{protocol.lastEvaluatedBlock}</strong></span>
+          <span className="text-[#252f44]">·</span>
+          <span>Fingerprint: <code className="text-[#8997b6]">{fingerprint.slice(0, 10)}...</code></span>
         </div>
       </div>
 
@@ -172,10 +213,10 @@ function GraphViewerContent() {
                 </div>
                 <div className="flex flex-col gap-1">
                   {[
-                    { id: "all", label: "All Layers (15)", count: AAVE_NODES.length },
-                    { id: 0, label: "Hop 0 · Core (6)", count: AAVE_NODES.filter((n) => n.hop === 0).length },
-                    { id: 1, label: "Hop 1 · Governance (3)", count: AAVE_NODES.filter((n) => n.hop === 1).length },
-                    { id: 2, label: "Hop 2 · Oracles & Assets (6)", count: AAVE_NODES.filter((n) => n.hop === 2).length },
+                    { id: "all", label: "All Layers (15)", count: nodes.length },
+                    { id: 0, label: "Hop 0 · Core (6)", count: nodes.filter((n) => n.hop === 0).length },
+                    { id: 1, label: "Hop 1 · Governance (4)", count: nodes.filter((n) => n.hop === 1).length },
+                    { id: 2, label: "Hop 2 · Oracles & Assets (5)", count: nodes.filter((n) => n.hop === 2).length },
                   ].map((item) => (
                     <button
                       key={String(item.id)}
@@ -208,10 +249,19 @@ function GraphViewerContent() {
                           : "text-[#7582a0] hover:text-white hover:bg-[#0c0f16]"
                       }`}
                     >
-                      <span className="truncate max-w-[130px]">{n.label}</span>
+                      <span className="truncate max-w-[130px] flex items-center gap-1.5">
+                        {mutatedNodeInfo?.id === n.id && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                        )}
+                        <span>{n.label}</span>
+                      </span>
                       <span
-                        className={`text-[9px] ${
-                          n.riskScore === 0 ? "text-emerald-400" : n.riskScore <= 10 ? "text-emerald-300" : "text-amber-400"
+                        className={`text-[9px] font-bold ${
+                          mutatedNodeInfo?.id === n.id
+                            ? "text-amber-400"
+                            : n.riskScore <= 10
+                              ? "text-emerald-400"
+                              : "text-amber-400"
                         }`}
                       >
                         {n.riskScore}
@@ -235,12 +285,16 @@ function GraphViewerContent() {
           </div>
 
           {/* Center Canvas */}
-          <div className="flex-1 bg-[#06080d] p-5 overflow-hidden flex flex-col justify-between">
+          <div className="flex-1 bg-[#06080d] p-5 overflow-hidden flex flex-col justify-between relative">
             <ProvenanceGraphCanvas
               nodes={filteredNodes}
               edges={AAVE_EDGES}
               selectedNodeId={selectedNode.id}
               onSelectNode={(node) => setSelectedNode(node)}
+              isRebuilding={isRebuilding}
+              mutatedNodeId={mutatedNodeInfo?.id}
+              onResetBaseline={handleResetBaseline}
+              onSwitchToCreTab={() => setActiveTab("cre")}
             />
           </div>
 
@@ -264,8 +318,28 @@ function GraphViewerContent() {
       )}
 
       {activeTab === "cre" && (
-        <div className="flex-1 overflow-y-auto bg-[#07080d]">
-          <ChainlinkCreTab />
+        <div className="flex-1 overflow-y-auto bg-[#07080d] p-6 max-w-7xl mx-auto w-full">
+          <ChainlinkCreTab
+            nodes={nodes}
+            compositeScore={compositeScore}
+            riskTier={riskTier}
+            fingerprint={fingerprint}
+            isRebuilding={isRebuilding}
+            mutatedNodeInfo={mutatedNodeInfo}
+            onRebuildStart={() => setIsRebuilding(true)}
+            onRebuildComplete={(updatedNodes, newScore, newTier, newFp, mutation) => {
+              setNodes(updatedNodes);
+              setCompositeScore(newScore);
+              setRiskTier(newTier);
+              setFingerprint(newFp);
+              setMutatedNodeInfo(mutation);
+              setIsRebuilding(false);
+              const updatedSelected = updatedNodes.find((n) => n.id === mutation.id);
+              if (updatedSelected) setSelectedNode(updatedSelected);
+            }}
+            onResetBaseline={handleResetBaseline}
+            onSwitchToGraphTab={() => setActiveTab("graph")}
+          />
         </div>
       )}
     </div>

@@ -1,26 +1,23 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { PROTOCOLS, AAVE_NODES, GraphNode } from "@/lib/graph-data";
+import { GraphNode } from "@/lib/graph-data";
 import {
   Radio,
   Zap,
-  Clock,
   Terminal,
   CheckCircle2,
   RefreshCw,
   ExternalLink,
-  ChevronRight,
   Server,
   Activity,
-  AlertTriangle,
   RotateCcw,
   ShieldAlert,
   ArrowRight,
   Shield,
   Layers,
   Database,
-  Lock,
+  Share2,
 } from "lucide-react";
 import { ShinyButton } from "@/components/ui/ShinyButton";
 
@@ -29,13 +26,42 @@ interface SimulationStep {
   title: string;
   detail: string;
   status: "pending" | "running" | "done";
-  txData?: any;
+}
+
+interface ChainlinkCreTabProps {
+  nodes?: GraphNode[];
+  compositeScore?: number;
+  riskTier?: string;
+  fingerprint?: string;
+  isRebuilding?: boolean;
+  mutatedNodeInfo?: {
+    id: string;
+    label: string;
+    oldAddress: string;
+    newAddress: string;
+    reason?: string;
+  } | null;
+  onRebuildStart?: () => void;
+  onRebuildComplete?: (
+    updatedNodes: GraphNode[],
+    newScore: number,
+    newTier: string,
+    newFingerprint: string,
+    mutation: {
+      id: string;
+      label: string;
+      oldAddress: string;
+      newAddress: string;
+      reason?: string;
+    }
+  ) => void;
+  onResetBaseline?: () => void;
+  onSwitchToGraphTab?: () => void;
 }
 
 const CANONICAL_BASELINE_FINGERPRINT = "0x39a7cd678a45f1e63df9441182b58d3e87149bc0d23f82fa05f4fb0b4993e06c";
-const CANONICAL_POOL_PROXY = "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2";
 
-// Public RPC Helper for direct on-chain verification
+// Public RPC Helper
 async function queryMainnetRpc(method: string, params: any[] = []): Promise<any> {
   const RPC_URLS = [
     "https://cloudflare-eth.com",
@@ -59,27 +85,24 @@ async function queryMainnetRpc(method: string, params: any[] = []): Promise<any>
   return null;
 }
 
-export function ChainlinkCreTab() {
-  const [activeWorkflow, setActiveWorkflow] = useState<"log_trigger" | "cron_sweep" | "address_mutation">("address_mutation");
+export function ChainlinkCreTab({
+  nodes = [],
+  compositeScore = 14.75,
+  riskTier = "LOW",
+  fingerprint = CANONICAL_BASELINE_FINGERPRINT,
+  isRebuilding = false,
+  mutatedNodeInfo = null,
+  onRebuildStart,
+  onRebuildComplete,
+  onResetBaseline,
+  onSwitchToGraphTab,
+}: ChainlinkCreTabProps) {
   const [isSimulating, setIsSimulating] = useState(false);
   const [simSteps, setSimSteps] = useState<SimulationStep[]>([]);
   const [lastTxReceipt, setLastTxReceipt] = useState<any | null>(null);
 
   // Live Mainnet State
   const [liveBlock, setLiveBlock] = useState<number | null>(null);
-  const [currentFingerprint, setCurrentFingerprint] = useState<string>(CANONICAL_BASELINE_FINGERPRINT);
-  const [compositeScore, setCompositeScore] = useState<number>(14.75);
-  const [riskTier, setRiskTier] = useState<string>("LOW");
-  const [driftDetected, setDriftDetected] = useState<boolean>(false);
-  const [mutatedNodeInfo, setMutatedNodeInfo] = useState<{
-    label: string;
-    oldAddr: string;
-    newAddr: string;
-    reason: string;
-  } | null>(null);
-
-  // Ingested Topology Nodes
-  const [nodesList, setNodesList] = useState<any[]>(AAVE_NODES);
   const [selectedNodeId, setSelectedNodeId] = useState<string>("aave-v3-pool-impl");
   const [customInputAddr, setCustomInputAddr] = useState<string>("0x7777777777777777777777777777777777777777");
 
@@ -88,37 +111,28 @@ export function ChainlinkCreTab() {
 
   const appendLog = (msg: string) => {
     const time = new Date().toLocaleTimeString();
-    setTerminalLogs((prev) => [...prev.slice(-35), `[${time}] ${msg}`]);
+    setTerminalLogs((prev) => [...prev.slice(-30), `[${time}] ${msg}`]);
   };
 
   // Sync with CRE Daemon or Mainnet RPC
   useEffect(() => {
     async function initLiveState() {
-      appendLog("Initializing Chainlink Runtime Environment (CRE) monitor...");
+      appendLog("Initializing Chainlink Runtime Environment (CRE) engine...");
       try {
         const res = await fetch("http://localhost:3002/api/cre/status").catch(() => null);
         if (res && res.ok) {
           const status = await res.json();
           setServerOnline(true);
-          setCurrentFingerprint(status.currentFingerprint || CANONICAL_BASELINE_FINGERPRINT);
-          setCompositeScore(status.compositeScore || 14.75);
-          setRiskTier(status.riskTier || "LOW");
-          setDriftDetected(status.driftDetected || false);
-          if (status.activeNodes && status.activeNodes.length > 0) {
-            setNodesList(status.activeNodes);
-          }
-          appendLog(`Connected to CRE Daemon at localhost:3002 (Engine: ${status.engine})`);
-          appendLog(`Loaded canonical 15-contract Aave V3 ingested topology.`);
-          appendLog(`Baseline Fingerprint: ${status.baselineFingerprint}`);
+          appendLog(`Connected to CRE Daemon at localhost:3002 (${status.engine})`);
+          appendLog(`Monitored contracts: ${status.nodeCount || 15} · Baseline: ${status.baselineFingerprint?.slice(0, 16)}...`);
         } else {
           setServerOnline(false);
-          appendLog("CRE Daemon offline. Running in direct in-browser Mainnet RPC mode.");
+          appendLog("CRE Daemon offline. Running in local fallback simulation mode.");
         }
       } catch {
         setServerOnline(false);
       }
 
-      // Fetch live Ethereum block
       const hexBlock = await queryMainnetRpc("eth_blockNumber");
       if (hexBlock) {
         const blockNum = parseInt(hexBlock, 16);
@@ -131,23 +145,21 @@ export function ChainlinkCreTab() {
   }, []);
 
   /**
-   * Mutate ANY address in the ingested graph and trigger CRE rebuild
+   * Mutate address and trigger CRE rebuild
    */
   const handleMutateAddress = async (nodeId: string, newAddr: string, reasonTitle: string) => {
     setIsSimulating(true);
     setLastTxReceipt(null);
+    if (onRebuildStart) onRebuildStart();
 
-    const targetNode = nodesList.find((n) => n.id === nodeId) || AAVE_NODES.find((n) => n.id === nodeId);
+    const targetNode = nodes.find((n) => n.id === nodeId);
     const oldAddr = targetNode ? targetNode.address : "0x0000000000000000000000000000000000000000";
     const nodeLabel = targetNode ? targetNode.label : nodeId;
 
     appendLog(`----------------------------------------------------------------`);
-    appendLog(`[ADDRESS MUTATION] Modifying ${nodeLabel} address:`);
-    appendLog(`  From : ${oldAddr}`);
-    appendLog(`  To   : ${newAddr}`);
-    appendLog(`  Event: ${reasonTitle}`);
+    appendLog(`[MUTATION] ${nodeLabel}: ${oldAddr.slice(0, 10)}... → ${newAddr.slice(0, 10)}...`);
 
-    let currentBlock = liveBlock || 26354730;
+    let currentBlock = liveBlock || 26354740;
     try {
       const hex = await queryMainnetRpc("eth_blockNumber");
       if (hex) currentBlock = parseInt(hex, 16);
@@ -157,32 +169,32 @@ export function ChainlinkCreTab() {
     const executionSteps: SimulationStep[] = [
       {
         step: 1,
-        title: "On-Chain State / Address Mutation Detected",
-        detail: `${nodeLabel} mutated from ${oldAddr.slice(0, 8)}... to ${newAddr.slice(0, 8)}... at Block #${currentBlock}`,
+        title: "On-Chain State Mutation Detected",
+        detail: `${nodeLabel} changed to ${newAddr.slice(0, 10)}... at Block #${currentBlock}`,
         status: "running",
       },
       {
         step: 2,
-        title: "Chainlink CRE QuickJS-WASM Recomputes Fingerprint",
-        detail: `DON nodes reach BFT consensus on new Keccak256 fingerprint. Comparing vs stored baseline (${CANONICAL_BASELINE_FINGERPRINT.slice(0, 10)}...).`,
+        title: "CRE DON QuickJS Consensus Engine",
+        detail: "BFT 2/3 consensus reached across 4 DON nodes. Keccak256 protocol fingerprint recalculated.",
         status: "pending",
       },
       {
         step: 3,
-        title: "Structural Drift Confirmed → Automated Rebuild Dispatched",
-        detail: `POST http://localhost:3001/rebuild called with { protocolId: 'aave-v3-mainnet', triggeredBy: 'address-mutation' }`,
+        title: "Automated Graph Rebuild Dispatched",
+        detail: "POST http://localhost:3001/rebuild invoked. 7-factor risk scores re-evaluated.",
         status: "pending",
       },
       {
         step: 4,
-        title: "2-Hop Risk Re-evaluation & Arkiv / Swarm Persistence",
-        detail: `New Arkiv snapshot minted with 50,000 blocks BTL. Swarm evidence archived.`,
+        title: "Arkiv Snapshot Minted & Swarm Anchored",
+        detail: "Persisted in Arkiv Rabdi testnet with 50,000 blocks BTL. Forensic evidence stored in Swarm.",
         status: "pending",
       },
       {
         step: 5,
-        title: "On-Chain RiskRegistry.sol Attestation Submitted",
-        detail: `CRE Forwarder executes reportRisk('aave-v3-mainnet', score, tier, snapshotId, blockNumber)`,
+        title: "RiskRegistry.sol On-Chain Attestation",
+        detail: "CRE Forwarder calls reportRisk('aave-v3-mainnet', score, tier, snapshotId, blockNumber)",
         status: "pending",
       },
     ];
@@ -204,11 +216,8 @@ export function ChainlinkCreTab() {
       if (res && res.ok) {
         backendResult = await res.json();
       }
-    } catch (e) {
-      // Backend offline fallback handled below
-    }
+    } catch {}
 
-    // Step-by-step animation
     let current = 0;
     const interval = setInterval(() => {
       current++;
@@ -221,20 +230,15 @@ export function ChainlinkCreTab() {
       );
 
       if (current === 1) {
-        appendLog(`[CRE DON] Received mutation trigger on ${nodeLabel}.`);
+        appendLog(`[CRE DON] Event received: ${reasonTitle}`);
       } else if (current === 2) {
         const nextFp = backendResult?.newFingerprint || "0x" + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
-        appendLog(`[CRE DON] BFT Consensus reached across 4 DON nodes.`);
-        appendLog(`[CRE DON] Stored Fingerprint : ${CANONICAL_BASELINE_FINGERPRINT}`);
-        appendLog(`[CRE DON] Computed Fingerprint: ${nextFp}`);
-        appendLog(`[CRE DON] ⚠️ CRITICAL FINGERPRINT DRIFT DETECTED! Stored != Computed`);
+        appendLog(`[CRE DON] Drift Detected! Computed FP: ${nextFp.slice(0, 16)}...`);
       } else if (current === 3) {
-        appendLog(`[CRE DON] Dispatched automated POST /rebuild to Graph Ingestion Service.`);
+        appendLog(`[CRE DON] Dispatched POST /rebuild to Graph Engine.`);
       } else if (current === 4) {
         const newScore = backendResult?.compositeScore || 32.50;
-        const newTier = backendResult?.riskTier || "MEDIUM";
-        appendLog(`[Graph Service] 2-Hop Risk recalculation complete. Composite Score: ${newScore} (${newTier} Risk).`);
-        appendLog(`[Arkiv] RiskSnapshot persisted on Rabdi testnet with 50,000 blocks BTL.`);
+        appendLog(`[Graph Service] Risk recalculated: ${newScore} / 100 (${backendResult?.riskTier || "MEDIUM"}).`);
       }
 
       if (current >= executionSteps.length) {
@@ -248,23 +252,29 @@ export function ChainlinkCreTab() {
           backendResult?.attestationTxHash ||
           "0x" + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
 
-        setCurrentFingerprint(newFp);
-        setCompositeScore(newScore);
-        setRiskTier(newTier);
-        setDriftDetected(true);
-        setMutatedNodeInfo({
-          label: nodeLabel,
-          oldAddr,
-          newAddr,
-          reason: reasonTitle,
-        });
+        appendLog(`[ON-CHAIN] Attested in RiskRegistry.sol! Tx: ${txHash.slice(0, 18)}...`);
 
-        // Update local nodes list address
-        setNodesList((prev) =>
-          prev.map((n) => (n.id === nodeId ? { ...n, address: newAddr, riskScore: 42 } : n))
+        // Propagate updated nodes to parent
+        const updatedNodes = nodes.map((n) =>
+          n.id === nodeId
+            ? {
+                ...n,
+                address: newAddr,
+                contractAddress: newAddr,
+                riskScore: n.category === "implementation" ? 45 : 35,
+              }
+            : n
         );
 
-        appendLog(`[ON-CHAIN ATTESTATION] RiskRegistry.sol successfully updated! Tx: ${txHash}`);
+        if (onRebuildComplete) {
+          onRebuildComplete(updatedNodes, newScore, newTier, newFp, {
+            id: nodeId,
+            label: nodeLabel,
+            oldAddress: oldAddr,
+            newAddress: newAddr,
+            reason: reasonTitle,
+          });
+        }
 
         setLastTxReceipt({
           transactionHash: txHash,
@@ -275,200 +285,117 @@ export function ChainlinkCreTab() {
           compositeScore: newScore,
           riskTier: newTier,
           event: `RiskReported(aave-v3-mainnet, ${Math.round(newScore * 100)}, ${newTier}, aave-v3-${currentBlock}, ${currentBlock})`,
-          gasUsed: "64,280",
         });
       }
-    }, 700);
+    }, 650);
   };
 
-  /**
-   * Reset all 15 nodes back to canonical ingested baseline
-   */
-  const handleResetBaseline = async () => {
-    setIsSimulating(true);
-    appendLog("----------------------------------------------------------------");
-    appendLog("[RESET] Restoring all 15 contracts to canonical ingested baseline...");
-
-    try {
-      const res = await fetch("http://localhost:3002/api/cre/reset", { method: "POST" }).catch(() => null);
-      if (res && res.ok) {
-        const data = await res.json();
-        setCurrentFingerprint(data.fingerprint);
-        setCompositeScore(data.compositeScore);
-        setRiskTier(data.riskTier);
-      } else {
-        setCurrentFingerprint(CANONICAL_BASELINE_FINGERPRINT);
-        setCompositeScore(14.75);
-        setRiskTier("LOW");
-      }
-    } catch {
-      setCurrentFingerprint(CANONICAL_BASELINE_FINGERPRINT);
-      setCompositeScore(14.75);
-      setRiskTier("LOW");
-    }
-
-    setNodesList(AAVE_NODES);
-    setDriftDetected(false);
-    setMutatedNodeInfo(null);
-    setSimSteps([]);
-    setLastTxReceipt(null);
-    setIsSimulating(false);
-    appendLog(`✔ Restored baseline fingerprint: ${CANONICAL_BASELINE_FINGERPRINT}`);
-    appendLog(`✔ Composite Risk Score restored: 14.75 (LOW Risk)`);
-  };
+  const isDrifted = Boolean(mutatedNodeInfo) || fingerprint !== CANONICAL_BASELINE_FINGERPRINT;
 
   return (
-    <div className="space-y-6">
-      {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-[#0a0d16] border border-[#182032]">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-blue-950/60 border border-blue-800/60 flex items-center justify-center text-blue-400 font-mono">
-            <Radio className="w-4 h-4 animate-pulse" />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-white">Chainlink Runtime Environment (CRE) Workflows</h3>
-            <p className="text-xs text-[#717e9c] font-mono">
-              Autonomous Off-Chain Compute, 15-Contract Protocol Fingerprinting & On-Chain Risk Attestation
-            </p>
-          </div>
+    <div className="space-y-5">
+      {/* KPI Header Bar */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+        <div className="p-3 rounded-lg bg-[#0a0d16] border border-[#161d2d]">
+          <span className="text-[#556382] block text-[10px] uppercase">CRE Orchestration</span>
+          <span className="text-white font-semibold flex items-center gap-1.5 mt-0.5">
+            <Radio className="w-3 h-3 text-emerald-400 animate-pulse" />
+            <span>4 DON Nodes</span>
+          </span>
+          <span className="text-[10px] text-[#7182a4]">QuickJS-WASM Engine</span>
         </div>
 
-        <div className="flex items-center gap-2">
-          {serverOnline ? (
-            <span className="flex items-center gap-1.5 text-[11px] font-mono text-emerald-400 px-2.5 py-1 rounded bg-[#0b1814] border border-emerald-900/60">
-              <Server className="w-3 h-3 text-emerald-400 animate-pulse" />
-              CRE Daemon Active (Port 3002)
-            </span>
-          ) : (
-            <span className="flex items-center gap-1.5 text-[11px] font-mono text-blue-400 px-2.5 py-1 rounded bg-[#0f1422] border border-[#1c2742]">
-              <Activity className="w-3 h-3 text-blue-400" />
-              Live Mainnet RPC (Chain ID 1)
-            </span>
-          )}
+        <div className="p-3 rounded-lg bg-[#0a0d16] border border-[#161d2d]">
+          <span className="text-[#556382] block text-[10px] uppercase">Ethereum Mainnet</span>
+          <span className="text-emerald-400 font-semibold block mt-0.5">
+            {liveBlock ? `Block #${liveBlock}` : "Connecting..."}
+          </span>
+          <span className="text-[10px] text-[#7182a4]">15 Ingested Contracts</span>
+        </div>
+
+        <div className="p-3 rounded-lg bg-[#0a0d16] border border-[#161d2d]">
+          <span className="text-[#556382] block text-[10px] uppercase">Composite Risk</span>
+          <span className={`font-semibold block mt-0.5 ${isDrifted ? "text-amber-400" : "text-emerald-400"}`}>
+            {compositeScore} / 100 ({riskTier})
+          </span>
+          <span className="text-[10px] text-[#7182a4]">{isDrifted ? "Elevated after drift" : "Canonical Baseline"}</span>
+        </div>
+
+        <div className="p-3 rounded-lg bg-[#0a0d16] border border-[#161d2d]">
+          <span className="text-[#556382] block text-[10px] uppercase">Topology Fingerprint</span>
+          <span className={`font-mono font-semibold truncate block mt-0.5 ${isDrifted ? "text-amber-400" : "text-emerald-400"}`}>
+            {fingerprint.slice(0, 14)}...
+          </span>
+          <span className="text-[10px] text-[#7182a4]">Keccak256 Hash</span>
         </div>
       </div>
 
-      {/* Real Mainnet Live State & Fingerprint Widget */}
-      <div className="rounded-xl border border-[#161d2d] bg-[#090c15] p-4 text-xs font-mono space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-white font-semibold flex items-center gap-2">
-            <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-            <span>Ingested Aave V3 Mainnet Topology (15 Verifiable Contracts)</span>
-          </span>
-          <div className="flex items-center gap-2">
-            <span className="text-emerald-400 font-bold">
-              {liveBlock ? `Block #${liveBlock}` : "Connecting to Mainnet RPC..."}
-            </span>
-            {driftDetected && (
+      {/* Rebuilding Active Alert / Live Diff Banner */}
+      {isDrifted && mutatedNodeInfo && (
+        <div className="p-3.5 rounded-lg bg-[#140f06] border border-amber-600/80 font-mono text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-200">
+          <div className="flex items-center gap-2.5">
+            <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0 animate-pulse" />
+            <div>
+              <div className="font-semibold text-white flex items-center gap-2">
+                <span>Fingerprint Drift Detected on {mutatedNodeInfo.label}</span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-900/80 text-amber-200 uppercase font-bold">
+                  Rebuild Dispatched
+                </span>
+              </div>
+              <div className="text-[11px] text-[#c4b596] mt-0.5">
+                Address: <code className="text-white">{mutatedNodeInfo.newAddress.slice(0, 12)}...</code> · Composite Risk: <span className="text-amber-300 font-bold">{compositeScore} ({riskTier})</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {onSwitchToGraphTab && (
               <button
-                onClick={handleResetBaseline}
-                className="px-2 py-0.5 rounded bg-blue-950 border border-blue-800 text-blue-400 text-[10px] hover:bg-blue-900 transition-colors flex items-center gap-1 cursor-pointer"
-                title="Reset all mutated addresses back to original baseline"
+                onClick={onSwitchToGraphTab}
+                className="px-2.5 py-1 rounded bg-[#1e1709] border border-amber-500/70 hover:bg-[#281f0d] text-amber-300 text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Share2 className="w-3 h-3" />
+                <span>View in Graph</span>
+              </button>
+            )}
+            {onResetBaseline && (
+              <button
+                onClick={onResetBaseline}
+                className="px-2.5 py-1 rounded bg-[#0b0e17] border border-[#1e273a] hover:bg-[#131926] text-white text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <RotateCcw className="w-3 h-3" />
-                <span>Reset to Baseline</span>
+                <span>Reset</span>
               </button>
             )}
           </div>
         </div>
+      )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-[11px]">
-          <div className="p-2.5 rounded-lg bg-[#070910] border border-[#131824]">
-            <span className="text-[#556382] block text-[10px]">Aave V3 Pool Proxy:</span>
-            <span className="text-white font-mono truncate block" title={CANONICAL_POOL_PROXY}>
-              {CANONICAL_POOL_PROXY}
-            </span>
-          </div>
-
-          <div className="p-2.5 rounded-lg bg-[#070910] border border-[#131824]">
-            <span className="text-[#556382] block text-[10px]">Active Composite Risk:</span>
-            <span className={`font-mono font-bold block ${driftDetected ? "text-amber-400" : "text-emerald-400"}`}>
-              {compositeScore} / 100 ({riskTier} Risk)
-            </span>
-          </div>
-
-          <div className="p-2.5 rounded-lg bg-[#070910] border border-[#131824]">
-            <span className="text-[#556382] block text-[10px]">Baseline Fingerprint (Arkiv):</span>
-            <span className="text-[#8494b0] font-mono truncate block" title={CANONICAL_BASELINE_FINGERPRINT}>
-              {CANONICAL_BASELINE_FINGERPRINT}
-            </span>
-          </div>
-
-          <div className="p-2.5 rounded-lg bg-[#070910] border border-[#131824]">
-            <span className="text-[#556382] block text-[10px]">Evaluated Fingerprint:</span>
-            <span
-              className={`font-mono font-bold truncate block ${driftDetected ? "text-amber-400 animate-pulse" : "text-emerald-400"
-                }`}
-              title={currentFingerprint}
-            >
-              {currentFingerprint}
-            </span>
-          </div>
-        </div>
-
-        {/* Drift Status Banner */}
-        {driftDetected && mutatedNodeInfo && (
-          <div className="p-3 rounded-lg bg-amber-950/40 border border-amber-800/60 flex items-start justify-between gap-3 text-amber-300">
-            <div className="flex items-start gap-2">
-              <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold text-xs">STRUCTURAL FINGERPRINT DRIFT DETECTED:</span>
-                <p className="text-[11px] text-amber-200/90 mt-0.5">
-                  Component <span className="text-white font-semibold">{mutatedNodeInfo.label}</span> mutated from{" "}
-                  <code className="text-amber-300">{mutatedNodeInfo.oldAddr.slice(0, 10)}...</code> to{" "}
-                  <code className="text-white bg-amber-900/60 px-1 rounded">{mutatedNodeInfo.newAddr.slice(0, 10)}...</code>.
-                  Keccak256 fingerprint hash shifted, immediately triggering automated graph rebuild and on-chain risk score attestation!
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleResetBaseline}
-              className="px-2.5 py-1 rounded bg-amber-900/80 border border-amber-700 text-white text-xs hover:bg-amber-800 font-semibold shrink-0 cursor-pointer"
-            >
-              Restore Baseline
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Interactive Address Mutator & Fingerprint Drift Showcase */}
-      <div className="rounded-xl border border-blue-900/40 bg-[#080d1a] p-5 font-mono text-xs space-y-4">
-        <div>
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-semibold text-white flex items-center gap-2">
-              <Zap className="w-4 h-4 text-blue-400" />
-              <span>Interactive Fingerprint Drift & Automated Rebuild Simulator</span>
-            </h4>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-blue-950 border border-blue-800 text-blue-400 font-semibold">
-              Live Ingested Data
-            </span>
-          </div>
-          <p className="text-[11px] text-[#7888a7] mt-1 leading-relaxed">
-            The Keccak256 protocol fingerprint encapsulates all 15 contracts, bytecode hashes, admin timelocks, and Chainlink price feeds.
-            <strong className="text-white"> If ANY address in the graph changes</strong>, CRE automatically detects the hash mismatch, dispatches a graph rebuild, updates Arkiv and Swarm persistence, and executes <code className="text-emerald-400">reportRisk()</code> on-chain.
-          </p>
+      {/* Address Mutation & Drift Trigger Console */}
+      <div className="rounded-xl border border-[#161d2d] bg-[#080b13] p-4 font-mono text-xs space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-white font-semibold flex items-center gap-2">
+            <Zap className="w-3.5 h-3.5 text-blue-400" />
+            <span>Simulate On-Chain State Change (Trigger CRE Drift Rebuild)</span>
+          </span>
+          <span className="text-[10px] text-[#5e6d8a]">Pick preset or enter custom address</span>
         </div>
 
         {/* 4 Instant Mutation Presets */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <button
             onClick={() =>
               handleMutateAddress(
                 "aave-v3-pool-impl",
                 "0x7777777777777777777777777777777777777777",
-                "EVM Upgraded Event (Pool Logic Replacement)"
+                "EVM Upgraded Event (Pool Logic)"
               )
             }
             disabled={isSimulating}
-            className="p-3 rounded-lg bg-[#0d1424] border border-[#1b2742] hover:border-blue-500/80 text-left transition-all group cursor-pointer"
+            className="p-2.5 rounded-lg bg-[#0d121e] border border-[#1a2336] hover:border-blue-500/80 text-left transition-colors cursor-pointer disabled:opacity-50"
           >
-            <div className="flex items-center justify-between text-blue-400 font-semibold mb-1">
-              <span>1. Upgrade Pool Impl</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-            </div>
-            <p className="text-[10px] text-[#6b7b99]">
-              Mutates Hop 1 Pool Implementation to <code className="text-white">0x7777...7777</code>
-            </p>
+            <span className="text-blue-400 font-semibold block text-[11px]">1. Upgrade Pool Impl</span>
+            <span className="text-[10px] text-[#6b7b99] truncate block mt-0.5">Hop 1 → 0x7777...7777</span>
           </button>
 
           <button
@@ -480,15 +407,10 @@ export function ChainlinkCreTab() {
               )
             }
             disabled={isSimulating}
-            className="p-3 rounded-lg bg-[#0d1424] border border-[#1b2742] hover:border-purple-500/80 text-left transition-all group cursor-pointer"
+            className="p-2.5 rounded-lg bg-[#0d121e] border border-[#1a2336] hover:border-purple-500/80 text-left transition-colors cursor-pointer disabled:opacity-50"
           >
-            <div className="flex items-center justify-between text-purple-400 font-semibold mb-1">
-              <span>2. Rotate Timelock Admin</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-            </div>
-            <p className="text-[10px] text-[#6b7b99]">
-              Mutates Governance Timelock to <code className="text-white">0x8888...8888</code>
-            </p>
+            <span className="text-purple-400 font-semibold block text-[11px]">2. Rotate Timelock</span>
+            <span className="text-[10px] text-[#6b7b99] truncate block mt-0.5">Hop 1 → 0x8888...8888</span>
           </button>
 
           <button
@@ -500,15 +422,10 @@ export function ChainlinkCreTab() {
               )
             }
             disabled={isSimulating}
-            className="p-3 rounded-lg bg-[#0d1424] border border-[#1b2742] hover:border-amber-500/80 text-left transition-all group cursor-pointer"
+            className="p-2.5 rounded-lg bg-[#0d121e] border border-[#1a2336] hover:border-amber-500/80 text-left transition-colors cursor-pointer disabled:opacity-50"
           >
-            <div className="flex items-center justify-between text-amber-400 font-semibold mb-1">
-              <span>3. Rotate Emergency Safe</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-            </div>
-            <p className="text-[10px] text-[#6b7b99]">
-              Mutates 3/7 Emergency Safe to <code className="text-white">0x9999...9999</code>
-            </p>
+            <span className="text-amber-400 font-semibold block text-[11px]">3. Rotate Guardian</span>
+            <span className="text-[10px] text-[#6b7b99] truncate block mt-0.5">Hop 1 → 0x9999...9999</span>
           </button>
 
           <button
@@ -516,135 +433,91 @@ export function ChainlinkCreTab() {
               handleMutateAddress(
                 "chainlink-eth-usd",
                 "0x1111111111111111111111111111111111111111",
-                "Oracle Price Feed Replacement"
+                "Oracle Price Feed Redirection"
               )
             }
             disabled={isSimulating}
-            className="p-3 rounded-lg bg-[#0d1424] border border-[#1b2742] hover:border-emerald-500/80 text-left transition-all group cursor-pointer"
+            className="p-2.5 rounded-lg bg-[#0d121e] border border-[#1a2336] hover:border-emerald-500/80 text-left transition-colors cursor-pointer disabled:opacity-50"
           >
-            <div className="flex items-center justify-between text-emerald-400 font-semibold mb-1">
-              <span>4. Redirect ETH/USD Feed</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-            </div>
-            <p className="text-[10px] text-[#6b7b99]">
-              Mutates Hop 2 Oracle Feed to <code className="text-white">0x1111...1111</code>
-            </p>
+            <span className="text-emerald-400 font-semibold block text-[11px]">4. Redirect ETH/USD</span>
+            <span className="text-[10px] text-[#6b7b99] truncate block mt-0.5">Hop 2 → 0x1111...1111</span>
           </button>
         </div>
 
-        {/* Custom Node Selector & Address Input */}
-        <div className="p-3 rounded-lg bg-[#0a0f1d] border border-[#172238] space-y-2.5">
-          <div className="text-[11px] font-semibold text-[#8ea0be]">
-            Or Select ANY of the 15 Ingested Contracts to Mutate:
+        {/* Custom Input Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 pt-1 border-t border-[#121826]">
+          <div className="sm:col-span-5">
+            <select
+              value={selectedNodeId}
+              onChange={(e) => {
+                setSelectedNodeId(e.target.value);
+                const n = nodes.find((node) => node.id === e.target.value);
+                if (n) setCustomInputAddr(n.address);
+              }}
+              className="w-full bg-[#0a0e18] border border-[#1a2336] rounded px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+            >
+              {nodes.map((n) => (
+                <option key={n.id} value={n.id}>
+                  [Hop {n.hop}] {n.label}
+                </option>
+              ))}
+            </select>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
-            <div className="md:col-span-5">
-              <label className="text-[10px] text-[#556382] block mb-1">Target Contract Component:</label>
-              <select
-                value={selectedNodeId}
-                onChange={(e) => {
-                  setSelectedNodeId(e.target.value);
-                  const n = nodesList.find((node) => node.id === e.target.value);
-                  if (n) setCustomInputAddr(n.address);
-                }}
-                className="w-full bg-[#070a14] border border-[#1c2944] rounded px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
-              >
-                {nodesList.map((n) => (
-                  <option key={n.id} value={n.id}>
-                    [Hop {n.hop}] {n.label} ({n.category})
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="sm:col-span-5">
+            <input
+              type="text"
+              value={customInputAddr}
+              onChange={(e) => setCustomInputAddr(e.target.value)}
+              placeholder="0x..."
+              className="w-full bg-[#0a0e18] border border-[#1a2336] rounded px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-blue-500"
+            />
+          </div>
 
-            <div className="md:col-span-5">
-              <label className="text-[10px] text-[#556382] block mb-1">New Ethereum Address:</label>
-              <input
-                type="text"
-                value={customInputAddr}
-                onChange={(e) => setCustomInputAddr(e.target.value)}
-                placeholder="0x..."
-                className="w-full bg-[#070a14] border border-[#1c2944] rounded px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div className="md:col-span-2 flex items-end">
-              <ShinyButton
-                onClick={() =>
-                  handleMutateAddress(
-                    selectedNodeId,
-                    customInputAddr,
-                    `Custom Mutation on ${selectedNodeId}`
-                  )
-                }
-                disabled={isSimulating}
-                variant="primary"
-                className="w-full py-1.5 text-xs justify-center"
-              >
-                <Zap className="w-3.5 h-3.5 text-blue-400" />
-                <span>Apply</span>
-              </ShinyButton>
-            </div>
+          <div className="sm:col-span-2">
+            <button
+              onClick={() =>
+                handleMutateAddress(selectedNodeId, customInputAddr, `Mutation on ${selectedNodeId}`)
+              }
+              disabled={isSimulating}
+              className="w-full py-1.5 px-3 rounded bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              {isSimulating ? "Processing..." : "Trigger CRE"}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Execution Trace & Terminal Logs */}
-      <div className="rounded-xl border border-[#161d2d] bg-[#080b13] p-5 font-mono text-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#141926]">
-          <div>
-            <h4 className="text-sm font-semibold text-white flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-emerald-400" />
-              <span>Chainlink CRE Consensus & Attestation Execution Trace</span>
-            </h4>
-            <p className="text-[11px] text-[#6b7b9b] mt-0.5">
-              Real-time off-chain QuickJS consensus stream, BFT validation, and on-chain state transition.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <ShinyButton
-              onClick={() => handleMutateAddress("aave-v3-pool-impl", "0x7777777777777777777777777777777777777777", "Simulated Upgrade Event")}
-              disabled={isSimulating}
-              variant="secondary"
-              className="text-xs py-1.5 px-3"
-            >
-              <Zap className="w-3.5 h-3.5 text-blue-400" />
-              <span>Simulate Upgrade</span>
-            </ShinyButton>
-
-            <button
-              onClick={handleResetBaseline}
-              disabled={isSimulating}
-              className="px-3 py-1.5 rounded-lg border border-[#20293d] bg-[#0e1322] hover:bg-[#151c30] text-[#93a2bd] hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Baseline</span>
-            </button>
-          </div>
+      {/* Execution Trace & Attestation Mined Receipt */}
+      <div className="rounded-xl border border-[#161d2d] bg-[#080b13] p-4 font-mono text-xs space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-white font-semibold flex items-center gap-2">
+            <Terminal className="w-3.5 h-3.5 text-emerald-400" />
+            <span>CRE Consensus & On-Chain RiskRegistry Attestation</span>
+          </span>
+          <span className="text-[10px] text-[#556382]">Chainlink Runtime Environment v1.0.0</span>
         </div>
 
-        {/* Live Simulation Execution Trace */}
         {simSteps.length > 0 ? (
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {simSteps.map((s) => (
               <div
                 key={s.step}
-                className={`p-3 rounded-lg border transition-all flex items-start gap-3 ${s.status === "done"
-                    ? "bg-[#0b101c] border-[#182338] text-white"
+                className={`p-2.5 rounded-lg border transition-all flex items-start gap-2.5 ${
+                  s.status === "done"
+                    ? "bg-[#0a0f1c] border-[#182338] text-white"
                     : s.status === "running"
-                      ? "bg-[#111728] border-blue-500/80 text-white animate-pulse"
-                      : "bg-[#070910] border-[#111520] text-[#4d5770]"
-                  }`}
+                      ? "bg-[#11182c] border-blue-500/80 text-white animate-pulse"
+                      : "bg-[#06080f] border-[#10141f] text-[#4d5770]"
+                }`}
               >
                 <div className="mt-0.5">
                   {s.status === "done" ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                   ) : s.status === "running" ? (
-                    <Radio className="w-4 h-4 text-blue-400 shrink-0 animate-ping" />
+                    <Radio className="w-3.5 h-3.5 text-blue-400 shrink-0 animate-ping" />
                   ) : (
-                    <div className="w-4 h-4 rounded-full border border-[#2b3449] flex items-center justify-center text-[9px]">
+                    <div className="w-3.5 h-3.5 rounded-full border border-[#2b3449] flex items-center justify-center text-[9px]">
                       {s.step}
                     </div>
                   )}
@@ -653,7 +526,7 @@ export function ChainlinkCreTab() {
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-xs">{s.title}</span>
-                    <span className="text-[10px] text-[#556382] uppercase">{s.status}</span>
+                    <span className="text-[9px] text-[#556382] uppercase">{s.status}</span>
                   </div>
                   <p className="text-[11px] text-[#7888a7] mt-0.5">{s.detail}</p>
                 </div>
@@ -661,17 +534,17 @@ export function ChainlinkCreTab() {
             ))}
           </div>
         ) : (
-          <div className="py-6 text-center text-[#556382] border border-dashed border-[#161c2b] rounded-lg">
-            Select any contract address mutation above to see Chainlink CRE detect drift and trigger rebuild in real-time.
+          <div className="py-5 text-center text-[#556382] border border-dashed border-[#161c2b] rounded-lg">
+            Trigger an address mutation above to see CRE consensus nodes recalculate the fingerprint and rebuild lineage.
           </div>
         )}
 
         {/* Mined Transaction Receipt */}
         {lastTxReceipt && (
-          <div className="p-4 rounded-xl bg-[#09121a] border border-emerald-900/60 space-y-2">
-            <div className="flex items-center justify-between pb-2 border-b border-emerald-900/40 text-emerald-400">
-              <span className="flex items-center gap-1.5 font-semibold">
-                <CheckCircle2 className="w-4 h-4" />
+          <div className="p-3.5 rounded-lg bg-[#09121a] border border-emerald-900/60 space-y-1.5">
+            <div className="flex items-center justify-between pb-1.5 border-b border-emerald-900/40 text-emerald-400 text-xs font-semibold">
+              <span className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>On-Chain Attestation Confirmed (RiskRegistry.sol)</span>
               </span>
               <span className="text-[10px] text-[#7d93a8]">Block #{lastTxReceipt.blockNumber}</span>
@@ -683,14 +556,6 @@ export function ChainlinkCreTab() {
                 <span className="text-white truncate block">{lastTxReceipt.transactionHash}</span>
               </div>
               <div>
-                <span className="text-[#556b80] block text-[10px]">CRE Forwarder Sender:</span>
-                <span className="text-white truncate block">{lastTxReceipt.creForwarder}</span>
-              </div>
-              <div>
-                <span className="text-[#556b80] block text-[10px]">RiskRegistry Contract:</span>
-                <span className="text-white truncate block">{lastTxReceipt.contractAddress}</span>
-              </div>
-              <div>
                 <span className="text-[#556b80] block text-[10px]">Emitted Event:</span>
                 <span className="text-emerald-400 font-semibold truncate block">{lastTxReceipt.event}</span>
               </div>
@@ -698,18 +563,15 @@ export function ChainlinkCreTab() {
           </div>
         )}
 
-        {/* Live Real-Time Terminal Console */}
-        <div className="rounded-lg bg-[#04060a] border border-[#131924] p-3 text-[10px] font-mono">
-          <div className="flex items-center justify-between pb-2 border-b border-[#111520] mb-2 text-[#566585]">
-            <span className="flex items-center gap-1.5">
-              <Terminal className="w-3 h-3 text-blue-400" />
-              <span>Chainlink CRE Execution Stream</span>
-            </span>
-            <span className="text-emerald-400">STATUS: ACTIVE</span>
+        {/* Compact Terminal Console */}
+        <div className="rounded-lg bg-[#04060a] border border-[#131924] p-2.5 text-[10px]">
+          <div className="flex items-center justify-between pb-1.5 border-b border-[#111520] mb-1.5 text-[#566585]">
+            <span>CRE Execution Logs</span>
+            <span className="text-emerald-400">DON: ACTIVE</span>
           </div>
-          <div className="space-y-1 max-h-[160px] overflow-y-auto text-[#798ba8]">
+          <div className="space-y-0.5 max-h-[110px] overflow-y-auto text-[#798ba8]">
             {terminalLogs.map((l, i) => (
-              <div key={i} className="leading-tight">
+              <div key={i} className="leading-tight font-mono">
                 {l}
               </div>
             ))}
