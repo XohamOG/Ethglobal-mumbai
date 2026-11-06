@@ -18,6 +18,8 @@ import {
   CheckCircle2,
   AlertTriangle,
   HardDrive,
+  HelpCircle,
+  Search,
 } from "lucide-react";
 
 interface EntityPropertySheetProps {
@@ -46,7 +48,6 @@ export function EntityPropertySheet({ node }: EntityPropertySheetProps) {
     oracle: { bg: "bg-amber-950/60", border: "border-amber-800/60", text: "text-amber-400", ring: "#fbbf24" },
     multisig: { bg: "bg-purple-950/60", border: "border-purple-800/60", text: "text-purple-400", ring: "#c084fc" },
     timelock: { bg: "bg-indigo-950/60", border: "border-indigo-800/60", text: "text-indigo-400", ring: "#818cf8" },
-    token: { bg: "bg-teal-950/60", border: "border-teal-800/60", text: "text-teal-400", ring: "#2dd4bf" },
   };
 
   const catStyle =
@@ -105,7 +106,7 @@ export function EntityPropertySheet({ node }: EntityPropertySheetProps) {
         {/* Contract Address Card */}
         <div className="mt-3 flex items-center justify-between p-2 rounded-lg bg-[#0c1018] border border-[#1b2334] font-mono text-xs">
           <span className="text-[#9aa7c2] truncate max-w-[200px]" title={node.address}>
-            {node.address.slice(0, 10)}...{node.address.slice(-8)}
+            {node.address}
           </span>
           <div className="flex items-center gap-1">
             <button
@@ -127,6 +128,41 @@ export function EntityPropertySheet({ node }: EntityPropertySheetProps) {
           </div>
         </div>
       </div>
+
+      {/* Address Justification & Discovery Provenance Section */}
+      {node.justification && (
+        <div className="p-3.5 rounded-lg bg-[#0b0f1a] border border-[#1d273d] space-y-2.5 text-xs font-mono">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-blue-400 font-semibold text-[11px] uppercase tracking-wider">
+              <Search className="w-3.5 h-3.5" />
+              <span>Address Justification</span>
+            </div>
+            <span className="text-[10px] bg-emerald-950/60 text-emerald-400 border border-emerald-800/60 px-1.5 py-0.2 rounded font-semibold">
+              Verified
+            </span>
+          </div>
+
+          <div className="space-y-1.5 text-[11px]">
+            <div>
+              <span className="text-[#556485]">Canonical Source: </span>
+              <span className="text-white font-medium">{node.justification.source}</span>
+            </div>
+            <div>
+              <span className="text-[#556485]">Discovery Vector: </span>
+              <span className="text-indigo-300">{node.justification.method}</span>
+            </div>
+            {node.justification.slot && (
+              <div>
+                <span className="text-[#556485]">EVM Storage Slot: </span>
+                <code className="text-amber-400 text-[10px] break-all">{node.justification.slot}</code>
+              </div>
+            )}
+            <div className="text-[#8697b4] text-[11px] pt-1.5 border-t border-[#141b2c] leading-relaxed italic">
+              "{node.justification.description}"
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Risk Assessment Score Card */}
       <div className="p-3.5 rounded-lg bg-[#0b0e16] border border-[#182030] space-y-3">
