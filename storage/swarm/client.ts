@@ -1,6 +1,10 @@
 import { ethers } from "ethers";
 import * as fs from "fs";
 import * as path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export interface SwarmConfig {
   gatewayUrl?: string;
@@ -16,7 +20,7 @@ export class SwarmStorageClient {
   constructor(config: SwarmConfig = {}) {
     this.gatewayUrl = (config.gatewayUrl || process.env.SWARM_GATEWAY_URL || "https://api.gateway.ethswarm.org").replace(/\/+$/, "");
     this.postageBatchId = config.postageBatchId || process.env.SWARM_POSTAGE_BATCH_ID;
-    this.storageDir = config.storageDir || path.resolve(process.cwd(), "storage/swarm/blobs");
+    this.storageDir = config.storageDir || path.resolve(__dirname, "blobs");
 
     if (!fs.existsSync(this.storageDir)) {
       fs.mkdirSync(this.storageDir, { recursive: true });
