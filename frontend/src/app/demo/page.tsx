@@ -263,7 +263,7 @@ export default function DemoPage() {
 
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#b068ff] animate-pulse" />
-            <h1 className="font-serif font-bold text-sm text-[#ececf2] tracking-tight">
+            <h1 className="font-bold text-sm text-[#ececf2] tracking-tight">
               Simulation Sandbox
             </h1>
           </div>

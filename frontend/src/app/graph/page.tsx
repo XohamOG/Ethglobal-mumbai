@@ -68,7 +68,7 @@ function GraphViewerContent() {
           </Link>
           <span className="text-[#282832]">/</span>
           <div className="flex items-center gap-2">
-            <span className="font-serif font-bold text-sm text-[#ececf2] tracking-tight">
+            <span className="font-bold text-sm text-[#ececf2] tracking-tight">
               <DecryptedText text={protocol.name} speed={30} maxIterations={8} animateOn="view" />
             </span>
             <span className="text-xs font-mono text-[#7d8495]">· Provenance Engine</span>
