@@ -1,17 +1,17 @@
 {
   "success": true,
-  "snapshotId": "aave-v3-mainnet-26354138",
+  "snapshotId": "aave-v3-mainnet-26354315",
   "protocolId": "aave-v3-mainnet",
-  "compositeScore": 13.71,
+  "compositeScore": 14.75,
   "riskTier": "LOW",
-  "evaluatedAtBlock": 26354138,
+  "evaluatedAtBlock": 26354315,
   "fingerprint": "0x39a7cd678a45f1e63df9441182b58d3e87149bc0d23f82fa05f4fb0b4993e06c",
-  "swarmGraphRef": "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba",
-  "swarmEvidenceRef": "12dee381593c94b9bf22c878786434682e3743d3162fc24900658c206643ecfd",
+  "swarmGraphRef": "3a5194ce284962a9b0598c0b1e001e96a5d63a573a4a2423b47913b71b2c8e7d",
+  "swarmEvidenceRef": "1c6ae2662e9ce2923f7a559df208b6a1b10c4e1f23caa26a91e42a0e72882fbb",
   "nodeCount": 15,
   "hopScores": {
     "hop0Avg": 8.83,
     "hop1Avg": 6.75,
-    "hop2Avg": 6
+    "hop2Avg": 10.2
   }
 }
