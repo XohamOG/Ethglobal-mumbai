@@ -17,6 +17,8 @@ import {
   HelpCircle,
   X,
   Code2,
+  Columns,
+  GitBranch,
 } from "lucide-react";
 
 interface ProvenanceGraphCanvasProps {
@@ -32,6 +34,7 @@ export function ProvenanceGraphCanvas({
   selectedNodeId,
   onSelectNode,
 }: ProvenanceGraphCanvasProps) {
+  const [layoutMode, setLayoutMode] = useState<"lanes" | "hierarchy">("lanes");
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
@@ -60,30 +63,56 @@ export function ProvenanceGraphCanvas({
     return categoryConfig[cat] || { color: "bg-slate-900 text-slate-400", border: "border-slate-800", ring: "#94a3b8", glyph: "C", name: "Contract" };
   };
 
-  // Deterministic, non-overlapping Hop coordinate mapping
-  // Canvas width: 1120px, height: 680px
-  const layoutCoordinates: Record<string, { x: number; y: number }> = {
-    // Hop 0: Core Architecture (Lane X: 190)
-    "aave-v3-addresses-provider": { x: 190, y: 75 },
-    "aave-v3-pool": { x: 190, y: 175 },
-    "aave-v3-pool-configurator": { x: 190, y: 275 },
-    "aave-v3-oracle": { x: 190, y: 375 },
-    "aave-v3-acl-manager": { x: 190, y: 475 },
-    "aave-v3-data-provider": { x: 190, y: 575 },
+  // Deterministic, non-overlapping coordinate mappings for both modes:
+  const layoutCoordinates: Record<string, { x: number; y: number }> =
+    layoutMode === "lanes"
+      ? {
+          // Hop 0: Core Architecture (Lane X: 190)
+          "aave-v3-addresses-provider": { x: 190, y: 75 },
+          "aave-v3-pool": { x: 190, y: 175 },
+          "aave-v3-pool-configurator": { x: 190, y: 275 },
+          "aave-v3-oracle": { x: 190, y: 375 },
+          "aave-v3-acl-manager": { x: 190, y: 475 },
+          "aave-v3-data-provider": { x: 190, y: 575 },
 
-    // Hop 1: Governance & Implementation (Lane X: 570)
-    "aave-v3-pool-impl": { x: 570, y: 135 },
-    "aave-v3-configurator-impl": { x: 570, y: 245 },
-    "aave-v3-governance-executor": { x: 570, y: 365 },
-    "aave-v3-emergency-safe": { x: 570, y: 495 },
+          // Hop 1: Governance & Implementation (Lane X: 570)
+          "aave-v3-pool-impl": { x: 570, y: 135 },
+          "aave-v3-configurator-impl": { x: 570, y: 245 },
+          "aave-v3-governance-executor": { x: 570, y: 365 },
+          "aave-v3-emergency-safe": { x: 570, y: 495 },
 
-    // Hop 2: External Chainlink Oracles (Lane X: 940)
-    "chainlink-eth-usd": { x: 940, y: 85 },
-    "chainlink-btc-usd": { x: 940, y: 195 },
-    "chainlink-usdc-usd": { x: 940, y: 305 },
-    "chainlink-dai-usd": { x: 940, y: 415 },
-    "chainlink-usdt-usd": { x: 940, y: 525 },
-  };
+          // Hop 2: External Chainlink Oracles (Lane X: 940)
+          "chainlink-eth-usd": { x: 940, y: 85 },
+          "chainlink-btc-usd": { x: 940, y: 195 },
+          "chainlink-usdc-usd": { x: 940, y: 305 },
+          "chainlink-dai-usd": { x: 940, y: 415 },
+          "chainlink-usdt-usd": { x: 940, y: 525 },
+        }
+      : {
+          // Hierarchical Top-to-Bottom Layout:
+          // Level 0: Root Entry Point (Top Center Y: 65)
+          "aave-v3-addresses-provider": { x: 570, y: 65 },
+
+          // Level 1: Core Proxies & Orchestration (Y: 200)
+          "aave-v3-pool": { x: 230, y: 200 },
+          "aave-v3-pool-configurator": { x: 460, y: 200 },
+          "aave-v3-oracle": { x: 690, y: 200 },
+          "aave-v3-acl-manager": { x: 920, y: 200 },
+          "aave-v3-data-provider": { x: 1070, y: 200 },
+
+          // Level 2: Implementations & Governance Admin (Y: 380)
+          "aave-v3-pool-impl": { x: 190, y: 380 },
+          "aave-v3-configurator-impl": { x: 420, y: 380 },
+          "aave-v3-governance-executor": { x: 650, y: 380 },
+          "aave-v3-emergency-safe": { x: 890, y: 380 },
+
+          // Level 3: External Chainlink Oracles (Bottom Y: 560)
+          "chainlink-eth-usd": { x: 200, y: 560 },
+          "chainlink-btc-usd": { x: 385, y: 560 },
+          "chainlink-usdc-usd": { x: 570, y: 560 },
+          "chainlink-dai-usd": { x: 755, y: 560 },
+          "chainlink-usdt-usd": { x: 940, y: 560 },
+        };
 
   const activeTargetId = hoveredNodeId || selectedNodeId;
 
@@ -131,14 +160,46 @@ export function ProvenanceGraphCanvas({
 
   return (
     <div className="relative w-full h-[680px] bg-[#07090e] border border-[#161a25] rounded-xl overflow-hidden select-none bg-grid flex flex-col justify-between">
-      {/* Top Floating Controls & Justification Launcher */}
+      {/* Top Floating Controls & Layout Switcher */}
       <div className="absolute top-3 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
         <div className="flex items-center gap-2 pointer-events-auto">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0e121a]/95 backdrop-blur border border-[#1f2637] text-xs font-mono text-[#8b95ad] shadow-lg">
+          {/* Layout Mode Toggle */}
+          <div className="flex items-center bg-[#0a0d16]/95 backdrop-blur border border-[#1f283d] p-0.5 rounded-lg shadow-lg">
+            <button
+              onClick={() => {
+                setLayoutMode("lanes");
+                handleReset();
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono transition-all cursor-pointer ${
+                layoutMode === "lanes"
+                  ? "bg-blue-600 text-white font-semibold shadow-md shadow-blue-600/30"
+                  : "text-[#6c7b9b] hover:text-white"
+              }`}
+              title="Hop Columns (Left to Right)"
+            >
+              <Columns className="w-3.5 h-3.5" />
+              <span>Hop Lanes</span>
+            </button>
+            <button
+              onClick={() => {
+                setLayoutMode("hierarchy");
+                handleReset();
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono transition-all cursor-pointer ${
+                layoutMode === "hierarchy"
+                  ? "bg-blue-600 text-white font-semibold shadow-md shadow-blue-600/30"
+                  : "text-[#6c7b9b] hover:text-white"
+              }`}
+              title="Hierarchical Tree (Top to Bottom)"
+            >
+              <GitBranch className="w-3.5 h-3.5" />
+              <span>Hierarchical Tree</span>
+            </button>
+          </div>
+
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0e121a]/95 backdrop-blur border border-[#1f2637] text-xs font-mono text-[#8b95ad] shadow-lg">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="font-semibold text-white">Stratified Lineage DAG</span>
-            <span className="text-[#3b445a]">·</span>
-            <span className="text-emerald-400">3 Segregated Hops</span>
+            <span>{layoutMode === "lanes" ? "3 Segregated Hop Lanes" : "4-Tier Hierarchy DAG"}</span>
             <span className="text-[#3b445a]">·</span>
             <span className="text-blue-400">15 Verified Contracts</span>
           </div>
@@ -151,9 +212,9 @@ export function ProvenanceGraphCanvas({
             className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-blue-950/70 hover:bg-blue-900/80 text-blue-300 border border-blue-800/80 text-xs font-mono transition-all cursor-pointer shadow-lg hover:shadow-blue-950/50"
           >
             <HelpCircle className="w-3.5 h-3.5 text-blue-400" />
-            <span className="font-semibold">Contract Address Justification & Sources</span>
+            <span className="font-semibold">Contract Sources & Justification</span>
             <span className="text-[10px] bg-blue-900/80 px-1.5 py-0.2 rounded border border-blue-700/60 text-white">
-              15 Provenance Proofs
+              15 Proofs
             </span>
           </button>
         </div>
@@ -176,72 +237,152 @@ export function ProvenanceGraphCanvas({
             transform={`translate(${panOffset.x}, ${panOffset.y}) scale(${zoomLevel})`}
             style={{ transformOrigin: "570px 340px" }}
           >
-            {/* Background Segregated Hop Column Panels */}
-            {/* Hop 0 Panel */}
-            <g className="hop-column-0">
-              <rect
-                x="30"
-                y="20"
-                width="320"
-                height="640"
-                rx="14"
-                fill="#080c16"
-                stroke="#172238"
-                strokeWidth="1.5"
-                strokeDasharray="6 4"
-              />
-              <rect x="30" y="20" width="320" height="38" rx="14" fill="#0d1424" />
-              <text x="50" y="44" fill="#38bdf8" fontFamily="ui-monospace, monospace" fontSize="11" fontWeight="700" letterSpacing="0.08em">
-                HOP 0 · CORE ARCHITECTURE (6)
-              </text>
-              <text x="270" y="44" fill="#64748b" fontFamily="ui-monospace, monospace" fontSize="9" textAnchor="end">
-                Root Proxies & Reg
-              </text>
-            </g>
+            {/* Background Panels depending on Layout Mode */}
+            {layoutMode === "lanes" ? (
+              // Mode 1: Vertical Hop Columns
+              <g className="layout-columns">
+                {/* Hop 0 Panel */}
+                <g className="hop-column-0">
+                  <rect
+                    x="30"
+                    y="20"
+                    width="320"
+                    height="640"
+                    rx="14"
+                    fill="#080c16"
+                    stroke="#172238"
+                    strokeWidth="1.5"
+                    strokeDasharray="6 4"
+                  />
+                  <rect x="30" y="20" width="320" height="38" rx="14" fill="#0d1424" />
+                  <text x="50" y="44" fill="#38bdf8" fontFamily="ui-monospace, monospace" fontSize="11" fontWeight="700" letterSpacing="0.08em">
+                    HOP 0 · CORE ARCHITECTURE (6)
+                  </text>
+                  <text x="270" y="44" fill="#64748b" fontFamily="ui-monospace, monospace" fontSize="9" textAnchor="end">
+                    Root Proxies & Reg
+                  </text>
+                </g>
 
-            {/* Hop 1 Panel */}
-            <g className="hop-column-1">
-              <rect
-                x="410"
-                y="20"
-                width="320"
-                height="640"
-                rx="14"
-                fill="#0c0a17"
-                stroke="#2b1a47"
-                strokeWidth="1.5"
-                strokeDasharray="6 4"
-              />
-              <rect x="410" y="20" width="320" height="38" rx="14" fill="#18132d" />
-              <text x="430" y="44" fill="#c084fc" fontFamily="ui-monospace, monospace" fontSize="11" fontWeight="700" letterSpacing="0.08em">
-                HOP 1 · GOVERNANCE & LOGIC (4)
-              </text>
-              <text x="650" y="44" fill="#7e6d9b" fontFamily="ui-monospace, monospace" fontSize="9" textAnchor="end">
-                Timelocks & Impls
-              </text>
-            </g>
+                {/* Hop 1 Panel */}
+                <g className="hop-column-1">
+                  <rect
+                    x="410"
+                    y="20"
+                    width="320"
+                    height="640"
+                    rx="14"
+                    fill="#0c0a17"
+                    stroke="#2b1a47"
+                    strokeWidth="1.5"
+                    strokeDasharray="6 4"
+                  />
+                  <rect x="410" y="20" width="320" height="38" rx="14" fill="#18132d" />
+                  <text x="430" y="44" fill="#c084fc" fontFamily="ui-monospace, monospace" fontSize="11" fontWeight="700" letterSpacing="0.08em">
+                    HOP 1 · GOVERNANCE & LOGIC (4)
+                  </text>
+                  <text x="650" y="44" fill="#7e6d9b" fontFamily="ui-monospace, monospace" fontSize="9" textAnchor="end">
+                    Timelocks & Impls
+                  </text>
+                </g>
 
-            {/* Hop 2 Panel */}
-            <g className="hop-column-2">
-              <rect
-                x="780"
-                y="20"
-                width="320"
-                height="640"
-                rx="14"
-                fill="#120e09"
-                stroke="#3d270c"
-                strokeWidth="1.5"
-                strokeDasharray="6 4"
-              />
-              <rect x="780" y="20" width="320" height="38" rx="14" fill="#22170c" />
-              <text x="800" y="44" fill="#fbbf24" fontFamily="ui-monospace, monospace" fontSize="11" fontWeight="700" letterSpacing="0.08em">
-                HOP 2 · EXTERNAL ORACLES (5)
-              </text>
-              <text x="1020" y="44" fill="#947c54" fontFamily="ui-monospace, monospace" fontSize="9" textAnchor="end">
-                Chainlink EAC Feeds
-              </text>
-            </g>
+                {/* Hop 2 Panel */}
+                <g className="hop-column-2">
+                  <rect
+                    x="780"
+                    y="20"
+                    width="320"
+                    height="640"
+                    rx="14"
+                    fill="#120e09"
+                    stroke="#3d270c"
+                    strokeWidth="1.5"
+                    strokeDasharray="6 4"
+                  />
+                  <rect x="780" y="20" width="320" height="38" rx="14" fill="#22170c" />
+                  <text x="800" y="44" fill="#fbbf24" fontFamily="ui-monospace, monospace" fontSize="11" fontWeight="700" letterSpacing="0.08em">
+                    HOP 2 · EXTERNAL ORACLES (5)
+                  </text>
+                  <text x="1020" y="44" fill="#947c54" fontFamily="ui-monospace, monospace" fontSize="9" textAnchor="end">
+                    Chainlink EAC Feeds
+                  </text>
+                </g>
+              </g>
+            ) : (
+              // Mode 2: Horizontal Hierarchical Tier Shelves (Top-to-Bottom)
+              <g className="layout-hierarchy">
+                {/* Tier 0 Shelf: Root Seed */}
+                <g className="tier-0">
+                  <rect
+                    x="30"
+                    y="20"
+                    width="1080"
+                    height="90"
+                    rx="12"
+                    fill="#080c16"
+                    stroke="#172238"
+                    strokeWidth="1.2"
+                    strokeDasharray="4 4"
+                  />
+                  <text x="50" y="40" fill="#38bdf8" fontFamily="ui-monospace, monospace" fontSize="10" fontWeight="700" letterSpacing="0.08em">
+                    TIER 0 · PROTOCOL SEED & ROOT REGISTRY ANCHOR
+                  </text>
+                </g>
+
+                {/* Tier 1 Shelf: Core Diamond Proxies */}
+                <g className="tier-1">
+                  <rect
+                    x="30"
+                    y="135"
+                    width="1080"
+                    height="130"
+                    rx="12"
+                    fill="#0a0e1a"
+                    stroke="#1c2842"
+                    strokeWidth="1.2"
+                    strokeDasharray="4 4"
+                  />
+                  <text x="50" y="155" fill="#38bdf8" fontFamily="ui-monospace, monospace" fontSize="10" fontWeight="700" letterSpacing="0.08em">
+                    TIER 1 · CORE DIAMOND PROXIES, ORACLE & ACL
+                  </text>
+                </g>
+
+                {/* Tier 2 Shelf: Implementations & Governance */}
+                <g className="tier-2">
+                  <rect
+                    x="30"
+                    y="300"
+                    width="1080"
+                    height="145"
+                    rx="12"
+                    fill="#0e0a1b"
+                    stroke="#2b1a47"
+                    strokeWidth="1.2"
+                    strokeDasharray="4 4"
+                  />
+                  <text x="50" y="320" fill="#c084fc" fontFamily="ui-monospace, monospace" fontSize="10" fontWeight="700" letterSpacing="0.08em">
+                    TIER 2 · LOGIC IMPLEMENTATIONS & GOVERNANCE ADMIN CONTROLLERS
+                  </text>
+                </g>
+
+                {/* Tier 3 Shelf: External Oracles */}
+                <g className="tier-3">
+                  <rect
+                    x="30"
+                    y="480"
+                    width="1080"
+                    height="150"
+                    rx="12"
+                    fill="#130d07"
+                    stroke="#3d270c"
+                    strokeWidth="1.2"
+                    strokeDasharray="4 4"
+                  />
+                  <text x="50" y="500" fill="#fbbf24" fontFamily="ui-monospace, monospace" fontSize="10" fontWeight="700" letterSpacing="0.08em">
+                    TIER 3 · TRANSITIVE EXTERNAL CHAINLINK PRICE FEEDS
+                  </text>
+                </g>
+              </g>
+            )}
 
             {/* Define Arrowhead Markers */}
             <defs>
@@ -300,30 +441,41 @@ export function ProvenanceGraphCanvas({
 
                 const edgeKey = `${edge.from}->${edge.to}`;
                 const isActive = activeNetwork.edges.has(edgeKey);
-                const isHovered = hoveredNodeId === edge.from || hoveredNodeId === edge.to;
                 const isDimmed = activeTargetId && !isActive;
-
-                // Source connects from right edge (+110) or bottom/top if within same column
-                const isSameColumn = Math.abs(src.x - tgt.x) < 50;
 
                 let d = "";
                 let midX = (src.x + tgt.x) / 2;
                 let midY = (src.y + tgt.y) / 2;
 
-                if (isSameColumn) {
-                  // Connect with clean left-arching bezier curve
-                  const arcX = src.x - 120;
-                  d = `M ${src.x - 100} ${src.y} C ${arcX} ${src.y}, ${arcX} ${tgt.y}, ${tgt.x - 100} ${tgt.y}`;
-                  midX = arcX + 15;
-                  midY = (src.y + tgt.y) / 2;
+                if (layoutMode === "lanes") {
+                  // Mode 1: Horizontal Flow
+                  const isSameColumn = Math.abs(src.x - tgt.x) < 50;
+
+                  if (isSameColumn) {
+                    const arcX = src.x - 120;
+                    d = `M ${src.x - 100} ${src.y} C ${arcX} ${src.y}, ${arcX} ${tgt.y}, ${tgt.x - 100} ${tgt.y}`;
+                    midX = arcX + 15;
+                    midY = (src.y + tgt.y) / 2;
+                  } else {
+                    const x1 = src.x + 105;
+                    const y1 = src.y;
+                    const x2 = tgt.x - 105;
+                    const y2 = tgt.y;
+                    const dx = x2 - x1;
+                    d = `M ${x1} ${y1} C ${x1 + dx * 0.45} ${y1}, ${x2 - dx * 0.45} ${y2}, ${x2} ${y2}`;
+                    midX = (x1 + x2) / 2;
+                    midY = (y1 + y2) / 2;
+                  }
                 } else {
-                  // Connect from right of source to left of target
-                  const x1 = src.x + 105;
-                  const y1 = src.y;
-                  const x2 = tgt.x - 105;
-                  const y2 = tgt.y;
-                  const dx = x2 - x1;
-                  d = `M ${x1} ${y1} C ${x1 + dx * 0.45} ${y1}, ${x2 - dx * 0.45} ${y2}, ${x2} ${y2}`;
+                  // Mode 2: Vertical Hierarchical Flow (Top-to-Bottom)
+                  const y1 = src.y + 22;
+                  const x1 = src.x;
+                  const y2 = tgt.y - 22;
+                  const x2 = tgt.x;
+                  const dy = y2 - y1;
+
+                  // Smooth vertical cubic bezier curve
+                  d = `M ${x1} ${y1} C ${x1} ${y1 + dy * 0.5}, ${x2} ${y2 - dy * 0.5}, ${x2} ${y2}`;
                   midX = (x1 + x2) / 2;
                   midY = (y1 + y2) / 2;
                 }
@@ -399,7 +551,7 @@ export function ProvenanceGraphCanvas({
               })}
             </g>
 
-            {/* Render Nodes as Stratified Modern Cards */}
+            {/* Render Nodes as Modern Sleek Cards */}
             <g className="dag-nodes">
               {nodes.map((node) => {
                 const pos = layoutCoordinates[node.id];
@@ -528,21 +680,21 @@ export function ProvenanceGraphCanvas({
       <div className="absolute bottom-3 left-4 z-20 flex items-center gap-1.5 bg-[#0e121a]/95 backdrop-blur border border-[#1f2637] p-1 rounded-lg shadow-lg">
         <button
           onClick={() => setZoomLevel((z) => Math.min(z + 0.15, 2.0))}
-          className="p-1.5 text-[#8b95ad] hover:text-white rounded hover:bg-[#1a202e] transition-colors"
+          className="p-1.5 text-[#8b95ad] hover:text-white rounded hover:bg-[#1a202e] transition-colors cursor-pointer"
           title="Zoom In"
         >
           <ZoomIn className="w-4 h-4" />
         </button>
         <button
           onClick={() => setZoomLevel((z) => Math.max(z - 0.15, 0.6))}
-          className="p-1.5 text-[#8b95ad] hover:text-white rounded hover:bg-[#1a202e] transition-colors"
+          className="p-1.5 text-[#8b95ad] hover:text-white rounded hover:bg-[#1a202e] transition-colors cursor-pointer"
           title="Zoom Out"
         >
           <ZoomOut className="w-4 h-4" />
         </button>
         <button
           onClick={handleReset}
-          className="p-1.5 text-[#8b95ad] hover:text-white rounded hover:bg-[#1a202e] transition-colors"
+          className="p-1.5 text-[#8b95ad] hover:text-white rounded hover:bg-[#1a202e] transition-colors cursor-pointer"
           title="Reset View"
         >
           <RotateCcw className="w-4 h-4" />

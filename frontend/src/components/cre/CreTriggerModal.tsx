@@ -341,3 +341,4 @@ export function CreTriggerModal({ isOpen, onClose, onComplete }: CreTriggerModal
     </div>
   );
 }
+
