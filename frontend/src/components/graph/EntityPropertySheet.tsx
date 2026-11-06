@@ -16,10 +16,12 @@ import {
   FileCode,
   Users,
   CheckCircle2,
-  AlertTriangle,
   HardDrive,
   HelpCircle,
   Search,
+  Code2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 interface EntityPropertySheetProps {
@@ -30,15 +32,20 @@ interface EntityPropertySheetProps {
 export function EntityPropertySheet({ node }: EntityPropertySheetProps) {
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [copiedArkiv, setCopiedArkiv] = useState(false);
+  const [copiedSwarm, setCopiedSwarm] = useState(false);
+  const [showSwarmPayload, setShowSwarmPayload] = useState(false);
 
-  const copyText = (text: string, type: "addr" | "arkiv") => {
+  const copyText = (text: string, type: "addr" | "arkiv" | "swarm") => {
     navigator.clipboard.writeText(text);
     if (type === "addr") {
       setCopiedAddress(true);
       setTimeout(() => setCopiedAddress(false), 1800);
-    } else {
+    } else if (type === "arkiv") {
       setCopiedArkiv(true);
       setTimeout(() => setCopiedArkiv(false), 1800);
+    } else {
+      setCopiedSwarm(true);
+      setTimeout(() => setCopiedSwarm(false), 1800);
     }
   };
 
@@ -60,8 +67,10 @@ export function EntityPropertySheet({ node }: EntityPropertySheetProps) {
           ring: "#94a3b8",
         };
 
-  const rabdiExplorerUrl = `https://rabdi.explorer.arkiv.network`;
+  const rabdiExplorerUrl = `https://rabdi.explorer.arkiv.network/address/${node.address}`;
   const etherscanUrl = `https://etherscan.io/address/${node.address}`;
+  const swarmHash = node.swarmBytecodeRef || "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba";
+  const swarmGatewayUrl = `https://gateway.ethswarm.org/bzz/${swarmHash}`;
 
   const hopLabels: Record<number, { title: string; desc: string; badge: string }> = {
     0: {
@@ -126,6 +135,157 @@ export function EntityPropertySheet({ node }: EntityPropertySheetProps) {
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
+        </div>
+      </div>
+
+      {/* Relational Table Attributes (Arkiv contract_node_v1 schema) */}
+      <div className="space-y-2 font-mono text-xs">
+        <div className="text-[10px] uppercase tracking-wider text-[#536280] font-semibold flex items-center justify-between">
+          <span className="flex items-center gap-1.5">
+            <Database className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Relational Table Attributes (Arkiv)</span>
+          </span>
+          <span className="text-[9px] bg-indigo-950/60 text-indigo-300 border border-indigo-800/40 px-1.5 py-0.2 rounded">
+            contract_node_v1
+          </span>
+        </div>
+
+        <div className="rounded-lg border border-[#182033] bg-[#0a0d16] overflow-hidden text-[11px]">
+          <div className="divide-y divide-[#141b2c]">
+            <div className="grid grid-cols-2 p-2 bg-[#0d121e]">
+              <span className="text-[#596987]">contractAddress</span>
+              <span className="text-white truncate" title={node.address}>{node.address.slice(0, 8)}...{node.address.slice(-6)}</span>
+            </div>
+            <div className="grid grid-cols-2 p-2">
+              <span className="text-[#596987]">protocolId</span>
+              <span className="text-blue-400">aave-v3-mainnet</span>
+            </div>
+            <div className="grid grid-cols-2 p-2 bg-[#0d121e]">
+              <span className="text-[#596987]">snapshotId</span>
+              <span className="text-[#8c9cb8] truncate">aave-v3-mainnet-26354138</span>
+            </div>
+            <div className="grid grid-cols-2 p-2">
+              <span className="text-[#596987]">hop</span>
+              <span className="text-white font-semibold">{node.hop}</span>
+            </div>
+            <div className="grid grid-cols-2 p-2 bg-[#0d121e]">
+              <span className="text-[#596987]">category</span>
+              <span className="text-emerald-400 font-semibold">{node.category}</span>
+            </div>
+            <div className="grid grid-cols-2 p-2">
+              <span className="text-[#596987]">riskScore</span>
+              <span className="text-amber-400 font-bold">{node.riskScore}</span>
+            </div>
+            <div className="grid grid-cols-2 p-2 bg-[#0d121e]">
+              <span className="text-[#596987]">proxyType</span>
+              <span className="text-sky-300 uppercase">{node.proxyType || "none"}</span>
+            </div>
+            <div className="grid grid-cols-2 p-2">
+              <span className="text-[#596987]">adminType</span>
+              <span className="text-purple-300 uppercase">{node.adminType || "none"}</span>
+            </div>
+            <div className="grid grid-cols-2 p-2 bg-[#0d121e]">
+              <span className="text-[#596987]">sourcifyStatus</span>
+              <span className="text-emerald-400 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                {node.sourcifyStatus}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 p-2">
+              <span className="text-[#596987]">btlExpiration</span>
+              <span className="text-white">50,000 blocks (~7d)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Explorer Links: Arkiv & Swarm */}
+      <div className="space-y-3 font-mono text-xs pt-2 border-t border-[#171d2b]">
+        {/* Arkiv Network Explorer Action */}
+        <div className="p-3 rounded-lg bg-[#0c101d] border border-indigo-900/50 space-y-2">
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="flex items-center gap-1.5 text-indigo-400 font-semibold">
+              <Database className="w-3.5 h-3.5" />
+              <span>Arkiv Network Explorer</span>
+            </span>
+            <span className="text-[10px] text-emerald-400">Rabdi Testnet #7794095</span>
+          </div>
+          <div className="text-[10px] text-[#7888a7] truncate" title={node.address}>
+            Entity Address: <code className="text-white">{node.address}</code>
+          </div>
+          <a
+            href={rabdiExplorerUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full pt-1"
+          >
+            <ShinyButton className="w-full justify-center py-2 text-xs" variant="primary">
+              <Radio className="w-3.5 h-3.5 text-emerald-400" />
+              <span>View Entity on Arkiv Rabdi Explorer</span>
+              <ExternalLink className="w-3 h-3 ml-1" />
+            </ShinyButton>
+          </a>
+        </div>
+
+        {/* Swarm Evidence Blob Action */}
+        <div className="p-3 rounded-lg bg-[#14100c] border border-amber-900/50 space-y-2">
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="flex items-center gap-1.5 text-amber-400 font-semibold">
+              <HardDrive className="w-3.5 h-3.5" />
+              <span>Swarm Decentralized Evidence</span>
+            </span>
+            <span className="text-[10px] text-amber-300">BZZ Content Address</span>
+          </div>
+          <div className="flex items-center justify-between text-[10px] text-[#8696b5]">
+            <span className="truncate max-w-[200px]" title={swarmHash}>
+              bzz://{swarmHash.slice(0, 16)}...
+            </span>
+            <button
+              onClick={() => copyText(swarmHash, "swarm")}
+              className="p-1 hover:text-white text-[#6b7b99] cursor-pointer"
+              title="Copy BZZ Hash"
+            >
+              {copiedSwarm ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+            </button>
+          </div>
+          <div className="flex items-center gap-2 pt-1">
+            <a
+              href={swarmGatewayUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1"
+            >
+              <ShinyButton className="w-full justify-center py-2 text-xs">
+                <HardDrive className="w-3.5 h-3.5 text-amber-400" />
+                <span>Open Swarm Gateway</span>
+                <ExternalLink className="w-3 h-3 ml-1" />
+              </ShinyButton>
+            </a>
+            <button
+              onClick={() => setShowSwarmPayload(!showSwarmPayload)}
+              className="px-2.5 py-2 rounded-lg bg-[#1a140f] hover:bg-[#251d16] border border-amber-800/40 text-amber-300 text-xs transition-colors cursor-pointer flex items-center gap-1"
+              title="Toggle Raw JSON Payload"
+            >
+              <Code2 className="w-3.5 h-3.5" />
+              {showSwarmPayload ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+          </div>
+
+          {/* Expandable Swarm Raw Bytecode / Evidence Payload */}
+          {showSwarmPayload && (
+            <div className="p-2.5 rounded bg-[#090704] border border-[#2b1f14] text-[10px] font-mono text-[#9eaebb] space-y-1 mt-2">
+              <div className="text-amber-400 font-semibold">Raw Bytecode & Verification Evidence:</div>
+              <div className="text-[#6d7c8d]">
+                Deployed Address: <span className="text-white">{node.address}</span>
+              </div>
+              <div className="text-[#6d7c8d]">
+                Bytecode Hash: <span className="text-emerald-400">{node.bytecodeHash || "0x96107dc4006b...2679"}</span>
+              </div>
+              <div className="text-[#6d7c8d]">
+                Sourcify IPFS Hash: <span className="text-indigo-400">QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -219,98 +379,28 @@ export function EntityPropertySheet({ node }: EntityPropertySheetProps) {
         )}
       </div>
 
-      {/* Contract Implementation & Admin Control */}
-      <div className="space-y-2.5 text-xs font-mono">
-        <div className="text-[10px] uppercase tracking-wider text-[#536280] font-semibold">
-          Proxy & Access Control
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <div className="p-2.5 rounded-lg bg-[#0a0d14] border border-[#161c28]">
-            <div className="text-[10px] text-[#556381] mb-1">Proxy Standard</div>
-            <div className="text-white font-semibold uppercase">{node.proxyType || "None"}</div>
-          </div>
-
-          <div className="p-2.5 rounded-lg bg-[#0a0d14] border border-[#161c28]">
-            <div className="text-[10px] text-[#556381] mb-1">Admin Controller</div>
-            <div className="text-white font-semibold uppercase">{node.adminType || "None"}</div>
-          </div>
-        </div>
-
-        {/* If Safe Multisig: Show Signers and Threshold */}
-        {node.safeOwners && node.safeOwners.length > 0 && (
-          <div className="p-2.5 rounded-lg bg-[#0d0f1a] border border-[#1d2338] space-y-2">
-            <div className="flex items-center justify-between text-[#818ea8]">
-              <div className="flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-purple-400" />
-                <span>Gnosis Safe Multisig</span>
-              </div>
-              <span className="text-purple-300 font-bold">
-                {node.safeThreshold || 3} of {node.safeOwnerCount || node.safeOwners.length} Required
-              </span>
+      {/* Multisig Signers if applicable */}
+      {node.safeOwners && node.safeOwners.length > 0 && (
+        <div className="p-2.5 rounded-lg bg-[#0d0f1a] border border-[#1d2338] space-y-2 text-xs font-mono">
+          <div className="flex items-center justify-between text-[#818ea8]">
+            <div className="flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5 text-purple-400" />
+              <span>Gnosis Safe Multisig</span>
             </div>
-            <div className="space-y-1 max-h-24 overflow-y-auto pr-1">
-              {node.safeOwners.map((owner, idx) => (
-                <div key={idx} className="text-[10px] text-[#6b7b99] flex items-center justify-between">
-                  <span>Signer {idx + 1}:</span>
-                  <span className="text-[#a0aec0] font-mono">{owner.slice(0, 8)}...{owner.slice(-6)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Sourcify Match Status */}
-        <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#0a0d14] border border-[#161c28]">
-          <div className="flex items-center gap-2">
-            <FileCode className="w-3.5 h-3.5 text-blue-400" />
-            <span className="text-[#7f8da8]">Sourcify Status:</span>
-          </div>
-          <span className="text-emerald-400 font-semibold flex items-center gap-1 text-[11px]">
-            <CheckCircle2 className="w-3 h-3" />
-            {node.sourcifyStatus.toUpperCase().replace("_", " ")}
-          </span>
-        </div>
-      </div>
-
-      {/* Arkiv & Swarm Decentralized Persistence */}
-      <div className="space-y-2.5 text-xs font-mono pt-2 border-t border-[#171d2b]">
-        <div className="text-[10px] uppercase tracking-wider text-[#536280] font-semibold flex items-center gap-1.5">
-          <Database className="w-3 h-3 text-indigo-400" />
-          <span>Arkiv & Swarm Storage Details</span>
-        </div>
-
-        <div className="p-2.5 rounded-lg bg-[#0a0d14] border border-[#161c28] space-y-2">
-          <div className="flex items-center justify-between text-[11px]">
-            <span className="text-[#657491]">Arkiv Entity Tag:</span>
-            <span className="text-indigo-400">contract_node_v1</span>
-          </div>
-          <div className="flex items-center justify-between text-[11px]">
-            <span className="text-[#657491]">BTL Expiration:</span>
-            <span className="text-white">50,000 blocks (~7d)</span>
-          </div>
-          <div className="flex items-center justify-between text-[11px]">
-            <span className="text-[#657491]">Swarm Bytecode Ref:</span>
-            <span className="text-amber-400 truncate max-w-[140px]" title={node.swarmBytecodeRef || "bzz://..."}>
-              {node.swarmBytecodeRef ? `${node.swarmBytecodeRef.slice(0, 10)}...` : "Verified"}
+            <span className="text-purple-300 font-bold">
+              {node.safeThreshold || 3} of {node.safeOwnerCount || node.safeOwners.length} Required
             </span>
           </div>
+          <div className="space-y-1 max-h-24 overflow-y-auto pr-1">
+            {node.safeOwners.map((owner, idx) => (
+              <div key={idx} className="text-[10px] text-[#6b7b99] flex items-center justify-between">
+                <span>Signer {idx + 1}:</span>
+                <span className="text-[#a0aec0] font-mono">{owner.slice(0, 8)}...{owner.slice(-6)}</span>
+              </div>
+            ))}
+          </div>
         </div>
-
-        {/* View on Arkiv Rabdi Explorer Button */}
-        <a
-          href={rabdiExplorerUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block w-full pt-1"
-        >
-          <ShinyButton className="w-full justify-center py-2 text-xs">
-            <Radio className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Verify on Rabdi Explorer</span>
-            <ExternalLink className="w-3 h-3 ml-1" />
-          </ShinyButton>
-        </a>
-      </div>
+      )}
     </div>
   );
 }

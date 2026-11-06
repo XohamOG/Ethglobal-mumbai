@@ -9,6 +9,7 @@ import { EntityPropertySheet } from "@/components/graph/EntityPropertySheet";
 import { ArkivSchemaTab } from "@/components/tabs/ArkivSchemaTab";
 import { SwarmArtifactsTab } from "@/components/tabs/SwarmArtifactsTab";
 import { ChainlinkCreTab } from "@/components/tabs/ChainlinkCreTab";
+import { CreTriggerModal } from "@/components/cre/CreTriggerModal";
 import { Magnet } from "@/components/ui/Magnet";
 import { DecryptedText } from "@/components/ui/DecryptedText";
 import {
@@ -33,6 +34,8 @@ function GraphViewerContent() {
   const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab);
   const [selectedNode, setSelectedNode] = useState<GraphNode>(AAVE_NODES[0]);
   const [activeHopFilter, setActiveHopFilter] = useState<number | "all">("all");
+  const [isCreModalOpen, setIsCreModalOpen] = useState(false);
+  const [liveScore, setLiveScore] = useState(protocol.compositeScore);
 
   useEffect(() => {
     const tab = searchParams.get("tab") as ActiveTab;
@@ -77,14 +80,23 @@ function GraphViewerContent() {
             <span className="text-blue-400">#7794095</span>
           </div>
 
-          <div className="flex items-center gap-2 px-3 py-1 rounded-md border border-emerald-900/60 bg-emerald-950/40 text-xs font-mono">
+          {/* CRE Trigger & Score Badge */}
+          <button
+            onClick={() => setIsCreModalOpen(true)}
+            className="flex items-center gap-2 px-3 py-1 rounded-md border border-emerald-900/60 bg-emerald-950/40 hover:bg-emerald-900/50 text-xs font-mono transition-all cursor-pointer"
+            title="Click to Trigger Real-Time CRE Fingerprint Verification"
+          >
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="text-[#7f8da8]">Composite Risk:</span>
-            <span className="text-emerald-400 font-bold">{protocol.compositeScore}</span>
+            <span className="text-[#7f8da8]">Score:</span>
+            <span className="text-emerald-400 font-bold">{liveScore}</span>
             <span className="text-[10px] text-emerald-400 font-semibold uppercase">
-              ({protocol.riskTier})
+              ({liveScore < 15 ? "LOW" : "MEDIUM"})
             </span>
-          </div>
+            <span className="text-[10px] bg-emerald-900/80 px-1.5 py-0.2 rounded text-emerald-200 border border-emerald-700/60 flex items-center gap-1 ml-1">
+              <Zap className="w-2.5 h-2.5" />
+              Audit
+            </span>
+          </button>
         </div>
       </header>
 
@@ -153,7 +165,7 @@ function GraphViewerContent() {
         <div className="hidden lg:flex items-center gap-3 text-xs font-mono text-[#54607b]">
           <span className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            Decentralized Architecture
+            Decentralized Persistence
           </span>
           <span className="text-[#252c3e]">|</span>
           <span>Zero Centralized DBs</span>
@@ -174,8 +186,8 @@ function GraphViewerContent() {
                   {[
                     { id: "all", label: "All Layers (15)", count: AAVE_NODES.length },
                     { id: 0, label: "Hop 0 · Core (6)", count: AAVE_NODES.filter((n) => n.hop === 0).length },
-                    { id: 1, label: "Hop 1 · Governance (3)", count: AAVE_NODES.filter((n) => n.hop === 1).length },
-                    { id: 2, label: "Hop 2 · Oracles & Assets (6)", count: AAVE_NODES.filter((n) => n.hop === 2).length },
+                    { id: 1, label: "Hop 1 · Governance (4)", count: AAVE_NODES.filter((n) => n.hop === 1).length },
+                    { id: 2, label: "Hop 2 · Oracles (5)", count: AAVE_NODES.filter((n) => n.hop === 2).length },
                   ].map((item) => (
                     <button
                       key={String(item.id)}
@@ -268,6 +280,13 @@ function GraphViewerContent() {
           <ChainlinkCreTab />
         </div>
       )}
+
+      {/* CRE Trigger Modal */}
+      <CreTriggerModal
+        isOpen={isCreModalOpen}
+        onClose={() => setIsCreModalOpen(false)}
+        onComplete={(newScore) => setLiveScore(newScore)}
+      />
     </div>
   );
 }
