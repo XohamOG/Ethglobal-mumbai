@@ -28,69 +28,69 @@ export function ChainlinkCreTab() {
     const initialSteps: SimulationStep[] =
       triggerType === "log"
         ? [
-            {
-              step: 1,
-              title: "EVM Event Emitted On-Chain",
-              detail: "Upgraded(address indexed implementation = 0x5FAab9E1...newImpl) on Pool Proxy 0x87870B...",
-              status: "running",
-            },
-            {
-              step: 2,
-              title: "CRE QuickJS-WASM Node Consensus",
-              detail: "Log trigger validates event topic0 (0xbc7cd75a...). Off-chain BFT 2/3 consensus reached.",
-              status: "pending",
-            },
-            {
-              step: 3,
-              title: "Graph Service Rebuild Dispatched",
-              detail: "POST /rebuild called with { protocolId: 'aave-v3-mainnet', triggeredBy: 'log-event' }",
-              status: "pending",
-            },
-            {
-              step: 4,
-              title: "Arkiv Snapshot & Swarm Evidence Minted",
-              detail: "New RiskSnapshot created in Arkiv with 50,000 blocks BTL. Swarm full-graph.json archived.",
-              status: "pending",
-            },
-            {
-              step: 5,
-              title: "On-Chain RiskRegistry.sol Attestation",
-              detail: "CRE Forwarder invokes reportRisk('aave-v3-mainnet', 1371, 'LOW', 'snapshot-26354140', 26354140)",
-              status: "pending",
-            },
-          ]
+          {
+            step: 1,
+            title: "EVM Event Emitted On-Chain",
+            detail: "Upgraded(address indexed implementation = 0x5FAab9E1...newImpl) on Pool Proxy 0x87870B...",
+            status: "running",
+          },
+          {
+            step: 2,
+            title: "CRE QuickJS-WASM Node Consensus",
+            detail: "Log trigger validates event topic0 (0xbc7cd75a...). Off-chain BFT 2/3 consensus reached.",
+            status: "pending",
+          },
+          {
+            step: 3,
+            title: "Graph Service Rebuild Dispatched",
+            detail: "POST /rebuild called with { protocolId: 'aave-v3-mainnet', triggeredBy: 'log-event' }",
+            status: "pending",
+          },
+          {
+            step: 4,
+            title: "Arkiv Snapshot & Swarm Evidence Minted",
+            detail: "New RiskSnapshot created in Arkiv with 50,000 blocks BTL. Swarm full-graph.json archived.",
+            status: "pending",
+          },
+          {
+            step: 5,
+            title: "On-Chain RiskRegistry.sol Attestation",
+            detail: "CRE Forwarder invokes reportRisk('aave-v3-mainnet', 1371, 'LOW', 'snapshot-26354140', 26354140)",
+            status: "pending",
+          },
+        ]
         : [
-            {
-              step: 1,
-              title: "Cron Sweep Trigger Fired",
-              detail: "Scheduled 7,200 block cycle triggered. Reading on-chain bytecode hashes & admin slots.",
-              status: "running",
-            },
-            {
-              step: 2,
-              title: "Fingerprint Drift Detected",
-              detail: "Stored: 0x39a7cd... | Computed: 0x8f21bc... (Admin Safe rotated signers or feed changed).",
-              status: "pending",
-            },
-            {
-              step: 3,
-              title: "Graph Service Rebuild Dispatched",
-              detail: "POST /rebuild called with { protocolId: 'aave-v3-mainnet', triggeredBy: 'cron' }",
-              status: "pending",
-            },
-            {
-              step: 4,
-              title: "Arkiv Snapshot Updated with BTL",
-              detail: "Old snapshot invalidated via BTL expiration. Fresh topology persisted.",
-              status: "pending",
-            },
-            {
-              step: 5,
-              title: "On-Chain Risk Attested",
-              detail: "RiskRegistry.reportRisk() executed with updated 7-factor composite score.",
-              status: "pending",
-            },
-          ];
+          {
+            step: 1,
+            title: "Cron Sweep Trigger Fired",
+            detail: "Scheduled 7,200 block cycle triggered. Reading on-chain bytecode hashes & admin slots.",
+            status: "running",
+          },
+          {
+            step: 2,
+            title: "Fingerprint Drift Detected",
+            detail: "Stored: 0x39a7cd... | Computed: 0x8f21bc... (Admin Safe rotated signers or feed changed).",
+            status: "pending",
+          },
+          {
+            step: 3,
+            title: "Graph Service Rebuild Dispatched",
+            detail: "POST /rebuild called with { protocolId: 'aave-v3-mainnet', triggeredBy: 'cron' }",
+            status: "pending",
+          },
+          {
+            step: 4,
+            title: "Arkiv Snapshot Updated with BTL",
+            detail: "Old snapshot invalidated via BTL expiration. Fresh topology persisted.",
+            status: "pending",
+          },
+          {
+            step: 5,
+            title: "On-Chain Risk Attested",
+            detail: "RiskRegistry.reportRisk() executed with updated 7-factor composite score.",
+            status: "pending",
+          },
+        ];
 
     setSimSteps(initialSteps);
 
@@ -152,11 +152,10 @@ export function ChainlinkCreTab() {
         {/* Workflow 1: Log Trigger */}
         <div
           onClick={() => setActiveWorkflow("log_trigger")}
-          className={`p-4 rounded-xl border transition-all cursor-pointer ${
-            activeWorkflow === "log_trigger"
+          className={`p-4 rounded-xl border transition-all cursor-pointer ${activeWorkflow === "log_trigger"
               ? "bg-[#0e1322] border-blue-500/80 shadow-md shadow-blue-500/5"
               : "bg-[#090c14] border-[#161d2d] hover:border-[#26334d]"
-          }`}
+            }`}
         >
           <div className="flex items-center justify-between mb-2">
             <span className="flex items-center gap-1.5 text-blue-400 font-semibold">
@@ -183,11 +182,10 @@ export function ChainlinkCreTab() {
         {/* Workflow 2: Cron Sweep */}
         <div
           onClick={() => setActiveWorkflow("cron_sweep")}
-          className={`p-4 rounded-xl border transition-all cursor-pointer ${
-            activeWorkflow === "cron_sweep"
+          className={`p-4 rounded-xl border transition-all cursor-pointer ${activeWorkflow === "cron_sweep"
               ? "bg-[#0e1322] border-blue-500/80 shadow-md shadow-blue-500/5"
               : "bg-[#090c14] border-[#161d2d] hover:border-[#26334d]"
-          }`}
+            }`}
         >
           <div className="flex items-center justify-between mb-2">
             <span className="flex items-center gap-1.5 text-amber-400 font-semibold">
@@ -253,13 +251,12 @@ export function ChainlinkCreTab() {
             {simSteps.map((s) => (
               <div
                 key={s.step}
-                className={`p-3 rounded-lg border transition-all flex items-start gap-3 ${
-                  s.status === "done"
+                className={`p-3 rounded-lg border transition-all flex items-start gap-3 ${s.status === "done"
                     ? "bg-[#0b101c] border-[#182338] text-white"
                     : s.status === "running"
-                    ? "bg-[#111728] border-blue-500/80 text-white animate-pulse"
-                    : "bg-[#070910] border-[#111520] text-[#4d5770]"
-                }`}
+                      ? "bg-[#111728] border-blue-500/80 text-white animate-pulse"
+                      : "bg-[#070910] border-[#111520] text-[#4d5770]"
+                  }`}
               >
                 <div className="mt-0.5">
                   {s.status === "done" ? (
@@ -351,4 +348,3 @@ export function ChainlinkCreTab() {
     </div>
   );
 }
-

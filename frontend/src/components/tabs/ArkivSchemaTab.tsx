@@ -150,11 +150,10 @@ const { entities } = await publicClient
           <button
             key={t.key}
             onClick={() => setSelectedSchema(t.key as any)}
-            className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
-              selectedSchema === t.key
+            className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${selectedSchema === t.key
                 ? "bg-[#182033] text-white border border-[#2a3754] font-semibold"
                 : "text-[#677595] hover:text-white hover:bg-[#0e121d]"
-            }`}
+              }`}
           >
             {t.label}
           </button>
@@ -295,4 +294,3 @@ const { entities } = await publicClient
     </div>
   );
 }
-

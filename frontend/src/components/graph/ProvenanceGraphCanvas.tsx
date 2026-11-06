@@ -3,9 +3,9 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import * as d3 from "d3";
 import { GraphNode, GraphEdge } from "@/lib/graph-data";
-import { ZoomIn, ZoomOut, RotateCcw, Play, Pause, Layers } from "lucide-react";
+import { ZoomIn, ZoomOut, RotateCcw, Play, Pause, Columns, Disc } from "lucide-react";
 
-interface Neo4jCanvasProps {
+interface ProvenanceGraphCanvasProps {
   nodes: GraphNode[];
   edges: GraphEdge[];
   selectedNodeId: string;
@@ -21,28 +21,29 @@ interface SimulationLink extends d3.SimulationLinkDatum<SimulationNode> {
   type: string;
 }
 
-export function Neo4jCanvas({
+export function ProvenanceGraphCanvas({
   nodes,
   edges,
   selectedNodeId,
   onSelectNode,
-}: Neo4jCanvasProps) {
+}: ProvenanceGraphCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(1);
+  const [layoutMode, setLayoutMode] = useState<"columns" | "radial">("columns");
   const simulationRef = useRef<d3.Simulation<SimulationNode, SimulationLink> | null>(null);
   const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const gRef = useRef<SVGGElement | null>(null);
 
-  // Category visual styles (Neo4j Bloom style palettes)
+  // Category visual styles
   const categoryConfig: Record<string, { color: string; ring: string; glyph: string; name: string }> = {
     proxy: { color: "#0284c7", ring: "#38bdf8", glyph: "P", name: "Proxy" },
     implementation: { color: "#059669", ring: "#34d399", glyph: "I", name: "Implementation" },
     oracle: { color: "#d97706", ring: "#fbbf24", glyph: "O", name: "Oracle" },
     multisig: { color: "#9333ea", ring: "#c084fc", glyph: "S", name: "Safe Multisig" },
     timelock: { color: "#4f46e5", ring: "#818cf8", glyph: "T", name: "Timelock" },
+    token: { color: "#0d9488", ring: "#2dd4bf", glyph: "$", name: "Reserve Token" },
   };
 
   const getNodeStyle = (category: string, adminType?: string) => {
@@ -72,7 +73,7 @@ export function Neo4jCanvas({
   useEffect(() => {
     if (!svgRef.current || !containerRef.current || nodes.length === 0) return;
 
-    const width = containerRef.current.clientWidth || 900;
+    const width = containerRef.current.clientWidth || 920;
     const height = containerRef.current.clientHeight || 640;
 
     const svg = d3.select(svgRef.current);
@@ -82,11 +83,79 @@ export function Neo4jCanvas({
     const g = svg.append("g").attr("class", "graph-root");
     gRef.current = g.node();
 
-    // Define Arrowhead Markers for Neo4j style relationship edges
+    // Background Column Bands in Columns mode
+    if (layoutMode === "columns") {
+      const colBands = g.append("g").attr("class", "column-bands");
+
+      const bands = [
+        {
+          hop: 0,
+          label: "HOP 0 · CORE ARCHITECTURE",
+          sub: "Primary Execution & Orchestration",
+          x: width * 0.04,
+          w: width * 0.3,
+          color: "#0369a1",
+        },
+        {
+          hop: 1,
+          label: "HOP 1 · GOVERNANCE & ADMIN",
+          sub: "Timelocks & Multisig Signers",
+          x: width * 0.36,
+          w: width * 0.28,
+          color: "#7e22ce",
+        },
+        {
+          hop: 2,
+          label: "HOP 2 · EXTERNAL DEPENDENCIES",
+          sub: "Chainlink Oracles & Reserve Assets",
+          x: width * 0.66,
+          w: width * 0.3,
+          color: "#b45309",
+        },
+      ];
+
+      bands.forEach((b) => {
+        const bandG = colBands.append("g").attr("class", `band-hop-${b.hop}`);
+
+        bandG
+          .append("rect")
+          .attr("x", b.x)
+          .attr("y", 15)
+          .attr("width", b.w)
+          .attr("height", height - 30)
+          .attr("rx", 10)
+          .attr("fill", "#090d16")
+          .attr("fill-opacity", 0.6)
+          .attr("stroke", "#171f30")
+          .attr("stroke-dasharray", "4 4");
+
+        bandG
+          .append("text")
+          .attr("x", b.x + 14)
+          .attr("y", 38)
+          .attr("fill", "#64748b")
+          .attr("font-family", "ui-monospace, monospace")
+          .attr("font-size", 10)
+          .attr("font-weight", "600")
+          .attr("letter-spacing", "0.08em")
+          .text(b.label);
+
+        bandG
+          .append("text")
+          .attr("x", b.x + 14)
+          .attr("y", 52)
+          .attr("fill", "#3e4c66")
+          .attr("font-family", "ui-monospace, monospace")
+          .attr("font-size", 9)
+          .text(b.sub);
+      });
+    }
+
+    // Define Arrowhead Markers for relationship edges
     const defs = svg.append("defs");
     defs
       .append("marker")
-      .attr("id", "neo4j-arrow")
+      .attr("id", "prov-arrow")
       .attr("viewBox", "0 -5 10 10")
       .attr("refX", 26)
       .attr("refY", 0)
@@ -99,7 +168,7 @@ export function Neo4jCanvas({
 
     defs
       .append("marker")
-      .attr("id", "neo4j-arrow-active")
+      .attr("id", "prov-arrow-active")
       .attr("viewBox", "0 -5 10 10")
       .attr("refX", 26)
       .attr("refY", 0)
@@ -112,11 +181,21 @@ export function Neo4jCanvas({
 
     // Prepare simulation nodes with hop-tiered sizing
     const simNodes: SimulationNode[] = nodes.map((n) => {
-      // Radius sized by hierarchy (Hop 0 = largest, Hop 2 = compact)
-      const r = n.hop === 0 ? 30 : n.hop === 1 ? 24 : 19;
-      // Initialize layout in gentle horizontal progression by Hop
-      const initialX = n.hop === 0 ? width * 0.22 : n.hop === 1 ? width * 0.52 : width * 0.82;
-      const initialY = height * 0.2 + Math.random() * (height * 0.6);
+      const r = n.hop === 0 ? 28 : n.hop === 1 ? 24 : 20;
+
+      let initialX = width * 0.5;
+      let initialY = height * 0.5;
+
+      if (layoutMode === "columns") {
+        initialX = n.hop === 0 ? width * 0.19 : n.hop === 1 ? width * 0.5 : width * 0.81;
+        initialY = height * 0.2 + Math.random() * (height * 0.6);
+      } else {
+        const angle = Math.random() * 2 * Math.PI;
+        const dist = n.hop === 0 ? 70 : n.hop === 1 ? 170 : 270;
+        initialX = width / 2 + Math.cos(angle) * dist;
+        initialY = height / 2 + Math.sin(angle) * dist;
+      }
+
       return {
         ...n,
         r,
@@ -136,7 +215,7 @@ export function Neo4jCanvas({
         type: e.type,
       }));
 
-    // Setup Force Simulation (Neo4j Bloom Physics parameters)
+    // Setup Force Simulation
     const simulation = d3
       .forceSimulation<SimulationNode>(simNodes)
       .force(
@@ -147,32 +226,39 @@ export function Neo4jCanvas({
           .distance((d) => {
             const srcHop = (d.source as SimulationNode).hop;
             const tgtHop = (d.target as SimulationNode).hop;
-            return srcHop === tgtHop ? 110 : 150;
+            return srcHop === tgtHop ? 100 : 140;
           })
-          .strength(0.65)
+          .strength(0.55)
       )
-      .force("charge", d3.forceManyBody().strength(-340).distanceMax(500))
+      .force("charge", d3.forceManyBody().strength(-360).distanceMax(550))
       .force("collide", d3.forceCollide().radius((d: any) => d.r + 32).iterations(3))
-      .force(
-        "x",
-        d3
-          .forceX<SimulationNode>((d) =>
-            d.hop === 0 ? width * 0.22 : d.hop === 1 ? width * 0.52 : width * 0.82
-          )
-          .strength(0.42)
-      )
-      .force("y", d3.forceY(height / 2).strength(0.24))
       .alphaDecay(0.028);
+
+    if (layoutMode === "columns") {
+      simulation
+        .force(
+          "x",
+          d3
+            .forceX<SimulationNode>((d) =>
+              d.hop === 0 ? width * 0.19 : d.hop === 1 ? width * 0.5 : width * 0.81
+            )
+            .strength(0.48)
+        )
+        .force("y", d3.forceY(height / 2).strength(0.26));
+    } else {
+      simulation
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .force("r", d3.forceRadial((d: any) => (d.hop === 0 ? 80 : d.hop === 1 ? 180 : 280), width / 2, height / 2).strength(0.8));
+    }
 
     simulationRef.current = simulation;
 
     // Zoom & Pan Behavior
     const zoom = d3
       .zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.4, 2.8])
+      .scaleExtent([0.35, 3.0])
       .on("zoom", (event) => {
         g.attr("transform", event.transform);
-        setZoomLevel(event.transform.k);
       });
 
     zoomBehaviorRef.current = zoom;
@@ -189,11 +275,11 @@ export function Neo4jCanvas({
     // Edge Path
     const linkPaths = linkElements
       .append("line")
-      .attr("stroke", "#1e293b")
+      .attr("stroke", "#1c2436")
       .attr("stroke-width", 1.5)
-      .attr("marker-end", "url(#neo4j-arrow)");
+      .attr("marker-end", "url(#prov-arrow)");
 
-    // Edge Relationship Badge (Neo4j Pill on Edge Center)
+    // Edge Relationship Badge
     const linkBadges = linkElements
       .append("g")
       .attr("class", "edge-badge cursor-pointer")
@@ -254,7 +340,7 @@ export function Neo4jCanvas({
           })
       );
 
-    // Node Outer Glow Ring (Halo)
+    // Node Outer Glow Ring
     nodeElements
       .append("circle")
       .attr("r", (d) => d.r + 4)
@@ -264,12 +350,12 @@ export function Neo4jCanvas({
       .attr("stroke-opacity", 0.4)
       .attr("class", "halo-ring");
 
-    // Node Main Body Circle (Neo4j sphere)
+    // Node Main Body Circle
     nodeElements
       .append("circle")
       .attr("r", (d) => d.r)
       .attr("fill", (d) => getNodeStyle(d.category, d.adminType).color)
-      .attr("stroke", "#0b0f19")
+      .attr("stroke", "#080b12")
       .attr("stroke-width", 2.5)
       .attr("class", "node-circle shadow-lg transition-transform hover:scale-105");
 
@@ -281,7 +367,7 @@ export function Neo4jCanvas({
       .attr("fill", "#ffffff")
       .attr("font-family", "ui-sans-serif, system-ui, sans-serif")
       .attr("font-weight", "700")
-      .attr("font-size", (d) => (d.hop === 0 ? 14 : d.hop === 1 ? 12 : 10))
+      .attr("font-size", (d) => (d.hop === 0 ? 13 : d.hop === 1 ? 11 : 10))
       .attr("pointer-events", "none")
       .text((d) => getNodeStyle(d.category, d.adminType).glyph);
 
@@ -289,7 +375,7 @@ export function Neo4jCanvas({
     nodeElements
       .append("text")
       .attr("text-anchor", "middle")
-      .attr("y", (d) => d.r + 15)
+      .attr("y", (d) => d.r + 14)
       .attr("fill", "#e2e8f0")
       .attr("font-family", "ui-sans-serif, system-ui, sans-serif")
       .attr("font-size", 10.5)
@@ -301,7 +387,7 @@ export function Neo4jCanvas({
     nodeElements
       .append("text")
       .attr("text-anchor", "middle")
-      .attr("y", (d) => d.r + 27)
+      .attr("y", (d) => d.r + 26)
       .attr("fill", (d) => (d.riskScore === 0 ? "#34d399" : d.riskScore <= 10 ? "#6ee7b7" : "#fbbf24"))
       .attr("font-family", "ui-monospace, monospace")
       .attr("font-size", 9)
@@ -347,7 +433,7 @@ export function Neo4jCanvas({
     return () => {
       simulation.stop();
     };
-  }, [nodes, edges, onSelectNode]);
+  }, [nodes, edges, layoutMode, onSelectNode]);
 
   // Update visual highlighting when selection/hover changes
   useEffect(() => {
@@ -393,24 +479,24 @@ export function Neo4jCanvas({
 
       if (!hasSelection) {
         el.select("line")
-          .attr("stroke", "#1e293b")
+          .attr("stroke", "#1c2436")
           .attr("stroke-width", 1.5)
-          .attr("marker-end", "url(#neo4j-arrow)");
+          .attr("marker-end", "url(#prov-arrow)");
         el.select(".edge-badge").style("opacity", 0.75);
       } else if (isActive) {
         el.select("line")
           .attr("stroke", "#38bdf8")
           .attr("stroke-width", 2.5)
-          .attr("marker-end", "url(#neo4j-arrow-active)");
+          .attr("marker-end", "url(#prov-arrow-active)");
         el.select(".edge-badge")
           .style("opacity", 1)
           .select("rect")
           .attr("stroke", "#38bdf8");
       } else {
         el.select("line")
-          .attr("stroke", "#131b28")
+          .attr("stroke", "#111722")
           .attr("stroke-width", 1)
-          .attr("marker-end", "url(#neo4j-arrow)");
+          .attr("marker-end", "url(#prov-arrow)");
         el.select(".edge-badge").style("opacity", 0.15);
       }
     });
@@ -441,21 +527,49 @@ export function Neo4jCanvas({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[620px] bg-[#07090e] border border-[#161a25] rounded-xl overflow-hidden select-none bg-grid"
+      className="relative w-full h-[640px] bg-[#07090e] border border-[#161a25] rounded-xl overflow-hidden select-none bg-grid"
     >
-      {/* Neo4j Style Floating Overlay Toolbar */}
+      {/* Top Floating Status Toolbar */}
       <div className="absolute top-3 left-4 z-10 flex items-center gap-2">
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0e121a]/90 backdrop-blur border border-[#1f2637] text-xs font-mono text-[#8b95ad] shadow-lg">
-          <Layers className="w-3.5 h-3.5 text-blue-400" />
-          <span>Neo4j Force Topology</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0e121a]/90 backdrop-blur border border-[#1f2637] text-xs font-mono text-[#8b95ad] shadow-lg">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Asset Provenance Graph</span>
           <span className="text-[#3b445a]">·</span>
-          <span className="text-emerald-400">{nodes.length} Nodes</span>
+          <span className="text-emerald-400">{nodes.length} Verified Contracts</span>
           <span className="text-[#3b445a]">·</span>
           <span className="text-blue-400">{edges.length} Relationships</span>
         </div>
+
+        {/* Layout Toggle */}
+        <div className="flex items-center bg-[#0e121a]/90 backdrop-blur border border-[#1f2637] p-0.5 rounded-lg">
+          <button
+            onClick={() => setLayoutMode("columns")}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-mono transition-colors ${
+              layoutMode === "columns"
+                ? "bg-[#182030] text-blue-400 font-semibold"
+                : "text-[#64748b] hover:text-white"
+            }`}
+            title="Organize by Provenance Hop Columns"
+          >
+            <Columns className="w-3 h-3" />
+            <span>Hop Columns</span>
+          </button>
+          <button
+            onClick={() => setLayoutMode("radial")}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-mono transition-colors ${
+              layoutMode === "radial"
+                ? "bg-[#182030] text-blue-400 font-semibold"
+                : "text-[#64748b] hover:text-white"
+            }`}
+            title="Concentric Radial Cluster"
+          >
+            <Disc className="w-3 h-3" />
+            <span>Concentric</span>
+          </button>
+        </div>
       </div>
 
-      {/* Neo4j Legend Bar (Top Right) */}
+      {/* Category Legend Bar (Top Right) */}
       <div className="absolute top-3 right-4 z-10 hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-lg bg-[#0e121a]/90 backdrop-blur border border-[#1f2637] text-[11px] font-mono text-[#94a3b8] shadow-lg">
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-[#0284c7] ring-1 ring-[#38bdf8]/60"></span>
@@ -471,7 +585,7 @@ export function Neo4jCanvas({
         </span>
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-[#9333ea] ring-1 ring-[#c084fc]/60"></span>
-          Multisig
+          Safe Multisig
         </span>
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-[#4f46e5] ring-1 ring-[#818cf8]/60"></span>
@@ -514,7 +628,7 @@ export function Neo4jCanvas({
 
       {/* Hint Badge (Bottom Right) */}
       <div className="absolute bottom-4 right-4 z-10 pointer-events-none text-[10px] font-mono text-[#525d78]">
-        Drag nodes · Click to inspect on Arkiv
+        Drag nodes · Click to inspect on Arkiv & Swarm
       </div>
 
       {/* SVG Rendering Surface */}
