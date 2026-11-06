@@ -430,8 +430,6 @@ export function ProvenanceGraphCanvas({
                 const style = getStyle(node.category, node.adminType);
                 const nodeRisk = getRiskScoreConfig(node.riskScore);
                 const isMutated = mutatedNodeId === node.id;
-                const nodeRisk = getRiskScoreConfig(node.riskScore);
-                const isMutated = mutatedNodeId === node.id;
                 const nodeR = 22;
 
                 return (
