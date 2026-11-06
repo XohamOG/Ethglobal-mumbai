@@ -17,21 +17,19 @@ This document provides complete on-chain verification links, storage slot refere
 ### B. Micro Entities (`contract_node_v1`)
 | Node Name / Role | Contract Address | Hop | Category | Risk | Arkiv Entity Key |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Pool (Proxy)** | `0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2` | 0 | Proxy | 12 | `0x5df8dc59a35e80d99ba148ff61df9a96f13bce36c74d6f85ffad9ec6ce6bb1c2` |
-| **Pool Implementation** | `0x728a138A4823392C2EFA55e028d434F526fE03CF` | 0 | Implementation | 0 | `0x8c9aabf09907be1699f7d2f93d39580b2a3fa95db7ba33cb92b67fec85a21234` |
-| **PoolAddressesProvider** | `0x2f39D218133AFAb8F2b819B1066C7f434aD94e9e` | 0 | Proxy | 12 | `0x789c099e28bfbcab37b2d28f090d8a571fbaea0d0d8291079d2dfaa41be5e6e1` |
-| **PoolConfigurator (Proxy)** | `0x64b761D848206f447Fe2dd461b0c635Ec39EbB27` | 0 | Proxy | 12 | `0x4d667c4be44062eb142b6279f0458df261d7b1d9dfd70a41763aaeb5c55c065f` |
-| **Configurator Impl** | `0xFF42Ce30054dcE7dc7C1282a9a497aa58eaBCe99` | 0 | Implementation | 0 | `0xecb6538411d3557e4e892c57f7ca723aece2b919597288ff3f1d8c1c4ad3d9ca` |
-| **ACLManager** | `0xc2aaCf6553D20d1e9d78E365AAba8032af9c85b0` | 0 | Implementation | 15 | `0x992b5746f52bcd5aac5603e41662755f82c716255d026b89ab36dba091c096f9` |
-| **Governance Executor** | `0xEE56e2B3D491590B5b31738cC34d5232F378a8D5` | 1 | Governance | 5 | `0x9c42403b9ad6fceb20c24b611d279cf733f39a70f7cfcb64b22896f6004b7713` |
-| **Emergency Guardian Safe** | `0x2CFe3ec4d5a6811f4B8067F0DE7e47DfA938Aa30` | 1 | Multisig | 12 | `0xdc4779bc5c03c5ae147748834925828fb4429e7102e38c3aaec042e947d06df1` |
-| **AaveOracle** | `0x54586bE62E3c3580375aE3723C145253060Ca0C2` | 1 | Oracle | 0 | `0x8f0376c6bbd85d77da711ee1b4ca3f5c1d3ecfa7c865f577ba79f2257321528c` |
+| **Pool (Proxy)** | `0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2` | 0 | Proxy | 12 | `0x5df8dc5903edd0b377937fe6f9cb6f7f0a3d206abd2095b0bc271787d9b9e6f2` |
+| **PoolAddressesProvider** | `0x2f39D218133AFAb8F2b819B1066C7f434aD94e9e` | 0 | Proxy | 12 | `0x8c9aab3116f575a8dfc4add9ace7e08042062ca7ab4eecf4acabd92a15f87ed9` |
+| **ACLManager** | `0xc2aaCf6553D20d1e9d78E365AAba8032af9c85b0` | 0 | Implementation | 15 | `0xa2ad090a6b0a6a0259fa02cfce3e1c797827341fe0add25207383257f8b8d460` |
+| **PoolConfigurator (Proxy)** | `0x64b761D848206f447Fe2dd461b0c635Ec39EbB27` | 0 | Proxy | 12 | `0x992b5746f52bcd5aac5603e41662755f82c716255d026b89ab36dba091c096f9` |
+| **AaveOracle** | `0x54586bE62E3c3580375aE3723C145253060Ca0C2` | 1 | Oracle | 0 | `0xf6689fee305ebb1feb7a800e0056af48560ee22cee1da44ac473dd2481762457` |
+| **Governance Executor** | `0xEE56e2B3D491590B5b31738cC34d5232F378a8D5` | 1 | Governance | 5 | `0xfb155363ba554abd9bfc2897f57c627005c147351fc271914219a552d1460b93` |
+| **Emergency Guardian Safe** | `0x2CFe3ec4d5a6811f4B8067F0DE7e47DfA938Aa30` | 1 | Multisig | 12 | `0x136f67e84438c57525e69ffb3b366ee15af1501aa7ce7f05349e66125652daca` |
 | **ReservesSetupHelper** | `0x3523d24217794F19E92e9A2B68e0dEda4e773410` | 1 | Helper | 10 | `0x4333474e92374c06693a55e21fb7fdc84525e764995e2000cfab4a3454a332a5` |
-| **Chainlink ETH/USD** | `0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419` | 2 | Oracle | 7 | `0xfb155363ba554abd9bfc2897f57c627005c147351fc271914219a552d1460b93` |
-| **Chainlink USDC/USD** | `0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6` | 2 | Oracle | 15 | `0x136f67e84438c57525e69ffb3b366ee15af1501aa7ce7f05349e66125652daca` |
-| **Chainlink BTC/USD** | `0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c` | 2 | Oracle | 7 | `0x609eae7d9cea83cdaf5e9544405787948e059e53e130ddd5a15f64e2063d85c6` |
-| **Chainlink DAI/USD** | `0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9` | 2 | Oracle | 7 | `0xe744d8c25d90837051efd266a9a3dfa1d3a5f83b23c5fff3f4ef0eabbb785212` |
-| **Chainlink USDT/USD** | `0x3E7d1eAB13ad0104d2750B8863b489D65364e32D` | 2 | Oracle | 15 | `0x25c172e7d75052be81afc80c004a94c6e901586bba3d1d719ed1d1ff05ce3891` |
+| **Chainlink ETH/USD** | `0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419` | 2 | Oracle | 7 | `0xe744d8c25d90837051efd266a9a3dfa1d3a5f83b23c5fff3f4ef0eabbb785212` |
+| **Chainlink USDC/USD** | `0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6` | 2 | Oracle | 15 | `0x25c172e7d75052be81afc80c004a94c6e901586bba3d1d719ed1d1ff05ce3891` |
+| **Chainlink BTC/USD** | `0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c` | 2 | Oracle | 7 | `0x8fa1680a445da811a1c1b33a4b9e09bad918e72fb0a36fc6c7cc6c0fed285657` |
+| **Chainlink DAI/USD** | `0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9` | 2 | Oracle | 7 | `0x1f8d18c9dc23286dd5705af9ed418a938c21919948c3734798222bfc7c857b0b` |
+| **Chainlink USDT/USD** | `0x3E7d1eAB13ad0104d2750B8863b489D65364e32D` | 2 | Oracle | 15 | `0xbc30517a5e3659a298c86f4fc532ed5279d7c15f29eb61c6c6f4331ffb9ebcf6` |
 
 ---
 
