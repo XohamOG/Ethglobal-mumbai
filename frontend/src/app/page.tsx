@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { CreTriggerModal } from "@/components/cre/CreTriggerModal";
+import { HyperWavesBackground } from "@/components/ui/HyperWavesBackground";
 import {
   Search,
   ArrowRight,
@@ -12,24 +12,11 @@ import {
   Compass,
 } from "lucide-react";
 
-// Dynamically import ShapeWaves to run client-side WebGPU
-const ShapeWaves = dynamic(() => import("@/components/ui/ShapeWaves"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full flex items-center justify-center">
-      <h1 className="text-[52px] sm:text-[63px] font-normal text-[#f3f3f3] leading-[1.05] tracking-[-0.69px]">
-        Macaroon
-      </h1>
-    </div>
-  ),
-});
-
 export default function HomePage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isCreModalOpen, setIsCreModalOpen] = useState(false);
-  const [hasGpuError, setHasGpuError] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click or escape
@@ -69,62 +56,24 @@ export default function HomePage() {
     router.push("/graph?protocol=aave-v3-mainnet");
   };
 
-  const handleLaunchAaveGraph = () => {
+  const handleSelectAave = () => {
     router.push("/graph?protocol=aave-v3-mainnet");
   };
 
-  const handleLaunchCreAudit = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsCreModalOpen(true);
-  };
-
   return (
-    <div className="relative min-h-screen w-full bg-[#000000] text-[#f3f3f3] flex flex-col items-center justify-center px-4 sm:px-8 select-none overflow-x-hidden">
-      {/* Center Minimal Workspace — Perfectly Centered */}
-      <main className="w-full max-w-4xl flex flex-col items-center text-center my-auto py-8">
-        {/* Animated Background Canvas with Title "Macaroon" Carved Out */}
-        <div className="w-full h-[360px] sm:h-[480px] relative flex items-center justify-center overflow-hidden">
-          <ShapeWaves
-            text="Macaroon"
-            fontFamily='Geist, "Geist Sans", system-ui, sans-serif'
-            fontWeight={500}
-            textSize={0.6}
-            shapes="mixed"
-            cellSize={10}
-            dotSize={0.75}
-            color="#b3b3b3"
-            hoverColor="#ff4800"
-            backgroundColor="#000000"
-            speed={1}
-            scale={1}
-            contrast={1}
-            brightness={0.4}
-            flow={0}
-            direction={0}
-            fade={0.25}
-            interactive={true}
-            splashRadius={40}
-            splashStrength={0.4}
-            glow={0.35}
-            intro={true}
-            introDuration={1.6}
-            paused={false}
-            onError={() => setHasGpuError(true)}
-            className="w-full h-full"
-          />
+    <div className="relative min-h-screen w-full bg-[#101010] text-[#f3f3f3] flex flex-col items-center justify-center px-4 sm:px-6 select-none overflow-hidden">
+      {/* Full-Bleed 60FPS Interactive Wave & Particle Background */}
+      <HyperWavesBackground />
 
-          {/* Fallback Title in case WebGPU is unavailable on client */}
-          {hasGpuError && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <h1 className="text-[52px] sm:text-[63px] font-normal text-[#f3f3f3] leading-[1.05] tracking-[-0.69px]">
-                Macaroon
-              </h1>
-            </div>
-          )}
-        </div>
+      {/* Main Centered Content */}
+      <main className="w-full max-w-3xl flex flex-col items-center text-center relative z-10 py-12">
+        {/* Title — Confident 400-weight Editorial Typography */}
+        <h1 className="text-[64px] sm:text-[84px] md:text-[96px] font-normal text-[#f3f3f3] leading-none tracking-[-0.04em] mb-4 select-none drop-shadow-sm">
+          Macaroon
+        </h1>
 
-        {/* Description: Know what your protocol depends on */}
-        <p className="text-[17px] sm:text-[20px] font-normal text-[#9c9c9c] leading-tight tracking-[-0.01em] -mt-4 mb-8">
+        {/* Subtitle / Value Proposition */}
+        <p className="text-[18px] sm:text-[22px] font-normal text-[#9c9c9c] tracking-[-0.015em] mb-10 select-none max-w-xl">
           Know what your protocol depends on
         </p>
 
@@ -132,13 +81,13 @@ export default function HomePage() {
         <div ref={searchContainerRef} className="w-full max-w-2xl relative">
           <form onSubmit={handleSearchSubmit} className="w-full relative">
             <div
-              className={`relative rounded-[8px] border transition-colors bg-[#080808] ${
+              className={`relative rounded-[8px] border transition-all duration-200 bg-[#080808]/90 backdrop-blur-md shadow-2xl ${
                 isFocused
-                  ? "border-[#474747]"
+                  ? "border-[#f3f3f3]"
                   : "border-[#212121] hover:border-[#474747]"
               }`}
             >
-              <div className="flex items-center px-4 py-3.5">
+              <div className="flex items-center px-4 py-3.5 sm:py-4">
                 <Search className="w-4 h-4 text-[#6f6759] mr-3 shrink-0" />
 
                 <input
@@ -148,23 +97,53 @@ export default function HomePage() {
                   onFocus={() => setIsFocused(true)}
                   onClick={() => setIsFocused(true)}
                   placeholder="Search protocol name or contract address..."
-                  className="w-full bg-transparent border-0 text-[15px] text-[#f3f3f3] placeholder-[#9c9c9c] focus:outline-none font-normal tracking-tight"
+                  className="w-full bg-transparent border-0 text-[15px] sm:text-[16px] text-[#f3f3f3] placeholder-[#666666] focus:outline-none font-normal tracking-tight"
                   autoFocus
                 />
 
                 {/* White Pill Action Button */}
                 <button
                   type="submit"
-                  className="ml-2 px-4 py-1.5 rounded-full bg-[#ffffff] hover:bg-[#f3f3f3] text-[#101010] text-[12px] uppercase font-normal tracking-wider transition-colors cursor-pointer shrink-0 flex items-center gap-1"
+                  className="ml-2 px-4 sm:px-5 py-2 rounded-full bg-[#ffffff] hover:bg-[#e8e8e8] text-[#101010] text-[12px] uppercase font-normal tracking-wider transition-colors cursor-pointer shrink-0 flex items-center gap-1.5"
                 >
                   <span>Search</span>
-                  <ArrowRight className="w-3 h-3" />
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
           </form>
 
-          {/* Interactive Aave Dropdown Card — Appears on Click */}
+          {/* Quick Discovery Pills Underneath Search Bar */}
+          <div className="mt-3.5 flex flex-wrap items-center justify-center gap-2 text-[12px] text-[#9c9c9c]">
+            <span className="text-[#666666] uppercase tracking-wider text-[11px]">Quick:</span>
+            <button
+              onClick={() => {
+                setSearchQuery("Aave V3");
+                setIsFocused(true);
+              }}
+              className="px-2.5 py-1 rounded-[4px] bg-[#080808]/80 border border-[#212121] hover:border-[#474747] text-[#c1c1c1] hover:text-[#f3f3f3] transition-colors cursor-pointer"
+            >
+              Aave V3
+            </button>
+            <button
+              onClick={() => {
+                setSearchQuery("0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2");
+                setIsFocused(true);
+              }}
+              className="px-2.5 py-1 rounded-[4px] bg-[#080808]/80 border border-[#212121] hover:border-[#474747] text-[#c1c1c1] hover:text-[#f3f3f3] font-mono text-[11px] transition-colors cursor-pointer"
+            >
+              0x8787...4fA4E2
+            </button>
+            <button
+              onClick={() => router.push("/demo")}
+              className="px-2.5 py-1 rounded-[4px] bg-[#080808]/80 border border-[#212121] hover:border-[#474747] text-[#c1c1c1] hover:text-[#f3f3f3] transition-colors cursor-pointer flex items-center gap-1.5"
+            >
+              <Sliders className="w-3 h-3 text-[#6f6759]" />
+              <span>Chaos Sandbox</span>
+            </button>
+          </div>
+
+          {/* Interactive Aave Dropdown Card — Smoothly Appears on Focus / Click */}
           {isFocused && (
             <div className="absolute top-full left-0 right-0 mt-3 z-50 bg-[#080808] border border-[#212121] rounded-[8px] p-5 text-left animate-fadeIn shadow-2xl">
               {/* Protocol Header */}
@@ -250,7 +229,10 @@ export default function HomePage() {
                   </button>
 
                   <button
-                    onClick={handleLaunchCreAudit}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsCreModalOpen(true);
+                    }}
                     className="px-3 py-1.5 rounded-[8px] border border-[#474747] hover:border-[#ffffff] bg-transparent text-[#f3f3f3] text-[12px] uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5"
                   >
                     <Zap className="w-3.5 h-3.5 text-[#6f6759]" />
@@ -258,7 +240,7 @@ export default function HomePage() {
                   </button>
 
                   <button
-                    onClick={handleLaunchAaveGraph}
+                    onClick={handleSelectAave}
                     className="px-4 py-1.5 rounded-full bg-[#ffffff] hover:bg-[#f3f3f3] text-[#101010] text-[12px] uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1"
                   >
                     <span>Explore Graph</span>
