@@ -34,8 +34,6 @@ export interface GraphNode {
   adminAddress?: string;
   contractName?: string;
   sourcifyStatus: "full_match" | "partial_match" | "not_found";
-  contractName?: string;
-  adminAddress?: string;
   arkivEntityKey?: string;
   swarmBytecodeRef?: string;
   justification?: ContractJustification;
@@ -56,11 +54,7 @@ export interface GraphNode {
   oracleStaleness?: number;
   oracleHeartbeat?: number;
   bytecodeHash?: string;
-  swarmBytecodeRef?: string;
-  arkivEntityKey?: string;
   updatedAt?: number;
-  breakdown?: ScoreBreakdown;
-  justification?: ContractJustification;
 }
 
 export interface GraphEdge {
