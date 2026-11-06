@@ -111,6 +111,21 @@ h1, h2, h3, h4, h5, h6, .font-display {
   animation: fadeIn 0.2s ease-out forwards;
 }
 
+/* Lineage Path Trace Animation (Flow from Parent to Clicked Node) */
+@keyframes flowTrace {
+  0% {
+    stroke-dashoffset: 20;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-trace-beam {
+  stroke-dasharray: 6 4;
+  animation: flowTrace 0.85s linear infinite;
+}
+
 /* Minimal Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 4px;

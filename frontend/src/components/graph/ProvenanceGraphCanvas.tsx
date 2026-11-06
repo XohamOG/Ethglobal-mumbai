@@ -10,6 +10,8 @@ import {
   Check,
   Copy,
   Zap,
+  Compass,
+  ArrowRight,
 } from "lucide-react";
 
 interface ProvenanceGraphCanvasProps {
@@ -50,6 +52,52 @@ const DEFAULT_NODE_COORDINATES: Record<string, { x: number; y: number }> = {
   "chainlink-dai-usd": { x: 730, y: 530 },
   "chainlink-usdt-usd": { x: 890, y: 530 },
 };
+
+// Reconstruct the direct ordered ancestral lineage trace from the root registry down to the selected node
+function getTracePathToNode(
+  targetId: string,
+  edges: GraphEdge[],
+  rootId: string = "aave-v3-addresses-provider"
+): string[] {
+  if (targetId === rootId) return [rootId];
+
+  // 1. Direct backward walk through incoming parent edges
+  const path: string[] = [targetId];
+  let curr = targetId;
+  const visited = new Set<string>([targetId]);
+
+  while (curr !== rootId) {
+    const parentEdge = edges.find((e) => e.to === curr);
+    if (!parentEdge || visited.has(parentEdge.from)) {
+      break;
+    }
+    path.unshift(parentEdge.from);
+    visited.add(parentEdge.from);
+    curr = parentEdge.from;
+  }
+
+  // If backward walk reached root successfully, return ordered trace
+  if (path[0] === rootId) {
+    return path;
+  }
+
+  // 2. Fallback: forward BFS from root
+  const queue: string[][] = [[rootId]];
+  const bfsVisited = new Set<string>([rootId]);
+  while (queue.length > 0) {
+    const p = queue.shift()!;
+    const last = p[p.length - 1];
+    if (last === targetId) return p;
+    edges.forEach((e) => {
+      if (e.from === last && !bfsVisited.has(e.to)) {
+        bfsVisited.add(e.to);
+        queue.push([...p, e.to]);
+      }
+    });
+  }
+
+  return path;
+}
 
 export function ProvenanceGraphCanvas({
   nodes,
@@ -175,45 +223,43 @@ export function ProvenanceGraphCanvas({
     return categoryConfig[cat] || { stroke: "#474747", fill: "#080808", glyph: "C", name: "Contract" };
   };
 
+  // Compute the ordered ancestral trace path from the root registry down to the selected node
+  const tracePath = useMemo(() => {
+    if (!selectedNodeId) return [];
+    return getTracePathToNode(selectedNodeId, edges, "aave-v3-addresses-provider");
+  }, [selectedNodeId, edges]);
+
+  const tracePathNodes = useMemo(() => {
+    return tracePath
+      .map((id) => nodes.find((n) => n.id === id))
+      .filter(Boolean) as GraphNode[];
+  }, [tracePath, nodes]);
+
+  const traceEdgeSet = useMemo(() => {
+    const set = new Set<string>();
+    for (let i = 0; i < tracePath.length - 1; i++) {
+      set.add(`${tracePath[i]}->${tracePath[i + 1]}`);
+    }
+    return set;
+  }, [tracePath]);
+
   // Highlight and Dependency Calculation Logic
   // - Default: No node selected + activeHop "all" => ALL nodes & edges active (not dimmed)
-  // - Node clicked => Selected node + full upstream ancestor path to root + downstream dependents active
+  // - Node clicked => Strict ancestral trace from parent node to clicked node + immediate children
   // - Hop clicked => Strictly nodes belonging to that hop are highlighted
   const { highlightedNodes, highlightedEdges, hasFilter } = useMemo(() => {
     // 1. If a node is explicitly selected by user:
     if (selectedNodeId) {
-      const activeNodes = new Set<string>([selectedNodeId]);
-      const activeEdges = new Set<string>();
+      const activeNodes = new Set<string>(tracePath);
+      const activeEdges = new Set<string>(traceEdgeSet);
 
-      // Traverse all upstream ancestors back to the root (PoolAddressesProvider)
-      const upQueue = [selectedNodeId];
-      while (upQueue.length > 0) {
-        const curr = upQueue.shift()!;
-        edges.forEach((e) => {
-          if (e.to === curr) {
-            activeEdges.add(`${e.from}->${e.to}`);
-            if (!activeNodes.has(e.from)) {
-              activeNodes.add(e.from);
-              upQueue.push(e.from);
-            }
-          }
-        });
-      }
-
-      // Also traverse all direct downstream dependents
-      const downQueue = [selectedNodeId];
-      while (downQueue.length > 0) {
-        const curr = downQueue.shift()!;
-        edges.forEach((e) => {
-          if (e.from === curr) {
-            activeEdges.add(`${e.from}->${e.to}`);
-            if (!activeNodes.has(e.to)) {
-              activeNodes.add(e.to);
-              downQueue.push(e.to);
-            }
-          }
-        });
-      }
+      // Also include any direct children of the clicked node
+      edges.forEach((e) => {
+        if (e.from === selectedNodeId) {
+          activeEdges.add(`${e.from}->${e.to}`);
+          activeNodes.add(e.to);
+        }
+      });
 
       return {
         highlightedNodes: activeNodes,
@@ -265,7 +311,7 @@ export function ProvenanceGraphCanvas({
       highlightedEdges: new Set<string>(edges.map((e) => `${e.from}->${e.to}`)),
       hasFilter: false,
     };
-  }, [selectedNodeId, activeHop, nodes, edges]);
+  }, [selectedNodeId, activeHop, nodes, edges, tracePath, traceEdgeSet]);
 
   return (
     <div className="relative w-full h-full min-h-[580px] bg-[#101010] overflow-hidden select-none flex flex-col justify-between">
@@ -303,6 +349,59 @@ export function ProvenanceGraphCanvas({
               </button>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Floating Lineage Path Trace Breadcrumb: Parent(s) ➔ Clicked Node */}
+      {selectedNodeId && tracePathNodes.length > 0 && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#080808]/95 border border-[#474747] backdrop-blur-md text-[11px] font-mono animate-fadeIn max-w-[95vw] overflow-x-auto shadow-2xl">
+          <div className="flex items-center gap-1 text-[#6f6759] uppercase tracking-wider text-[10px] mr-1 shrink-0">
+            <Compass className="w-3.5 h-3.5 text-[#6f6759]" />
+            <span className="hidden sm:inline">Trace:</span>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            {tracePathNodes.map((n, idx) => {
+              const isTarget = idx === tracePathNodes.length - 1;
+              return (
+                <React.Fragment key={n.id}>
+                  {idx > 0 && <span className="text-[#6f6759] text-[10px]">➔</span>}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectNode(n);
+                    }}
+                    className={`flex items-center gap-1 px-2 py-0.5 rounded transition-all cursor-pointer ${
+                      isTarget
+                        ? "bg-[#ffffff] text-[#101010] font-semibold"
+                        : "bg-[#141414] text-[#c1c1c1] hover:text-[#f3f3f3] hover:bg-[#212121] border border-[#212121]"
+                    }`}
+                    title={`Hop ${n.hop} · ${n.label}`}
+                  >
+                    <span>{n.label}</span>
+                    <span
+                      className={`text-[9px] ${
+                        isTarget ? "text-[#666666]" : "text-[#6f6759]"
+                      }`}
+                    >
+                      H{n.hop}
+                    </span>
+                  </button>
+                </React.Fragment>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectNode(null);
+            }}
+            className="ml-2 text-[#9c9c9c] hover:text-[#f3f3f3] p-1 rounded hover:bg-[#212121] transition-colors cursor-pointer text-[10px] shrink-0"
+            title="Clear Trace Focus"
+          >
+            ✕
+          </button>
         </div>
       )}
 
@@ -365,6 +464,17 @@ export function ProvenanceGraphCanvas({
               >
                 <path d="M0,-4L8,0L0,4" fill="#6f6759" />
               </marker>
+              <marker
+                id="hyper-arrow-trace"
+                viewBox="0 -5 10 10"
+                refX="8"
+                refY="0"
+                markerWidth="7"
+                markerHeight="7"
+                orient="auto"
+              >
+                <path d="M0,-4L8,0L0,4" fill="#ffffff" />
+              </marker>
             </defs>
 
             {/* Connecting Directed Edges */}
@@ -375,7 +485,8 @@ export function ProvenanceGraphCanvas({
                 if (!fromPos || !toPos) return null;
 
                 const edgeKey = `${edge.from}->${edge.to}`;
-                const isEdgeHighlighted = highlightedEdges.has(edgeKey);
+                const isTraceEdge = traceEdgeSet.has(edgeKey);
+                const isEdgeHighlighted = isTraceEdge || highlightedEdges.has(edgeKey);
                 const isDimmed = hasFilter && !isEdgeHighlighted;
 
                 // Node radius offset so arrow meets the circle border cleanly
@@ -403,13 +514,17 @@ export function ProvenanceGraphCanvas({
                 const midX = (startX + endX) / 2;
                 const midY = (startY + endY) / 2;
 
-                const strokeColor = isEdgeHighlighted
+                const strokeColor = isTraceEdge
+                  ? "#ffffff"
+                  : isEdgeHighlighted
                   ? edge.type === "governance" || edge.type === "oracle"
                     ? "#6f6759"
                     : "#ffffff"
                   : "#474747";
 
-                const marker = isEdgeHighlighted
+                const marker = isTraceEdge
+                  ? "url(#hyper-arrow-trace)"
+                  : isEdgeHighlighted
                   ? edge.type === "governance" || edge.type === "oracle"
                     ? "url(#hyper-arrow-gold)"
                     : "url(#hyper-arrow-active)"
@@ -417,18 +532,37 @@ export function ProvenanceGraphCanvas({
 
                 return (
                   <g key={edgeKey} className="edge-group">
+                    {/* Base Edge Path */}
                     <path
                       d={d}
                       fill="none"
                       stroke={strokeColor}
-                      strokeWidth={isEdgeHighlighted ? 2 : 1}
-                      strokeOpacity={isEdgeHighlighted ? 1.0 : isDimmed ? 0.04 : 0.45}
+                      strokeWidth={isTraceEdge ? 2.5 : isEdgeHighlighted ? 2 : 1}
+                      strokeOpacity={isTraceEdge ? 1.0 : isEdgeHighlighted ? 0.9 : isDimmed ? 0.04 : 0.45}
                       markerEnd={marker}
                       className="transition-all duration-150"
                     />
 
-                    {/* Edge Label Badge on Active Highlight */}
-                    {isEdgeHighlighted && (
+                    {/* Active Lineage Trace Beam: Animated flow from parent down to clicked node */}
+                    {isTraceEdge && (
+                      <>
+                        <path
+                          d={d}
+                          fill="none"
+                          stroke="#98ff38"
+                          strokeWidth="2.5"
+                          strokeOpacity="0.85"
+                          className="animate-trace-beam pointer-events-none"
+                        />
+                        {/* Traveling Energy Pulse Packet from Parent to Child */}
+                        <circle r="3.5" fill="#ffffff" className="pointer-events-none">
+                          <animateMotion path={d} dur="1.1s" repeatCount="indefinite" />
+                        </circle>
+                      </>
+                    )}
+
+                    {/* Edge Label Badge on Active Highlight or Trace */}
+                    {(isTraceEdge || isEdgeHighlighted) && (
                       <g transform={`translate(${midX}, ${midY})`} className="pointer-events-none">
                         <rect
                           x="-42"
@@ -437,16 +571,16 @@ export function ProvenanceGraphCanvas({
                           height="18"
                           rx="4"
                           fill="#080808"
-                          stroke={strokeColor}
-                          strokeWidth="1"
+                          stroke={isTraceEdge ? "#ffffff" : strokeColor}
+                          strokeWidth={isTraceEdge ? "1.5" : "1"}
                         />
                         <text
                           x="0"
                           y="3.5"
-                          fill="#f3f3f3"
+                          fill={isTraceEdge ? "#ffffff" : "#f3f3f3"}
                           fontFamily="ui-monospace, monospace"
                           fontSize="7.5"
-                          fontWeight="400"
+                          fontWeight={isTraceEdge ? "600" : "400"}
                           textAnchor="middle"
                         >
                           {edge.label.toUpperCase()}
@@ -469,6 +603,11 @@ export function ProvenanceGraphCanvas({
                 const isNodeHighlighted = highlightedNodes.has(node.id);
                 const isDimmed = hasFilter && !isNodeHighlighted;
 
+                const isTraceNode = tracePath.includes(node.id);
+                const traceStep = tracePath.indexOf(node.id);
+                const isParentInTrace = isTraceNode && !isSelected;
+                const isRootInTrace = isTraceNode && traceStep === 0;
+
                 const style = getStyle(node.category, node.adminType);
                 const isMutated = mutatedNodeId === node.id;
                 const nodeR = 24;
@@ -490,18 +629,39 @@ export function ProvenanceGraphCanvas({
                     }}
                     onMouseEnter={() => setHoveredNodeId(node.id)}
                     onMouseLeave={() => setHoveredNodeId(null)}
-                    opacity={isDimmed ? 0.15 : 1}
+                    opacity={isDimmed ? 0.12 : 1}
                   >
                     {/* Active Selected Halo Ring */}
                     {isSelected && (
+                      <>
+                        <circle
+                          r={nodeR + 7}
+                          fill="transparent"
+                          stroke="#ffffff"
+                          strokeWidth="1.5"
+                          strokeDasharray="4 3"
+                          className="animate-spin"
+                          style={{ animationDuration: "12s" }}
+                        />
+                        <circle
+                          r={nodeR + 12}
+                          fill="transparent"
+                          stroke="#98ff38"
+                          strokeWidth="1"
+                          strokeOpacity="0.7"
+                          className="animate-pulse"
+                        />
+                      </>
+                    )}
+
+                    {/* Parent in Active Trace Highlight Ring */}
+                    {isParentInTrace && (
                       <circle
-                        r={nodeR + 7}
+                        r={nodeR + 6}
                         fill="transparent"
-                        stroke="#ffffff"
-                        strokeWidth="1.5"
-                        strokeDasharray="4 3"
-                        className="animate-spin"
-                        style={{ animationDuration: "12s" }}
+                        stroke="#6f6759"
+                        strokeWidth="1"
+                        strokeDasharray="2 2"
                       />
                     )}
 
@@ -520,8 +680,8 @@ export function ProvenanceGraphCanvas({
                     <circle
                       r={nodeR}
                       fill={style.fill}
-                      stroke={isSelected ? "#ffffff" : isHovered ? "#c1c1c1" : style.stroke}
-                      strokeWidth={isSelected ? 2 : 1}
+                      stroke={isSelected ? "#ffffff" : isParentInTrace ? "#c1c1c1" : isHovered ? "#c1c1c1" : style.stroke}
+                      strokeWidth={isSelected ? 2 : isParentInTrace ? 1.5 : 1}
                       className="transition-transform duration-150"
                     />
 
@@ -585,17 +745,35 @@ export function ProvenanceGraphCanvas({
                       {node.address.slice(0, 6)}...{node.address.slice(-4)}
                     </text>
 
-                    {/* Risk Score */}
+                    {/* Trace / Role Status */}
                     <text
                       y={nodeR + 40}
                       textAnchor="middle"
-                      fill={isMutated ? "#f59e0b" : "#9c9c9c"}
+                      fill={
+                        isSelected
+                          ? "#98ff38"
+                          : isParentInTrace
+                          ? isRootInTrace
+                            ? "#6f6759"
+                            : "#c1c1c1"
+                          : isMutated
+                          ? "#f59e0b"
+                          : "#9c9c9c"
+                      }
                       fontFamily="ui-monospace, monospace"
                       fontSize="8"
-                      fontWeight="400"
+                      fontWeight={isSelected || isParentInTrace ? "600" : "400"}
                       pointerEvents="none"
                     >
-                      {isMutated ? "MUTATED · " + node.riskScore : "RISK: " + node.riskScore}
+                      {isSelected
+                        ? "TARGET · CLICKED"
+                        : isRootInTrace
+                        ? "ROOT REGISTRY"
+                        : isParentInTrace
+                        ? `PARENT · STEP ${traceStep + 1}`
+                        : isMutated
+                        ? "MUTATED · " + node.riskScore
+                        : "RISK: " + node.riskScore}
                     </text>
                   </g>
                 );
@@ -652,14 +830,14 @@ export function ProvenanceGraphCanvas({
         <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-[#080808]/85 border border-[#212121] text-[11px] text-[#9c9c9c] pointer-events-auto">
           {selectedNodeId ? (
             <span>
-              Isolated dependencies for:{" "}
+              Lineage trace from parent to:{" "}
               <strong className="text-[#f3f3f3] font-normal">
                 {nodes.find((n) => n.id === selectedNodeId)?.label}
               </strong>{" "}
-              · Click background to clear
+              · Click canvas background to clear
             </span>
           ) : (
-            <span>Click any node to highlight dependencies · Drag nodes to reposition</span>
+            <span>Click any node to trace from parent · Drag nodes to reposition</span>
           )}
         </div>
 
