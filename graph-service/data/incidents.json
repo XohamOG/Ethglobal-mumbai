@@ -1,0 +1,23 @@
+{
+  "exploitedAddresses": [
+    "0x629cEB24d62117565FE28E25191C80B0D5D8e2A9",
+    "0xEB014c2D7D774bD0254309323d909873dDeD4468",
+    "0xbC6da0fe9AD5F3B0d58160288917AA566502a2AC",
+    "0x2b89429770a6f424E665552E46279934B806B9A8"
+  ],
+  "incidents": [
+    {
+      "protocol": "Euler Finance",
+      "date": "2023-03-13",
+      "address": "0xEB014c2D7D774bD0254309323d909873dDeD4468",
+      "impact": "Donation attack on liquidate"
+    },
+    {
+      "protocol": "KyberSwap Elastic",
+      "date": "2023-11-22",
+      "address": "0x629cEB24d62117565FE28E25191C80B0D5D8e2A9",
+      "impact": "Reentrancy & tick math"
+    }
+  ]
+}
+

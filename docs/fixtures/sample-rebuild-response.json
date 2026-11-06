@@ -1,0 +1,17 @@
+{
+  "success": true,
+  "snapshotId": "aave-v3-mainnet-26354138",
+  "protocolId": "aave-v3-mainnet",
+  "compositeScore": 13.71,
+  "riskTier": "LOW",
+  "evaluatedAtBlock": 26354138,
+  "fingerprint": "0x39a7cd678a45f1e63df9441182b58d3e87149bc0d23f82fa05f4fb0b4993e06c",
+  "swarmGraphRef": "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba",
+  "swarmEvidenceRef": "12dee381593c94b9bf22c878786434682e3743d3162fc24900658c206643ecfd",
+  "nodeCount": 15,
+  "hopScores": {
+    "hop0Avg": 8.83,
+    "hop1Avg": 6.75,
+    "hop2Avg": 6
+  }
+}

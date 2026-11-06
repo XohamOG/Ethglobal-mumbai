@@ -102,4 +102,8 @@ agent-board/*.tmp
 agent-board/*.log
 agent-board/__pycache__/
 
+# Swarm local blobs cache
+storage/swarm/blobs/
+
+
 
