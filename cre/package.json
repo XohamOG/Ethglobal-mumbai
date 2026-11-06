@@ -5,6 +5,7 @@
   "main": "dist/src/adapter.js",
   "scripts": {
     "build": "tsc",
+    "server": "ts-node src/server.ts",
     "simulate": "ts-node src/simulator.ts",
     "simulate:cron": "ts-node src/simulator.ts --workflow cron",
     "simulate:log": "ts-node src/simulator.ts --workflow log"
@@ -20,10 +21,14 @@
   "author": "Ishapalkar",
   "license": "MIT",
   "dependencies": {
+    "cors": "^2.8.6",
     "dotenv": "^16.4.7",
-    "ethers": "^6.13.4"
+    "ethers": "^6.13.4",
+    "express": "^5.3.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/node": "^22.10.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2"

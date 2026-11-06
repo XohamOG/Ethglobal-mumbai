@@ -34,9 +34,24 @@ function GraphViewerContent() {
   const [selectedNode, setSelectedNode] = useState<GraphNode>(AAVE_NODES[0]);
   const [activeHopFilter, setActiveHopFilter] = useState<number | "all">("all");
   const [isCreModalOpen, setIsCreModalOpen] = useState(false);
-  const [liveScore, setLiveScore] = useState(protocol.compositeScore);
 
-  const liveRisk = getRiskScoreConfig(liveScore);
+  // Dynamic shared state across Graph canvas and CRE tabs
+  const [nodes, setNodes] = useState<GraphNode[]>(AAVE_NODES);
+  const [compositeScore, setCompositeScore] = useState<number>(protocol.compositeScore || 13.7);
+  const [riskTier, setRiskTier] = useState<string>(protocol.riskTier || "LOW");
+  const [fingerprint, setFingerprint] = useState<string>(
+    protocol.fingerprint || "0x39a7cd678a45f1e63df9441182b58d3e87149bc0d23f82fa05f4fb0b4993e06c"
+  );
+  const [isRebuilding, setIsRebuilding] = useState<boolean>(false);
+  const [mutatedNodeInfo, setMutatedNodeInfo] = useState<{
+    id: string;
+    label: string;
+    oldAddress: string;
+    newAddress: string;
+    reason?: string;
+  } | null>(null);
+
+  const liveRisk = getRiskScoreConfig(compositeScore);
 
   useEffect(() => {
     const tab = searchParams.get("tab") as ActiveTab;
@@ -45,10 +60,23 @@ function GraphViewerContent() {
     }
   }, [searchParams]);
 
+  const handleResetBaseline = async () => {
+    try {
+      await fetch("http://localhost:3002/api/cre/reset", { method: "POST" }).catch(() => null);
+    } catch {}
+    setNodes(AAVE_NODES);
+    setCompositeScore(13.7);
+    setRiskTier("LOW");
+    setFingerprint("0x39a7cd678a45f1e63df9441182b58d3e87149bc0d23f82fa05f4fb0b4993e06c");
+    setMutatedNodeInfo(null);
+    setIsRebuilding(false);
+    setSelectedNode(AAVE_NODES[0]);
+  };
+
   const filteredNodes =
     activeHopFilter === "all"
-      ? AAVE_NODES
-      : AAVE_NODES.filter((n) => n.hop === activeHopFilter);
+      ? nodes
+      : nodes.filter((n) => n.hop === activeHopFilter);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0e0e12] text-[#ececf2]">
@@ -87,7 +115,7 @@ function GraphViewerContent() {
           >
             <ShieldCheck className={`w-3.5 h-3.5 ${liveRisk.textColor}`} />
             <span className="text-[#aaaab8]">Score:</span>
-            <span className={`font-bold ${liveRisk.textColor}`}>{liveScore}</span>
+            <span className={`font-bold ${liveRisk.textColor}`}>{compositeScore}</span>
             <span className={`text-[10px] uppercase font-semibold ${liveRisk.textColor}`}>
               ({liveRisk.tier})
             </span>
@@ -245,6 +273,10 @@ function GraphViewerContent() {
               edges={AAVE_EDGES}
               selectedNodeId={selectedNode.id}
               onSelectNode={(node) => setSelectedNode(node)}
+              isRebuilding={isRebuilding}
+              mutatedNodeId={mutatedNodeInfo?.id}
+              onResetBaseline={handleResetBaseline}
+              onSwitchToCreTab={() => setActiveTab("cre")}
             />
           </div>
 
@@ -269,7 +301,27 @@ function GraphViewerContent() {
 
       {activeTab === "cre" && (
         <div className="flex-1 overflow-y-auto bg-[#0e0e12] p-6 max-w-6xl mx-auto w-full">
-          <ChainlinkCreTab />
+          <ChainlinkCreTab
+            nodes={nodes}
+            compositeScore={compositeScore}
+            riskTier={riskTier}
+            fingerprint={fingerprint}
+            isRebuilding={isRebuilding}
+            mutatedNodeInfo={mutatedNodeInfo}
+            onRebuildStart={() => setIsRebuilding(true)}
+            onRebuildComplete={(updatedNodes, newScore, newTier, newFp, mutation) => {
+              setNodes(updatedNodes);
+              setCompositeScore(newScore);
+              setRiskTier(newTier);
+              setFingerprint(newFp);
+              setMutatedNodeInfo(mutation);
+              setIsRebuilding(false);
+              const target = updatedNodes.find((n) => n.id === mutation.id);
+              if (target) setSelectedNode(target);
+            }}
+            onResetBaseline={handleResetBaseline}
+            onSwitchToGraphTab={() => setActiveTab("graph")}
+          />
         </div>
       )}
 
@@ -277,7 +329,7 @@ function GraphViewerContent() {
       <CreTriggerModal
         isOpen={isCreModalOpen}
         onClose={() => setIsCreModalOpen(false)}
-        onComplete={(newScore) => setLiveScore(newScore)}
+        onComplete={(newScore) => setCompositeScore(newScore)}
       />
     </div>
   );

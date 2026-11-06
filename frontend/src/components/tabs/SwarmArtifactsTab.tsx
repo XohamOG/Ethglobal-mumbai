@@ -176,7 +176,7 @@ export function SwarmArtifactsTab() {
           <span className="text-[#ececf2] font-semibold break-all">{curr.hash}</span>
         </div>
         <button
-          onClick={() => copy(curr.hash, "hash")}
+          onClick={() => copy(curr.hash || "", "hash")}
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-[#282832] border border-[#7d8495]/40 text-[#ececf2] hover:bg-[#7d8495]/40 transition-colors cursor-pointer ml-auto shrink-0"
         >
           {copiedKey === "hash" ? <Check className="w-3.5 h-3.5 text-[#b068ff]" /> : <Copy className="w-3.5 h-3.5 text-[#aaaab8]" />}

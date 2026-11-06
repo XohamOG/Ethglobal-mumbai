@@ -14,6 +14,7 @@ import {
   X,
   Columns,
   GitBranch,
+  Zap,
 } from "lucide-react";
 
 interface ProvenanceGraphCanvasProps {
@@ -21,6 +22,10 @@ interface ProvenanceGraphCanvasProps {
   edges: GraphEdge[];
   selectedNodeId: string;
   onSelectNode: (node: GraphNode) => void;
+  isRebuilding?: boolean;
+  mutatedNodeId?: string;
+  onResetBaseline?: () => void;
+  onSwitchToCreTab?: () => void;
 }
 
 export function ProvenanceGraphCanvas({
@@ -28,6 +33,10 @@ export function ProvenanceGraphCanvas({
   edges,
   selectedNodeId,
   onSelectNode,
+  isRebuilding = false,
+  mutatedNodeId,
+  onResetBaseline,
+  onSwitchToCreTab,
 }: ProvenanceGraphCanvasProps) {
   const [layoutMode, setLayoutMode] = useState<"hierarchy" | "lanes">("hierarchy");
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
@@ -198,6 +207,43 @@ export function ProvenanceGraphCanvas({
           </button>
         </div>
       </div>
+
+      {/* Live Rebuild / Mutation Drift HUD Alert */}
+      {mutatedNodeId && (
+        <div className="absolute top-14 left-4 right-4 z-20 flex items-center justify-between p-3 rounded-[3px] bg-[#140f06]/95 border border-amber-600/70 text-amber-200 text-xs font-mono shadow-[0_0_25px_rgba(245,158,11,0.2)] backdrop-blur-md animate-fadeIn">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping shrink-0"></span>
+            <div>
+              <span className="font-semibold text-white">
+                Fingerprint Drift Detected on {nodes.find((n) => n.id === mutatedNodeId)?.label || mutatedNodeId}
+              </span>
+              <span className="text-[10px] bg-amber-900/80 text-amber-300 px-1.5 py-0.2 rounded border border-amber-700/60 font-bold uppercase ml-2">
+                2-Hop Rebuild Dispatched
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {onSwitchToCreTab && (
+              <button
+                onClick={onSwitchToCreTab}
+                className="px-2.5 py-1 rounded bg-[#1e1709] border border-amber-500/70 hover:bg-[#281f0d] text-amber-300 text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Zap className="w-3 h-3 text-amber-400" />
+                <span>Inspect in CRE</span>
+              </button>
+            )}
+            {onResetBaseline && (
+              <button
+                onClick={onResetBaseline}
+                className="px-2.5 py-1 rounded bg-[#17171d] border border-[#282832] hover:bg-[#282832] text-white text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <RotateCcw className="w-3 h-3 text-[#d6d8e4]" />
+                <span>Reset</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Main SVG Visualization Workspace */}
       <div
@@ -383,6 +429,7 @@ export function ProvenanceGraphCanvas({
 
                 const style = getStyle(node.category, node.adminType);
                 const nodeRisk = getRiskScoreConfig(node.riskScore);
+                const isMutated = mutatedNodeId === node.id;
                 const nodeR = 22;
 
                 return (
@@ -434,10 +481,21 @@ export function ProvenanceGraphCanvas({
                       cx={nodeR - 5}
                       cy={-nodeR + 6}
                       r="3.5"
-                      fill={nodeRisk.hex}
+                      fill={isMutated ? "#f59e0b" : nodeRisk.hex}
                       stroke="#0e0e12"
                       strokeWidth="1.2"
                     />
+
+                    {/* Mutated / Drifted Glowing Outer Ring */}
+                    {isMutated && (
+                      <circle
+                        r={nodeR + 6}
+                        fill="transparent"
+                        stroke="#f59e0b"
+                        strokeWidth="2"
+                        strokeDasharray="4 4"
+                      />
+                    )}
 
                     {/* Inner Glyph Icon */}
                     <text
@@ -481,13 +539,13 @@ export function ProvenanceGraphCanvas({
                     <text
                       y={nodeR + 38}
                       textAnchor="middle"
-                      fill={nodeRisk.hex}
+                      fill={isMutated ? "#f59e0b" : nodeRisk.hex}
                       fontFamily="ui-monospace, monospace"
                       fontSize="8"
                       fontWeight="700"
                       pointerEvents="none"
                     >
-                      RISK {node.riskScore}
+                      {isMutated ? "MUTATED · RISK " + node.riskScore : "RISK " + node.riskScore}
                     </text>
                   </g>
                 );
