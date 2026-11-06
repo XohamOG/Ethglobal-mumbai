@@ -23,23 +23,28 @@ interface EntityPropertySheetProps {
 
 export function EntityPropertySheet({ node }: EntityPropertySheetProps) {
   const [copiedAddress, setCopiedAddress] = useState(false);
+  const [copiedArkivKey, setCopiedArkivKey] = useState(false);
   const [copiedSwarm, setCopiedSwarm] = useState(false);
   const [showSwarmPayload, setShowSwarmPayload] = useState(false);
 
   const nodeRisk = getRiskScoreConfig(node.riskScore);
 
-  const copyText = (text: string, type: "addr" | "swarm") => {
+  const copyText = (text: string, type: "addr" | "arkiv" | "swarm") => {
     navigator.clipboard.writeText(text);
     if (type === "addr") {
       setCopiedAddress(true);
       setTimeout(() => setCopiedAddress(false), 1800);
+    } else if (type === "arkiv") {
+      setCopiedArkivKey(true);
+      setTimeout(() => setCopiedArkivKey(false), 1800);
     } else {
       setCopiedSwarm(true);
       setTimeout(() => setCopiedSwarm(false), 1800);
     }
   };
 
-  const rabdiExplorerUrl = `https://rabdi.explorer.arkiv.network/address/${node.address}`;
+  const arkivKey = node.arkivEntityKey || node.address;
+  const rabdiExplorerUrl = `https://rabdi.explorer.arkiv.network/entity-explorer`;
   const etherscanUrl = `https://etherscan.io/address/${node.address}`;
   const swarmHash = node.swarmBytecodeRef || "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba";
   const swarmGatewayUrl = `https://gateway.ethswarm.org/bzz/${swarmHash}`;
@@ -176,19 +181,33 @@ export function EntityPropertySheet({ node }: EntityPropertySheetProps) {
           <div className="flex items-center justify-between text-[11px]">
             <span className="flex items-center gap-1.5 text-[#d6d8e4] font-semibold">
               <Database className="w-3.5 h-3.5" />
-              <span>Arkiv Explorer</span>
+              <span>Arkiv Rabdi DB-Chain</span>
             </span>
-            <span className="text-[10px] text-[#aaaab8]">Rabdi Testnet</span>
+            <span className="text-[10px] text-[#b068ff]">Chain #7794095</span>
           </div>
+
+          <div className="flex items-center justify-between text-[10px] text-[#aaaab8] bg-[#17171d] px-2 py-1.5 rounded-[2px] border border-[#282832]">
+            <span className="truncate max-w-[190px]" title={arkivKey}>
+              Key: {arkivKey.slice(0, 10)}...{arkivKey.slice(-6)}
+            </span>
+            <button
+              onClick={() => copyText(arkivKey, "arkiv")}
+              className="p-1 hover:text-white text-[#7d8495] cursor-pointer"
+              title="Copy Arkiv Entity Key"
+            >
+              {copiedArkivKey ? <Check className="w-3 h-3 text-[#b068ff]" /> : <Copy className="w-3 h-3" />}
+            </button>
+          </div>
+
           <a
             href={rabdiExplorerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full pt-1"
+            className="block w-full pt-0.5"
           >
             <button className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-[2px] bg-[#d6d8e4] hover:bg-[#ececf2] text-[#000000] text-xs font-mono font-semibold transition-colors cursor-pointer">
               <Radio className="w-3.5 h-3.5 text-[#000000]" />
-              <span>View Entity on Arkiv</span>
+              <span>Open Arkiv Entity Explorer</span>
               <ExternalLink className="w-3 h-3 ml-1" />
             </button>
           </a>

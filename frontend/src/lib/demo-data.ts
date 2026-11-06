@@ -415,3 +415,4 @@ export function computeDemoFingerprint(nodes: GraphNode[]): string {
   const composite = `${implHashes}|${adminAddrs}|${oracleFeeds}|${deps}`;
   return ethers.keccak256(ethers.toUtf8Bytes(composite));
 }
+

@@ -67,29 +67,29 @@ export function ProvenanceGraphCanvas({
     return categoryConfig[cat] || { ring: "#7d8495", fill: "#17171d", glyph: "C", name: "Contract" };
   };
 
-  // Deterministic node coordinates
+  // Deterministic node coordinates (Symmetric, non-crossing hierarchy)
   const layoutCoordinates: Record<string, { x: number; y: number }> =
     layoutMode === "hierarchy"
       ? {
           // Top-to-Bottom Hierarchical Tree:
           "aave-v3-addresses-provider": { x: 570, y: 70 },
 
-          "aave-v3-pool": { x: 230, y: 220 },
-          "aave-v3-pool-configurator": { x: 460, y: 220 },
-          "aave-v3-oracle": { x: 690, y: 220 },
-          "aave-v3-acl-manager": { x: 910, y: 220 },
-          "aave-v3-data-provider": { x: 1040, y: 220 },
+          "aave-v3-pool": { x: 300, y: 195 },
+          "aave-v3-pool-configurator": { x: 570, y: 195 },
+          "aave-v3-acl-manager": { x: 800, y: 195 },
+          "aave-v3-data-provider": { x: 980, y: 195 },
 
-          "aave-v3-pool-impl": { x: 200, y: 390 },
-          "aave-v3-configurator-impl": { x: 430, y: 390 },
-          "aave-v3-governance-executor": { x: 660, y: 390 },
-          "aave-v3-emergency-safe": { x: 900, y: 390 },
+          "aave-v3-pool-impl": { x: 190, y: 340 },
+          "aave-v3-governance-executor": { x: 340, y: 340 },
+          "aave-v3-oracle": { x: 500, y: 340 },
+          "aave-v3-configurator-impl": { x: 670, y: 340 },
+          "aave-v3-emergency-safe": { x: 840, y: 340 },
 
-          "chainlink-eth-usd": { x: 200, y: 560 },
-          "chainlink-btc-usd": { x: 385, y: 560 },
-          "chainlink-usdc-usd": { x: 570, y: 560 },
-          "chainlink-dai-usd": { x: 755, y: 560 },
-          "chainlink-usdt-usd": { x: 940, y: 560 },
+          "chainlink-eth-usd": { x: 260, y: 520 },
+          "chainlink-btc-usd": { x: 380, y: 520 },
+          "chainlink-usdc-usd": { x: 500, y: 520 },
+          "chainlink-dai-usd": { x: 620, y: 520 },
+          "chainlink-usdt-usd": { x: 740, y: 520 },
         }
       : {
           // Horizontal Columns (Hop 0 -> Hop 1 -> Hop 2):
@@ -157,7 +157,7 @@ export function ProvenanceGraphCanvas({
   };
 
   return (
-    <div className="relative w-full h-[680px] bg-[#0e0e12] border border-[#282832] rounded-[6px] overflow-hidden select-none flex flex-col justify-between">
+    <div className="relative w-full h-full min-h-[580px] bg-[#0e0e12] border border-[#282832] rounded-[6px] overflow-hidden select-none flex flex-col justify-between">
       {/* Top Floating Controls */}
       <div className="absolute top-3 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
         <div className="flex items-center gap-2 pointer-events-auto">
@@ -371,8 +371,8 @@ export function ProvenanceGraphCanvas({
                         d={d}
                         fill="none"
                         stroke={strokeColor}
-                        strokeWidth="4"
-                        strokeOpacity="0.2"
+                        strokeWidth="3.5"
+                        strokeOpacity="0.25"
                       />
                     )}
 
@@ -381,36 +381,38 @@ export function ProvenanceGraphCanvas({
                       d={d}
                       fill="none"
                       stroke={strokeColor}
-                      strokeWidth={isActive ? 2 : 1.2}
-                      strokeOpacity={isDimmed ? 0.15 : 0.8}
+                      strokeWidth={isActive ? 2 : 1}
+                      strokeOpacity={isActive ? 0.95 : isDimmed ? 0.08 : 0.35}
                       markerEnd={marker}
                       className="transition-all duration-200"
                     />
 
-                    {/* Relationship Pill */}
-                    <g transform={`translate(${midX}, ${midY})`} opacity={isDimmed ? 0.2 : 0.85}>
-                      <rect
-                        x="-36"
-                        y="-7"
-                        width="72"
-                        height="14"
-                        rx="2"
-                        fill="#0e0e12"
-                        stroke={isActive ? strokeColor : "#282832"}
-                        strokeWidth="1"
-                      />
-                      <text
-                        x="0"
-                        y="3.5"
-                        fill={isActive ? "#ececf2" : "#aaaab8"}
-                        fontFamily="ui-monospace, monospace"
-                        fontSize="7.5"
-                        fontWeight="600"
-                        textAnchor="middle"
-                      >
-                        {edge.label.toUpperCase()}
-                      </text>
-                    </g>
+                    {/* Relationship Pill - Only revealed on active connection */}
+                    {isActive && (
+                      <g transform={`translate(${midX}, ${midY})`} className="pointer-events-none">
+                        <rect
+                          x="-38"
+                          y="-8"
+                          width="76"
+                          height="16"
+                          rx="2"
+                          fill="#17171d"
+                          stroke={strokeColor}
+                          strokeWidth="1"
+                        />
+                        <text
+                          x="0"
+                          y="3.5"
+                          fill="#ececf2"
+                          fontFamily="ui-monospace, monospace"
+                          fontSize="7.5"
+                          fontWeight="600"
+                          textAnchor="middle"
+                        >
+                          {edge.label.toUpperCase()}
+                        </text>
+                      </g>
+                    )}
                   </g>
                 );
               })}
@@ -568,19 +570,6 @@ export function ProvenanceGraphCanvas({
                     >
                       {isMutated ? "MUTATED · RISK " + node.riskScore : "RISK " + node.riskScore}
                     </text>
-
-                    {/* Dynamic Risk Score Badge */}
-                    <text
-                      y={nodeR + 38}
-                      textAnchor="middle"
-                      fill={isMutated ? "#f59e0b" : nodeRisk.hex}
-                      fontFamily="ui-monospace, monospace"
-                      fontSize="8"
-                      fontWeight="700"
-                      pointerEvents="none"
-                    >
-                      {isMutated ? "MUTATED · RISK " + node.riskScore : "RISK " + node.riskScore}
-                    </text>
                   </g>
                 );
               })}
@@ -612,30 +601,6 @@ export function ProvenanceGraphCanvas({
         >
           <RotateCcw className="w-4 h-4" />
         </button>
-      </div>
-
-      {/* Minimal Bottom Legend */}
-      <div className="absolute bottom-3 right-4 z-20 hidden md:flex items-center gap-3 px-3 py-1.5 rounded-[2px] bg-[#17171d] border border-[#282832] text-[10px] font-mono text-[#aaaab8] shadow-lg">
-        <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full border border-[#d6d8e4]"></span>
-          Proxy
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full border border-[#7d8495]"></span>
-          Impl
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full border border-[#b068ff]"></span>
-          Timelock
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full border border-[#d6d8e4]"></span>
-          Multisig
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full border border-[#b068ff]"></span>
-          Oracle
-        </span>
       </div>
 
       {/* Contract Address Justification Slide-Over Modal */}
