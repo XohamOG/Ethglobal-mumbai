@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import {
   DEMO_BASELINE_NODES,
@@ -14,21 +14,17 @@ import {
 import { GraphNode, GraphEdge, getRiskScoreConfig } from "@/lib/graph-data";
 import { ProvenanceGraphCanvas } from "@/components/graph/ProvenanceGraphCanvas";
 import { EntityPropertySheet } from "@/components/graph/EntityPropertySheet";
-import { AnimatedScoreCard } from "@/components/ui/AnimatedScoreCard";
 import {
-  ShieldAlert,
   RotateCcw,
   Terminal,
-  ArrowRight,
-  ExternalLink,
-  Flame,
-  CheckCircle2,
-  Sparkles,
   Zap,
-  Sliders,
-  Layers,
-  Activity,
   ArrowLeft,
+  ChevronDown,
+  ChevronUp,
+  Sliders,
+  Flame,
+  ShieldCheck,
+  CheckCircle2,
 } from "lucide-react";
 
 export default function DemoPage() {
@@ -40,17 +36,16 @@ export default function DemoPage() {
   });
 
   const [edges, setEdges] = useState<GraphEdge[]>(DEMO_BASELINE_EDGES);
-  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(nodes[0]);
+  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [activeScenarioId, setActiveScenarioId] = useState<number | null>(null);
   const [isRebuilding, setIsRebuilding] = useState<boolean>(false);
   const [mutatedNodeId, setMutatedNodeId] = useState<string | undefined>(undefined);
+  const [showTerminal, setShowTerminal] = useState<boolean>(false);
   const [logs, setLogs] = useState<string[]>([
-    "[*] Sandbox initialized with clean DemoLend protocol baseline.",
-    "[+] 14 Contracts bound across 2 hops. Consensus stable.",
-    `[+] Canonical Keccak256 Fingerprint: ${computeDemoFingerprint(nodes).slice(0, 18)}...`,
+    "[*] Sandbox initialized with clean baseline (10 nodes, 3 hops).",
+    `[+] Baseline Keccak256 Fingerprint: ${computeDemoFingerprint(DEMO_BASELINE_NODES).slice(0, 18)}...`,
   ]);
 
-  // Calculate live composite risk across nodes
   const liveRiskAnalysis = useMemo(() => {
     return calculateDemoCompositeRisk(nodes);
   }, [nodes]);
@@ -64,13 +59,12 @@ export default function DemoPage() {
   }, []);
 
   const isFingerprintDrifted = liveFingerprint !== baselineFingerprint;
-  const scoreConfig = getRiskScoreConfig(liveRiskAnalysis.compositeScore);
+  const riskConfig = getRiskScoreConfig(liveRiskAnalysis.compositeScore);
 
   const appendLog = (msg: string) => {
-    setLogs((prev) => [...prev.slice(-25), msg]);
+    setLogs((prev) => [...prev.slice(-20), msg]);
   };
 
-  // Reset to Baseline
   const handleResetBaseline = () => {
     const freshNodes = DEMO_BASELINE_NODES.map((n) => {
       const { score, breakdown } = scoreDemoNode(n);
@@ -81,24 +75,24 @@ export default function DemoPage() {
     setActiveScenarioId(null);
     setMutatedNodeId(undefined);
     setIsRebuilding(false);
-    setSelectedNode(freshNodes[0]);
-    appendLog("[*] System state RESET to pristine baseline. All parameters safe.");
+    setSelectedNode(null);
+    appendLog("[*] Reset to pristine baseline. All parameters safe.");
   };
 
-  // Trigger Scenario Attack
-  const handleTriggerScenario = (scenario: DemoScenario) => {
-    if (activeScenarioId === scenario.id) {
+  const handleTriggerScenario = (scenarioId: number) => {
+    if (activeScenarioId === scenarioId) {
       handleResetBaseline();
       return;
     }
+
+    const scenario = DEMO_SCENARIOS.find((s) => s.id === scenarioId);
+    if (!scenario) return;
 
     setIsRebuilding(true);
     setActiveScenarioId(scenario.id);
     setMutatedNodeId(scenario.targetNodeId);
 
-    appendLog(`\n======================================================`);
-    appendLog(`[!] CHAOS SIMULATION: Scenario #${scenario.id} - ${scenario.title}`);
-    appendLog(`[*] Injecting parameter mutation on: ${scenario.targetNodeLabel}...`);
+    appendLog(`[!] Triggered Scenario #${scenario.id}: ${scenario.title}`);
 
     setTimeout(() => {
       let updatedNodes = DEMO_BASELINE_NODES.map((n) => ({ ...n }));
@@ -111,7 +105,7 @@ export default function DemoPage() {
             if (n.id === "demo-pool-impl") {
               const mutated: GraphNode = {
                 ...n,
-                label: "DemoLend Pool Logic Impl (V2 Unverified)",
+                label: "DemoLend Impl (V2 Unverified)",
                 address: "0x2222222222222222222222222222222222222222",
                 sourcifyStatus: "partial_match",
                 proxyType: "none",
@@ -123,14 +117,13 @@ export default function DemoPage() {
             }
             return n;
           });
-          appendLog("[!] EIP-1967 Implementation storage slot changed -> 0x2222...2222");
-          appendLog("[*] Chainlink CRE Log Trigger: 'Upgraded(address 0x2222...)' caught!");
-          appendLog("[!] Fingerprint Drift: Bytecode hash altered. 2-Hop rebuild dispatched.");
+          appendLog("[*] EIP-1967 Implementation slot changed -> 0x2222...2222");
+          appendLog("[!] Fingerprint Drift: Bytecode hash altered. 2-Hop graph rebuilt.");
           break;
         }
 
         case 2: {
-          // Scenario 2: Admin / Governance Takeover
+          // Scenario 2: Admin Takeover
           updatedNodes = updatedNodes.map((n) => {
             if (n.id === "demo-pool-proxy") {
               const mutated: GraphNode = {
@@ -144,15 +137,14 @@ export default function DemoPage() {
             }
             return n;
           });
-          // Update Edge
           updatedEdges = updatedEdges.map((e) => {
             if (e.from === "demo-pool-proxy" && e.to === "demo-governance-timelock") {
               return { ...e, label: "EOA Private Key Admin", type: "governance" };
             }
             return e;
           });
-          appendLog("[!] Admin slot 0xb531... mutated to single EOA (0xd8dA...6045)!");
-          appendLog("[!] CRE Consensus Alert: Timelock bypassed! Maximum F2 penalty applied (20 pts).");
+          appendLog("[!] Admin slot changed to single EOA (0xd8dA...6045).");
+          appendLog("[!] F2 Admin Control escalated to 20 pts (Maximum EOA centralization).");
           break;
         }
 
@@ -162,7 +154,7 @@ export default function DemoPage() {
             if (n.id === "demo-guardian-safe") {
               const mutated: GraphNode = {
                 ...n,
-                label: "Compromised Guardian Safe (1-of-2)",
+                label: "Compromised Safe (1-of-2)",
                 safeOwnerCount: 2,
                 safeThreshold: 1,
               };
@@ -171,8 +163,8 @@ export default function DemoPage() {
             }
             return n;
           });
-          appendLog("[!] Gnosis Safe threshold reduced: 4/5 -> 1/2 signers!");
-          appendLog("[!] CRE Alert: Signers < 3 and threshold ratio 0.5. F5 Concentration Risk spiked to 14 pts.");
+          appendLog("[!] Safe signers reduced to 2; Threshold lowered to 1-of-2.");
+          appendLog("[!] F5 Concentration Risk penalizes < 3 signers (+14 pts).");
           break;
         }
 
@@ -182,7 +174,7 @@ export default function DemoPage() {
             if (n.id === "demo-feed-eth") {
               const mutated: GraphNode = {
                 ...n,
-                label: "Unverified Third-Party ETH Feed",
+                label: "Unverified ETH Feed (0x3333...)",
                 address: "0x3333333333333333333333333333333333333333",
                 sourcifyStatus: "not_found",
                 contractName: "UnknownOracleAggregator",
@@ -192,8 +184,8 @@ export default function DemoPage() {
             }
             return n;
           });
-          appendLog("[!] Oracle router redirect: Canonical Chainlink feed replaced with 0x3333...3333!");
-          appendLog("[!] CRE Alert: Unverified feed detected! F1 Verification penalty applied (20 pts).");
+          appendLog("[!] ETH/USD routed to unverified feed contract (0x3333...).");
+          appendLog("[!] F1 Verification penalty applied (20 pts).");
           break;
         }
 
@@ -203,7 +195,7 @@ export default function DemoPage() {
             if (n.id === "demo-feed-eth") {
               const mutated: GraphNode = {
                 ...n,
-                label: "Chainlink ETH/USD (STALE - 2.8x Heartbeat)",
+                label: "ETH/USD Feed (STALE 2.8x)",
                 oracleStaleness: 2.8,
               };
               const { score, breakdown } = scoreDemoNode(mutated);
@@ -211,9 +203,8 @@ export default function DemoPage() {
             }
             return n;
           });
-          appendLog("[!] AggregatorV3Interface.latestRoundData() heartbeat timeout!");
-          appendLog("[!] Staleness ratio: 2.8x heartbeat elapsed (> 2.0x threshold).");
-          appendLog("[!] CRE Alert: Maximum F4 Staleness penalty applied (15 pts).");
+          appendLog("[!] Oracle heartbeat timeout: Staleness ratio 2.8x.");
+          appendLog("[!] F4 Staleness hits maximum penalty (15 pts).");
           break;
         }
 
@@ -223,15 +214,15 @@ export default function DemoPage() {
             if (n.id === "demo-governance-timelock") {
               const mutated: GraphNode = {
                 ...n,
-                label: "Timelock (1h Delay - CRITICAL BYPASS)",
+                label: "Timelock (1h Delay Bypass)",
               };
-              const { score, breakdown } = scoreDemoNode(mutated, 1); // 1 hour delay
+              const { score, breakdown } = scoreDemoNode(mutated, 1);
               return { ...mutated, riskScore: score, breakdown };
             }
             return n;
           });
-          appendLog("[!] Timelock contract delay reduced: 48 hours -> 1 hour!");
-          appendLog("[!] CRE Alert: Delay < 24h allows flash-loan governance hijacking. F2 penalized (+8 pts).");
+          appendLog("[!] Timelock delay reduced: 48h -> 1h.");
+          appendLog("[!] F2 Admin Control penalized for flash-loan bypass window.");
           break;
         }
       }
@@ -242,23 +233,30 @@ export default function DemoPage() {
 
       const target = updatedNodes.find((n) => n.id === scenario.targetNodeId);
       if (target) setSelectedNode(target);
-
-      appendLog(`[+] Dynamic 2-hop composite score updated and attested to RiskRegistry.sol.`);
-    }, 600);
+    }, 450);
   };
 
+  const scenarioShortButtons = [
+    { id: 1, label: "1. Impl V2 Upgrade", category: "Upgrade" },
+    { id: 2, label: "2. EOA Takeover", category: "Governance" },
+    { id: 3, label: "3. Safe 1/2 Compromise", category: "Multisig" },
+    { id: 4, label: "4. Rogue Oracle Feed", category: "Oracle" },
+    { id: 5, label: "5. Stale Oracle (2.8x)", category: "Staleness" },
+    { id: 6, label: "6. Timelock 1h Delay", category: "Delay" },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#0e0e12] text-[#ececf2] flex flex-col font-sans">
-      {/* Top Header */}
-      <header className="h-14 border-b border-[#282832] bg-[#17171d]/90 backdrop-blur-md px-6 flex items-center justify-between z-30">
+    <div className="h-screen w-screen bg-[#0e0e12] text-[#ececf2] flex flex-col font-sans overflow-hidden">
+      {/* Sleek Top Navigation Header */}
+      <header className="h-12 shrink-0 border-b border-[#282832] bg-[#17171d]/90 backdrop-blur-md px-4 flex items-center justify-between z-30">
         <div className="flex items-center gap-3">
           <Link
             href="/graph"
-            className="flex items-center gap-1.5 text-xs font-mono text-[#aaaab8] hover:text-[#ececf2] transition-colors p-1.5 rounded-[2px] hover:bg-[#282832]"
+            className="flex items-center gap-1.5 text-xs font-mono text-[#aaaab8] hover:text-[#ececf2] transition-colors px-2 py-1 rounded-[2px] hover:bg-[#282832]"
             title="Return to Live Aave V3 Graph"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Live Graph</span>
+            <span className="hidden sm:inline">Aave V3 Live</span>
           </Link>
 
           <span className="text-[#282832]">/</span>
@@ -266,139 +264,119 @@ export default function DemoPage() {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#b068ff] animate-pulse" />
             <h1 className="font-serif font-bold text-sm text-[#ececf2] tracking-tight">
-              Governance & Security Chaos Sandbox
+              Simulation Sandbox
             </h1>
-            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-[2px] bg-[#b068ff]/20 text-[#b068ff] border border-[#b068ff]/30 font-semibold uppercase">
-              Demo Lab
-            </span>
           </div>
         </div>
 
-        {/* Header Right Actions */}
+        {/* Live Score Seal & Actions */}
         <div className="flex items-center gap-3 text-xs font-mono">
-          {activeScenarioId ? (
-            <div className="flex items-center gap-2 px-2.5 py-1 rounded-[2px] bg-amber-950/40 border border-amber-600/50 text-amber-300">
-              <Flame className="w-3 h-3 text-amber-400 animate-bounce" />
-              <span>Scenario #{activeScenarioId} Active</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 px-2.5 py-1 rounded-[2px] bg-[#0e0e12] border border-[#282832] text-[#aaaab8]">
-              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-              <span>Baseline Healthy</span>
-            </div>
-          )}
+          <div
+            className={`flex items-center gap-2 px-2.5 py-1 rounded-[2px] border ${riskConfig.borderColor} ${riskConfig.badgeBg} ${riskConfig.badgeText} transition-all`}
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Score:</span>
+            <span className="font-bold">{liveRiskAnalysis.compositeScore}</span>
+            <span className="text-[10px] font-semibold">({liveRiskAnalysis.riskTier})</span>
+          </div>
 
           <button
             onClick={handleResetBaseline}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-[#282832] hover:bg-[#7d8495]/40 text-[#ececf2] border border-[#7d8495]/40 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-[#282832] hover:bg-[#7d8495]/40 text-[#ececf2] border border-[#7d8495]/40 transition-colors cursor-pointer"
+            title="Reset All Parameters to Baseline"
           >
             <RotateCcw className="w-3 h-3 text-[#d6d8e4]" />
-            <span>Reset Baseline</span>
+            <span className="hidden sm:inline">Reset</span>
           </button>
         </div>
       </header>
 
-      {/* Main Sandbox Layout: 2-Column Split */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-        {/* Left Column: Interactive Scenario Matrix (Control Console) */}
-        <div className="w-full lg:w-[420px] xl:w-[460px] border-b lg:border-b-0 lg:border-r border-[#282832] bg-[#17171d]/90 flex flex-col h-auto lg:h-[calc(100vh-3.5rem)] overflow-y-auto">
-          {/* Subheader */}
-          <div className="p-4 border-b border-[#282832] bg-[#17171d]">
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-[#b068ff]" />
-                <h2 className="font-serif font-bold text-sm text-[#ececf2]">Attack & Drift Scenarios</h2>
+      {/* Clean Scenario Control Bar */}
+      <div className="h-11 shrink-0 border-b border-[#282832] bg-[#0e0e12] px-4 flex items-center justify-between gap-2 overflow-x-auto z-20">
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="text-[11px] font-mono text-[#7d8495] uppercase tracking-wider mr-1 hidden md:inline">
+            Scenarios:
+          </span>
+          {scenarioShortButtons.map((btn) => {
+            const isActive = activeScenarioId === btn.id;
+            return (
+              <button
+                key={btn.id}
+                onClick={() => handleTriggerScenario(btn.id)}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] text-xs font-mono transition-all cursor-pointer border shrink-0 ${
+                  isActive
+                    ? "bg-amber-500/20 border-amber-500 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.25)] font-semibold"
+                    : "bg-[#17171d] border-[#282832] text-[#aaaab8] hover:text-[#ececf2] hover:border-[#7d8495]/60"
+                }`}
+              >
+                {isActive ? (
+                  <Flame className="w-3 h-3 text-amber-400 animate-pulse" />
+                ) : (
+                  <span className="text-[#7d8495] text-[10px]">●</span>
+                )}
+                <span>{btn.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Toggle Terminal Button */}
+        <button
+          onClick={() => setShowTerminal(!showTerminal)}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] text-xs font-mono transition-colors shrink-0 border ${
+            showTerminal
+              ? "bg-[#282832] border-[#7d8495]/60 text-[#ececf2]"
+              : "bg-[#17171d] border-[#282832] text-[#aaaab8] hover:text-[#ececf2]"
+          }`}
+          title="Toggle Consensus Stream Console"
+        >
+          <Terminal className="w-3 h-3 text-[#d6d8e4]" />
+          <span className="hidden sm:inline">Stream</span>
+          {showTerminal ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+        </button>
+      </div>
+
+      {/* Main Graph Canvas & Workspace */}
+      <div className="flex-1 relative overflow-hidden flex">
+        <div className="flex-1 h-full relative">
+          <ProvenanceGraphCanvas
+            nodes={nodes}
+            edges={edges}
+            selectedNodeId={selectedNode?.id || nodes[0]?.id}
+            onSelectNode={(node) => setSelectedNode(node)}
+            isRebuilding={isRebuilding}
+            mutatedNodeId={mutatedNodeId}
+            onResetBaseline={handleResetBaseline}
+          />
+        </div>
+
+        {/* Right-Side Property Sheet (Only visible when node selected) */}
+        {selectedNode && (
+          <EntityPropertySheet
+            node={selectedNode}
+            onClose={() => setSelectedNode(null)}
+          />
+        )}
+
+        {/* Floating Minimal Terminal Drawer (Collapsible) */}
+        {showTerminal && (
+          <div className="absolute bottom-4 left-4 z-40 w-96 max-w-[calc(100vw-2rem)] rounded-[4px] border border-[#282832] bg-[#17171d]/95 backdrop-blur-md shadow-2xl overflow-hidden font-mono text-[11px] animate-fadeIn">
+            <div className="px-3 py-2 border-b border-[#282832] bg-[#0e0e12] flex items-center justify-between text-[#aaaab8]">
+              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-[#d6d8e4]">
+                <Terminal className="w-3 h-3 text-[#b068ff]" />
+                <span>Chainlink CRE DON Consensus</span>
               </div>
-              <span className="text-[10px] font-mono text-[#aaaab8]">6 Scenarios</span>
+              <button
+                onClick={() => setShowTerminal(false)}
+                className="text-[#7d8495] hover:text-[#ececf2] cursor-pointer"
+              >
+                ✕
+              </button>
             </div>
-            <p className="text-[11px] font-mono text-[#aaaab8] leading-relaxed">
-              Trigger simulated structural and governance breaches to observe instantaneous Chainlink CRE consensus detection and 7-factor graph re-scoring.
-            </p>
-          </div>
-
-          {/* Scenario Cards List */}
-          <div className="p-4 space-y-3 flex-1">
-            {DEMO_SCENARIOS.map((s) => {
-              const isActive = activeScenarioId === s.id;
-              return (
+            <div className="p-3 max-h-48 overflow-y-auto space-y-1">
+              {logs.map((log, idx) => (
                 <div
-                  key={s.id}
-                  className={`p-3.5 rounded-[4px] border transition-all duration-200 text-xs font-mono flex flex-col gap-2.5 ${
-                    isActive
-                      ? "bg-[#282832]/90 border-amber-500/80 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
-                      : "bg-[#0e0e12]/80 border-[#282832] hover:border-[#7d8495]/50 hover:bg-[#282832]/30"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-[2px] bg-[#282832] border border-[#7d8495]/40 text-[#d6d8e4] flex items-center justify-center font-bold text-[10px]">
-                        #{s.id}
-                      </span>
-                      <span className="font-semibold text-[#ececf2] text-xs font-sans">{s.title}</span>
-                    </div>
-
-                    <span
-                      className={`text-[9px] px-1.5 py-0.5 rounded-[2px] uppercase font-bold border ${
-                        s.category === "Governance"
-                          ? "bg-rose-950/60 text-rose-300 border-rose-800/50"
-                          : s.category === "Oracle"
-                          ? "bg-blue-950/60 text-blue-300 border-blue-800/50"
-                          : s.category === "Access Control"
-                          ? "bg-amber-950/60 text-amber-300 border-amber-800/50"
-                          : "bg-purple-950/60 text-purple-300 border-purple-800/50"
-                      }`}
-                    >
-                      {s.category}
-                    </span>
-                  </div>
-
-                  <p className="text-[11px] text-[#aaaab8] leading-normal font-sans">{s.description}</p>
-
-                  {/* Parameter Diff */}
-                  <div className="p-2 rounded-[2px] bg-[#17171d] border border-[#282832] text-[10px] space-y-1">
-                    <div className="text-[#d6d8e4] font-semibold flex items-center gap-1">
-                      <span className="text-[#b068ff]">●</span> Target: {s.targetNodeLabel}
-                    </div>
-                    <div className="text-[#aaaab8] leading-tight">{s.simulatedChange}</div>
-                    <div className="text-amber-400 font-semibold">{s.expectedEffect}</div>
-                  </div>
-
-                  {/* Trigger Action Button */}
-                  <button
-                    onClick={() => handleTriggerScenario(s)}
-                    className={`w-full py-1.5 px-3 rounded-[2px] text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer border ${
-                      isActive
-                        ? "bg-amber-500/20 text-amber-300 border-amber-500 hover:bg-amber-500/30"
-                        : "bg-[#282832] text-[#ececf2] border-[#7d8495]/40 hover:bg-[#7d8495]/40"
-                    }`}
-                  >
-                    {isActive ? (
-                      <>
-                        <RotateCcw className="w-3 h-3" />
-                        <span>Revert Scenario</span>
-                      </>
-                    ) : (
-                      <>
-                        <Zap className="w-3 h-3 text-[#d6d8e4]" />
-                        <span>Simulate Attack & Test Drift</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Execution Log Terminal */}
-          <div className="p-4 border-t border-[#282832] bg-[#0e0e12]">
-            <div className="flex items-center gap-1.5 text-[10px] text-[#7d8495] uppercase tracking-wider mb-2 font-mono">
-              <Terminal className="w-3.5 h-3.5 text-[#d6d8e4]" />
-              <span>Chainlink CRE Consensus Stream</span>
-            </div>
-            <div className="p-2.5 rounded-[4px] bg-[#17171d]/90 border border-[#282832] font-mono text-[10.5px] text-[#aaaab8] space-y-1 h-36 overflow-y-auto">
-              {logs.map((log, i) => (
-                <div
-                  key={i}
+                  key={idx}
                   className={
                     log.startsWith("[!]")
                       ? "text-amber-300 font-semibold"
@@ -412,45 +390,7 @@ export default function DemoPage() {
               ))}
             </div>
           </div>
-        </div>
-
-        {/* Right Column: Live Interactive Provenance Graph & Dynamic Score */}
-        <div className="flex-1 flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden">
-          {/* Top Score Banner */}
-          <div className="p-4 border-b border-[#282832] bg-[#17171d]/60">
-            <AnimatedScoreCard
-              score={liveRiskAnalysis.compositeScore}
-              riskTier={liveRiskAnalysis.riskTier}
-              fingerprint={liveFingerprint}
-              lastEvaluatedBlock={26354138}
-              breakdown={liveRiskAnalysis.breakdown}
-              isFingerprintChanged={isFingerprintDrifted}
-            />
-          </div>
-
-          {/* Graph Canvas & Property Sheet Workspace */}
-          <div className="flex-1 relative overflow-hidden flex">
-            <div className="flex-1 h-full relative">
-              <ProvenanceGraphCanvas
-                nodes={nodes}
-                edges={edges}
-                selectedNodeId={selectedNode?.id || nodes[0]?.id}
-                onSelectNode={(node) => setSelectedNode(node)}
-                isRebuilding={isRebuilding}
-                mutatedNodeId={mutatedNodeId}
-                onResetBaseline={handleResetBaseline}
-              />
-            </div>
-
-            {/* Right Property Sheet for inspecting mutated parameters */}
-            {selectedNode && (
-              <EntityPropertySheet
-                node={selectedNode}
-                onClose={() => setSelectedNode(null)}
-              />
-            )}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
