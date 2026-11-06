@@ -1,0 +1,33 @@
+{
+  "name": "defi-provenance-contracts",
+  "version": "1.0.0",
+  "description": "Smart contracts for DeFi Provenance Graph - RiskRegistry and verification hooks",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:local": "hardhat run scripts/deploy.ts --network localhost",
+    "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia",
+    "deploy:fuji": "hardhat run scripts/deploy.ts --network fuji",
+    "deploy:rabdi": "hardhat run scripts/deploy.ts --network rabdi",
+    "export-abi": "hardhat run scripts/export-abi.ts"
+  },
+  "keywords": [
+    "chainlink",
+    "cre",
+    "provenance",
+    "defi",
+    "risk-registry",
+    "arkiv"
+  ],
+  "author": "Ishapalkar",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@types/node": "^22.10.1",
+    "dotenv": "^16.4.7",
+    "hardhat": "^2.22.17",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  }
+}

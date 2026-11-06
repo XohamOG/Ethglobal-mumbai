@@ -1,0 +1,46 @@
+# Chainlink Runtime Environment (CRE) Workflow Specification
+# Workflow: EVM Log Trigger on Contract Upgrades and Admin Modifications
+id: aave-v3-log-trigger
+name: "DeFi Provenance Graph - EVM Log Trigger"
+version: 1.0.0
+description: "Listens for Upgraded and AdminChanged events on core protocol proxies and triggers instant risk recomputation."
+
+trigger:
+  type: "evm:log"
+  network: "ethereum-mainnet"
+  contracts:
+    - address: "0x87870Bca3F3fD6335c3F4cE8392d69350b4F4E2" # Aave V3 Pool Proxy
+      events:
+        - "Upgraded(address indexed implementation)"
+        - "AdminChanged(address previousAdmin, address newAdmin)"
+    - address: "0x64b761D848206f447Fe2dd461b0c635Ec39EbB27" # Aave V3 PoolConfigurator Proxy
+      events:
+        - "Upgraded(address indexed implementation)"
+        - "AdminChanged(address previousAdmin, address newAdmin)"
+
+consensus:
+  type: bft
+  threshold: "2/3"
+
+runtime:
+  engine: quickjs-wasm
+  entrypoint: ./log_trigger.ts
+
+inputs:
+  graphServiceUrl: "http://localhost:3001"
+  riskRegistryAddress: "${RISK_REGISTRY_ADDRESS}"
+
+actions:
+  - id: parse-event
+    name: "Parse Upgrade or Admin Event"
+    action: decode-log
+
+  - id: trigger-rebuild
+    name: "Request Instant Graph Rebuild"
+    action: http-post
+    dependsOn: parse-event
+
+  - id: report-onchain
+    name: "Attest New Risk Score to RiskRegistry.sol"
+    action: evm-write
+    dependsOn: trigger-rebuild
