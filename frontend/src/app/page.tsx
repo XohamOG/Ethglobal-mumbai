@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { CreTriggerModal } from "@/components/cre/CreTriggerModal";
 import {
@@ -11,11 +12,24 @@ import {
   Compass,
 } from "lucide-react";
 
+// Dynamically import ShapeWaves to run client-side WebGPU
+const ShapeWaves = dynamic(() => import("@/components/ui/ShapeWaves"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center">
+      <h1 className="text-[52px] sm:text-[63px] font-normal text-[#f3f3f3] leading-[1.05] tracking-[-0.69px]">
+        Macaroon
+      </h1>
+    </div>
+  ),
+});
+
 export default function HomePage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isCreModalOpen, setIsCreModalOpen] = useState(false);
+  const [hasGpuError, setHasGpuError] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click or escape
@@ -65,21 +79,57 @@ export default function HomePage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-[#101010] text-[#f3f3f3] flex flex-col items-center justify-center px-6 sm:px-12 select-none overflow-hidden">
-      {/* Center Minimal Workspace — Pure Hyperstudio Specification */}
-      <main className="w-full max-w-2xl flex flex-col items-center text-center">
-        {/* Title — Aeonik / Inter weight 400 across all sizes */}
-        <h1 className="text-[52px] sm:text-[63px] font-normal text-[#f3f3f3] leading-[1.05] tracking-[-0.69px] mb-3">
-          macaroom
-        </h1>
+    <div className="relative min-h-screen w-full bg-[#000000] text-[#f3f3f3] flex flex-col items-center justify-center px-4 sm:px-8 select-none overflow-x-hidden">
+      {/* Center Minimal Workspace — Perfectly Centered */}
+      <main className="w-full max-w-4xl flex flex-col items-center text-center my-auto py-8">
+        {/* Animated Background Canvas with Title "Macaroon" Carved Out */}
+        <div className="w-full h-[360px] sm:h-[480px] relative flex items-center justify-center overflow-hidden">
+          <ShapeWaves
+            text="Macaroon"
+            fontFamily='Geist, "Geist Sans", system-ui, sans-serif'
+            fontWeight={500}
+            textSize={0.6}
+            shapes="mixed"
+            cellSize={10}
+            dotSize={0.75}
+            color="#b3b3b3"
+            hoverColor="#ff4800"
+            backgroundColor="#000000"
+            speed={1}
+            scale={1}
+            contrast={1}
+            brightness={0.4}
+            flow={0}
+            direction={0}
+            fade={0.25}
+            interactive={true}
+            splashRadius={40}
+            splashStrength={0.4}
+            glow={0.35}
+            intro={true}
+            introDuration={1.6}
+            paused={false}
+            onError={() => setHasGpuError(true)}
+            className="w-full h-full"
+          />
 
-        {/* Short Description in 3-4 words */}
-        <p className="text-[18px] sm:text-[21px] font-normal text-[#9c9c9c] leading-tight tracking-[-0.01em] mb-10">
-          DeFi asset provenance intelligence.
+          {/* Fallback Title in case WebGPU is unavailable on client */}
+          {hasGpuError && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <h1 className="text-[52px] sm:text-[63px] font-normal text-[#f3f3f3] leading-[1.05] tracking-[-0.69px]">
+                Macaroon
+              </h1>
+            </div>
+          )}
+        </div>
+
+        {/* Description: Know what your protocol depends on */}
+        <p className="text-[17px] sm:text-[20px] font-normal text-[#9c9c9c] leading-tight tracking-[-0.01em] -mt-4 mb-8">
+          Know what your protocol depends on
         </p>
 
-        {/* Search Field & Interactive Dropdown */}
-        <div ref={searchContainerRef} className="w-full relative">
+        {/* Centered Search Field & Interactive Dropdown */}
+        <div ref={searchContainerRef} className="w-full max-w-2xl relative">
           <form onSubmit={handleSearchSubmit} className="w-full relative">
             <div
               className={`relative rounded-[8px] border transition-colors bg-[#080808] ${
@@ -102,7 +152,7 @@ export default function HomePage() {
                   autoFocus
                 />
 
-                {/* White Pill Button — Primary Action */}
+                {/* White Pill Action Button */}
                 <button
                   type="submit"
                   className="ml-2 px-4 py-1.5 rounded-full bg-[#ffffff] hover:bg-[#f3f3f3] text-[#101010] text-[12px] uppercase font-normal tracking-wider transition-colors cursor-pointer shrink-0 flex items-center gap-1"
@@ -114,9 +164,9 @@ export default function HomePage() {
             </div>
           </form>
 
-          {/* Interactive Aave Dropdown Card — Comes Down on Click */}
+          {/* Interactive Aave Dropdown Card — Appears on Click */}
           {isFocused && (
-            <div className="absolute top-full left-0 right-0 mt-3 z-50 bg-[#080808] border border-[#212121] rounded-[8px] p-5 text-left animate-fadeIn">
+            <div className="absolute top-full left-0 right-0 mt-3 z-50 bg-[#080808] border border-[#212121] rounded-[8px] p-5 text-left animate-fadeIn shadow-2xl">
               {/* Protocol Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#212121]">
                 <div>

@@ -44,7 +44,9 @@ export function EntityPropertySheet({ node }: EntityPropertySheetProps) {
   };
 
   const arkivKey = node.arkivEntityKey || node.address;
-  const rabdiExplorerUrl = `https://rabdi.explorer.arkiv.network/entity-explorer?search=${encodeURIComponent(arkivKey)}`;
+  const rabdiExplorerUrl = node.arkivEntityKey
+    ? `https://rabdi.explorer.arkiv.network/entity/${node.arkivEntityKey}`
+    : `https://rabdi.explorer.arkiv.network/address/${node.address}`;
   const etherscanUrl = `https://etherscan.io/address/${node.address}`;
   const swarmHash = node.swarmBytecodeRef || "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba";
   const swarmGatewayUrl = `https://gateway.ethswarm.org/bzz/${swarmHash}`;
