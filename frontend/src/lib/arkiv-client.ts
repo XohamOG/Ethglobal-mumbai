@@ -4,7 +4,7 @@ import { eq, and } from "@arkiv-network/sdk/query";
 import { http } from "viem";
 
 export const ARKIV_ACCESS_KEY =
-  process.env.NEXT_PUBLIC_ARKIV_ACCESS_KEY || "ark_live_ErmL1L6sLNqJlcHa65qmwR1XTNqEUBcw";
+  process.env.NEXT_PUBLIC_ARKIV_ACCESS_KEY || "";
 
 export const arkivPublicClient = createPublicClient({
   chain: rabdi({ accessKey: ARKIV_ACCESS_KEY }),
