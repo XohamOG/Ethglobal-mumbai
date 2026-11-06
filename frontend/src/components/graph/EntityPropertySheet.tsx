@@ -21,7 +21,7 @@ interface EntityPropertySheetProps {
   onClose?: () => void;
 }
 
-export function EntityPropertySheet({ node }: EntityPropertySheetProps) {
+export function EntityPropertySheet({ node, onClose }: EntityPropertySheetProps) {
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [copiedArkivKey, setCopiedArkivKey] = useState(false);
   const [copiedSwarm, setCopiedSwarm] = useState(false);
@@ -72,14 +72,25 @@ export function EntityPropertySheet({ node }: EntityPropertySheetProps) {
     <div className="space-y-5 text-left text-[#f3f3f3]">
       {/* Header Info */}
       <div className="border-b border-[#212121] pb-4">
-        <div className="flex items-center gap-2 mb-1.5">
-          <span className="text-[11px] px-2 py-0.5 rounded-[4px] bg-[#101010] border border-[#212121] uppercase tracking-wider text-[#9c9c9c]">
-            {node.category}
-          </span>
-          {node.hop !== undefined && (
+        <div className="flex items-center justify-between gap-2 mb-1.5">
+          <div className="flex items-center gap-2">
             <span className="text-[11px] px-2 py-0.5 rounded-[4px] bg-[#101010] border border-[#212121] uppercase tracking-wider text-[#9c9c9c]">
-              Hop {node.hop}
+              {node.category}
             </span>
+            {node.hop !== undefined && (
+              <span className="text-[11px] px-2 py-0.5 rounded-[4px] bg-[#101010] border border-[#212121] uppercase tracking-wider text-[#9c9c9c]">
+                Hop {node.hop}
+              </span>
+            )}
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-[#9c9c9c] hover:text-[#f3f3f3] p-1 rounded hover:bg-[#1a1a1a] transition-colors cursor-pointer text-xs"
+              title="Collapse Inspector"
+            >
+              ✕
+            </button>
           )}
         </div>
 
