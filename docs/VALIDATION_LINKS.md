@@ -18,7 +18,7 @@ This document provides complete on-chain verification links, storage slot refere
 | Node Name / Role | Contract Address | Hop | Category | Risk | Arkiv Entity Key |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Pool (Proxy)** | `0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2` | 0 | Proxy | 12 | `0x5df8dc5903edd0b377937fe6f9cb6f7f0a3d206abd2095b0bc271787d9b9e6f2` |
-| **PoolAddressesProvider** | `0x2f39D218133AFAb8F2b819B1066C7f434aD94e9e` | 0 | Proxy | 12 | `0x8c9aab3116f575a8dfc4add9ace7e08042062ca7ab4eecf4acabd92a15f87ed9` |
+| **PoolAddressesProvider** | `0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e` | 0 | Proxy | 12 | `0x8c9aab3116f575a8dfc4add9ace7e08042062ca7ab4eecf4acabd92a15f87ed9` |
 | **ACLManager** | `0xc2aaCf6553D20d1e9d78E365AAba8032af9c85b0` | 0 | Implementation | 15 | `0xa2ad090a6b0a6a0259fa02cfce3e1c797827341fe0add25207383257f8b8d460` |
 | **PoolConfigurator (Proxy)** | `0x64b761D848206f447Fe2dd461b0c635Ec39EbB27` | 0 | Proxy | 12 | `0x992b5746f52bcd5aac5603e41662755f82c716255d026b89ab36dba091c096f9` |
 | **AaveOracle** | `0x54586bE62E3c3580375aE3723C145253060Ca0C2` | 1 | Oracle | 0 | `0xf6689fee305ebb1feb7a800e0056af48560ee22cee1da44ac473dd2481762457` |

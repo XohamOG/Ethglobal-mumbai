@@ -19,9 +19,9 @@ export interface CronWorkflowConfig {
 // Aave V3 Mainnet Reference addresses from docs/PROJECT_SPEC.md
 const AAVE_V3_CORE = {
   poolProxy: ethers.getAddress("0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2"),
-  addressesProvider: ethers.getAddress("0x2f39d218133afab8f2b819b1066c7f434ad94e9e"),
+  addressesProvider: ethers.getAddress("0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e"),
   configurator: ethers.getAddress("0x64b761d848206f447fe2dd461b0c635ec39ebb27"),
-  aaveOracle: "0x54586bE6333240e3ef4a78248c410Bf33060Ca0C",
+  aaveOracle: "0x54586bE62E3c3580375aE3723C145253060Ca0C2",
   timelockAdmin: ethers.getAddress("0xee56e2b3d491590b5b31738cc34d5232f378a8d5"),
   guardianSafe: ethers.getAddress("0x2cfe3ec4d5a6811f4b8067f0de7e47dfa938aa30"),
   oracleFeeds: [
@@ -51,7 +51,7 @@ export async function runCronSweep(config: CronWorkflowConfig) {
     { staticNetwork: true }
   );
 
-  let poolImpl = "0x5FAab9E1adbddaD0a08734BE8a52185Fd6558E14";
+  let poolImpl = "0x728a138A4823392C2EFA55e028d434F526fE03CF";
   let poolAdmin = AAVE_V3_CORE.timelockAdmin;
   let poolBytecodeHash = ethers.keccak256("0x12345678");
 

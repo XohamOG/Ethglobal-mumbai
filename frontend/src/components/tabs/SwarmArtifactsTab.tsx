@@ -43,11 +43,11 @@ export function SwarmArtifactsTab() {
         storageSlotReceipts: {
           "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2": {
             slot: "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",
-            raw: "0x0000000000000000000000005faab9e1adbddad0a08734be8a52185fd6558e14",
-            resolvedAddress: "0x5FAab9E1adbddaD0a08734BE8a52185Fd6558E14",
+            raw: "0x000000000000000000000000728a138a4823392c2efa55e028d434f526fe03cf",
+            resolvedAddress: "0x728a138A4823392C2EFA55e028d434F526fE03CF",
             proxyStandard: "EIP-1967 Transparent Proxy"
           },
-          "0x2f39D218133AFAb8F2b819B1066C7f434aD94e9e": {
+          "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e": {
             slot: "0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103",
             raw: "0x000000000000000000000000ee56e2b3d491590b5b31738cc34d5232f378a8d5",
             resolvedAddress: "0xEE56e2B3D491590B5b31738cC34d5232F378a8D5",
@@ -56,8 +56,8 @@ export function SwarmArtifactsTab() {
         },
         sourcifyAttestations: {
           "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2": { status: "full_match", compiler: "v0.8.10+commit.fc410830" },
-          "0x5FAab9E1adbddaD0a08734BE8a52185Fd6558E14": { status: "full_match", compiler: "v0.8.10+commit.fc410830" },
-          "0x54586bE6333240e3ef4a78248c410Bf33060Ca0C2": { status: "full_match", compiler: "v0.8.10+commit.fc410830" }
+          "0x728a138A4823392C2EFA55e028d434F526fE03CF": { status: "full_match", compiler: "v0.8.10+commit.fc410830" },
+          "0x54586bE62E3c3580375aE3723C145253060Ca0C2": { status: "full_match", compiler: "v0.8.10+commit.fc410830" }
         }
       },
     },
@@ -69,7 +69,7 @@ export function SwarmArtifactsTab() {
       size: "46.2 KB",
       description: "Raw compiled runtime bytecode dump of Aave Pool Implementation contract, used for fingerprinting and on-chain drift verification.",
       payload: {
-        contractAddress: "0x5FAab9E1adbddaD0a08734BE8a52185Fd6558E14",
+        contractAddress: "0x728a138A4823392C2EFA55e028d434F526fE03CF",
         bytecodeHash: "0x96107dc4006b4c7fecd1827cfb275ffeef31e6194cd50466f85f8eb24ccf2679",
         bytecodeLengthBytes: 24576,
         runtimeBytecodePrefix: "0x608060405234801561001057600080fd5b50600436106101185760003560e01c80630b9276661461011d57...",
@@ -91,10 +91,10 @@ export function SwarmArtifactsTab() {
         npmPackage: "@bgd-labs/aave-address-book@1.24.0",
         marketDeployments: {
           POOL: "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
-          POOL_ADDRESSES_PROVIDER: "0x2f39D218133AFAb8F2b819B1066C7f434aD94e9e",
+          POOL_ADDRESSES_PROVIDER: "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",
           ACL_MANAGER: "0xc2aaCf6553D20d1e9d78E365AAba8032af9c85b0",
           POOL_CONFIGURATOR: "0x64b761D848206f447Fe2dd461b0c635Ec39EbB27",
-          ORACLE: "0x54586bE6333240e3ef4a78248c410Bf33060Ca0C2",
+          ORACLE: "0x54586bE62E3c3580375aE3723C145253060Ca0C2",
           POOL_DATA_PROVIDER: "0x7B4EB56E7CD4b454BA8ff71E4518426369a138a3"
         }
       },

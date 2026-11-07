@@ -14,7 +14,7 @@
         },
         {
           "label": "PoolAddressesProvider",
-          "address": "0x2f39d218133AFaB8F2B819B1066c7f434ad94e9e",
+          "address": "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",
           "proxySlot": "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",
           "adminSlot": "0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103"
         },
@@ -26,7 +26,7 @@
         },
         {
           "label": "AaveOracle",
-          "address": "0x54586bE6333240e3ef4a78248c410Bf33060Ca0C"
+          "address": "0x54586bE62E3c3580375aE3723C145253060Ca0C2"
         }
       ],
       "oracleFeeds": [

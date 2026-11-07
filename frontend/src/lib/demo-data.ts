@@ -109,7 +109,7 @@ export const DEMO_BASELINE_NODES: GraphNode[] = [
   {
     id: "demo-addresses-provider",
     label: "AddressesProvider (Seed)",
-    address: "0x2f39D218133AFAb8F2b819B1066C7f434aD94e9e",
+    address: "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",
     hop: 0,
     category: "proxy",
     riskScore: 12,

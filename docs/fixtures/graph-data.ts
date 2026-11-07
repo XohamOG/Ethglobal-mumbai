@@ -59,7 +59,7 @@ export const AAVE_NODES: GraphNode[] = [
   {
     "id": "aave-v3-addresses-provider",
     "label": "PoolAddressesProvider",
-    "address": "0x2f39D218133AFAb8F2b819B1066C7f434aD94e9e",
+    "address": "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",
     "hop": 0,
     "category": "proxy",
     "riskScore": 12,
@@ -121,7 +121,7 @@ export const AAVE_NODES: GraphNode[] = [
   {
     "id": "aave-v3-pool-impl",
     "label": "Pool Implementation",
-    "address": "0x5FAab9E1adbddaD0a08734BE8a52185Fd6558E14",
+    "address": "0x728a138A4823392C2EFA55e028d434F526fE03CF",
     "hop": 1,
     "category": "implementation",
     "riskScore": 2,

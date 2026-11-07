@@ -13,6 +13,7 @@ import {
 import { ProvenanceGraphCanvas } from "@/components/graph/ProvenanceGraphCanvas";
 import { EntityPropertySheet } from "@/components/graph/EntityPropertySheet";
 import { CreTriggerModal } from "@/components/cre/CreTriggerModal";
+import { DemoModePanel } from "@/components/graph/DemoModePanel";
 import {
   ArrowLeft,
   Zap,
@@ -22,6 +23,15 @@ import {
   Compass,
   FileText,
 } from "lucide-react";
+
+// Hop-decay composite: hop0Avg * 1.0 + hop1Avg * 0.5 + hop2Avg * 0.25
+function hopDecayComposite(list: GraphNode[]): number {
+  const avg = (hop: number) => {
+    const g = list.filter((n) => n.hop === hop);
+    return g.length ? g.reduce((a, n) => a + n.riskScore, 0) / g.length : 0;
+  };
+  return avg(0) * 1.0 + avg(1) * 0.5 + avg(2) * 0.25;
+}
 
 function GraphViewerContent() {
   const searchParams = useSearchParams();
@@ -51,6 +61,37 @@ function GraphViewerContent() {
 
   const liveRisk = getRiskScoreConfig(compositeScore);
 
+  // Demo mode: in-memory what-if overrides only (never persisted, lost on reload)
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
+  const [demoOverrides, setDemoOverrides] = useState<Record<string, number>>({});
+
+  const displayNodes = useMemo(
+    () =>
+      Object.keys(demoOverrides).length === 0
+        ? nodes
+        : nodes.map((n) =>
+            n.id in demoOverrides ? { ...n, riskScore: demoOverrides[n.id] } : n
+          ),
+    [nodes, demoOverrides]
+  );
+
+  const baselineFormula = useMemo(
+    () => hopDecayComposite(nodes),
+    [nodes]
+  );
+  const liveFormula = useMemo(
+    () => hopDecayComposite(displayNodes),
+    [displayNodes]
+  );
+  // Apply only the change caused by the sliders on top of the real baseline score
+  const demoComposite = Number(
+    Math.min(100, Math.max(0, compositeScore + (liveFormula - baselineFormula))).toFixed(1)
+  );
+
+  const selectedDisplayNode = selectedNode
+    ? displayNodes.find((n) => n.id === selectedNode.id) || null
+    : null;
+
   const handleResetBaseline = async () => {
     try {
       await fetch("http://localhost:3002/api/cre/reset", { method: "POST" }).catch(
@@ -67,7 +108,7 @@ function GraphViewerContent() {
   // Node selection handler: selects node and automatically reveals property sheet
   const handleSelectNode = (node: GraphNode | null) => {
     setSelectedNode(node);
-    if (node) {
+    if (node && !isDemoOpen) {
       setIsInspectorOpen(true);
     }
   };
@@ -216,7 +257,7 @@ function GraphViewerContent() {
         {/* Center Canvas */}
         <div className="flex-1 bg-[#101010] overflow-hidden flex flex-col min-h-0 relative">
           <ProvenanceGraphCanvas
-            nodes={nodes}
+            nodes={displayNodes}
             edges={AAVE_EDGES}
             selectedNodeId={selectedNode?.id || null}
             onSelectNode={handleSelectNode}
@@ -257,6 +298,33 @@ function GraphViewerContent() {
           </div>
         )}
       </div>
+
+      {/* Demo Mode (floating, graph page only) */}
+      <DemoModePanel
+        isOpen={isDemoOpen}
+        onToggle={() => {
+          if (isDemoOpen) setDemoOverrides({});
+          setIsDemoOpen(!isDemoOpen);
+          setIsInspectorOpen(false);
+        }}
+        selectedNode={selectedDisplayNode}
+        baselineNodeScore={
+          selectedNode ? nodes.find((n) => n.id === selectedNode.id)?.riskScore ?? null : null
+        }
+        baselineComposite={compositeScore}
+        liveComposite={demoComposite}
+        overrideCount={Object.keys(demoOverrides).length}
+        onChangeScore={(id, score) =>
+          setDemoOverrides((prev) => ({ ...prev, [id]: score }))
+        }
+        onResetNode={(id) =>
+          setDemoOverrides((prev) => {
+            const { [id]: _removed, ...rest } = prev;
+            return rest;
+          })
+        }
+        onResetAll={() => setDemoOverrides({})}
+      />
 
       {/* CRE Trigger Modal */}
       <CreTriggerModal

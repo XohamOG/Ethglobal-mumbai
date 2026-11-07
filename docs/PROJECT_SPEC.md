@@ -182,12 +182,12 @@ export const RiskSnapshot = defineSchema("risk_snapshot_v1", {
 | Hop | Contract Label | Address | Category | Discovery Source |
 |---|---|---|---|---|
 | **Hop 0** | Pool (Proxy) | `0x87870Bca3F3fD6335c3F4cE8392d69350b4F4E2` | `proxy` (EIP-1967) | Address Book Seed |
-| **Hop 0** | PoolAddressesProvider | `0x2f39d218133AFaB8F2B819B1066c7f434ad94e9e` | `proxy` (EIP-1967) | Address Book Seed |
+| **Hop 0** | PoolAddressesProvider | `0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e` | `proxy` (EIP-1967) | Address Book Seed |
 | **Hop 0** | ACLManager | `0xc2aaCf6553D20d1e9d78E365AAba8032af9c85b0` | `implementation` | Address Book Seed |
 | **Hop 0** | PoolConfigurator (Proxy) | `0x64b761D848206f447Fe2dd461b0c635Ec39EbB27` | `proxy` (EIP-1967) | Address Book Seed |
-| **Hop 0** | AaveOracle | `0x54586bE6333240e3ef4a78248c410Bf33060Ca0C2` | `oracle` | Address Book Seed |
+| **Hop 0** | AaveOracle | `0x54586bE62E3c3580375aE3723C145253060Ca0C2` | `oracle` | Address Book Seed |
 | **Hop 0** | PoolDataProvider | `0x7B4EB56E7CD4b454BA8ff71E4518426369a138a3` | `implementation` | Address Book Seed |
-| **Hop 1** | Pool Implementation | `0x5FAab9E1adbddaD0a08734BE8a52185Fd6558E14` | `implementation` | EIP-1967 Slot `0x360894...` on Pool |
+| **Hop 1** | Pool Implementation | `0x728a138A4823392C2EFA55e028d434F526fE03CF` | `implementation` | EIP-1967 Slot `0x360894...` on Pool |
 | **Hop 1** | Governance Timelock (Executor) | `0xEE56e2B3D491590B5b31738cC34d5232F378a8D5` | `implementation` | EIP-1967 Admin Slot `0xb53127...` |
 | **Hop 1** | Emergency Guardian Safe | `0x2CFe3ec4d5a6811f4B8067F0DE7e47DfA938Aa30` | `multisig` (Safe 4/7) | `ACLManager.hasRole(EMERGENCY_ADMIN)` |
 | **Hop 1** | PoolConfigurator Impl | Resolved dynamically via RPC slot | `implementation` | EIP-1967 Slot on Configurator |

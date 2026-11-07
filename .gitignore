@@ -109,3 +109,6 @@ storage/swarm/blobs/
 
 
 
+
+# Bee node secrets
+storage/swarm/.bee/

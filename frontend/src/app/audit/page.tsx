@@ -41,15 +41,15 @@ const RPC_STEPS: RpcStep[] = [
     step: 1,
     title: "Seed Registry ➔ Protocol Diamond",
     source: "@bgd-labs/aave-address-book",
-    targetAddress: "0x2f39D218133AFAb8F2b819B1066C7f434aD94e9e",
+    targetAddress: "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",
     method: "eth_call getPool()",
-    calldataOrSlot: "0x7535d246",
+    calldataOrSlot: "0x026b1d5f",
     decodedValue: "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2 (Pool Proxy)",
     etherscanUrl:
-      "https://etherscan.io/address/0x2f39D218133AFAb8F2b819B1066C7f434aD94e9e#readContract",
+      "https://etherscan.io/address/0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e#readContract",
     curlSnippet: `curl -s -X POST https://ethereum-rpc.publicnode.com \\
   -H "Content-Type: application/json" \\
-  -d '{"jsonrpc":"2.0","id":1,"method":"eth_call","params":[{"to":"0x2f39D218133AFAb8F2b819B1066C7f434aD94e9e","data":"0x7535d246"},"latest"]}'`,
+  -d '{"jsonrpc":"2.0","id":1,"method":"eth_call","params":[{"to":"0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e","data":"0x026b1d5f"},"latest"]}'`,
   },
   {
     step: 2,
@@ -59,7 +59,7 @@ const RPC_STEPS: RpcStep[] = [
     method: "eth_getStorageAt(slot)",
     calldataOrSlot:
       "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",
-    decodedValue: "0x5FAab9E1adbddaD0a08734BE8a52185Fd6558E14 (Pool Logic)",
+    decodedValue: "0x728a138A4823392C2EFA55e028d434F526fE03CF (Pool Logic)",
     etherscanUrl:
       "https://etherscan.io/address/0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2#readProxyContract",
     curlSnippet: `curl -s -X POST https://ethereum-rpc.publicnode.com \\
@@ -69,30 +69,30 @@ const RPC_STEPS: RpcStep[] = [
   {
     step: 3,
     title: "Access Control ➔ Emergency Admin Safe",
-    source: "ACLManager.getEmergencyAdmin()",
+    source: "ACLManager.isEmergencyAdmin(Safe)",
     targetAddress: "0xc2aaCf6553D20d1e9d78E365AAba8032af9c85b0",
-    method: "eth_call getEmergencyAdmin()",
-    calldataOrSlot: "0x5b34b966",
-    decodedValue: "0x2CFed90B2b761705D172Ac707Ac213fa4476Aa30 (Safe 4/7)",
+    method: "eth_call isEmergencyAdmin(address)",
+    calldataOrSlot: "0x2500f2b6 (isEmergencyAdmin(Safe))",
+    decodedValue: "true → 0x2CFe3ec4d5a6811f4B8067F0DE7e47DfA938Aa30 (Safe 4/7)",
     etherscanUrl:
-      "https://etherscan.io/address/0x2CFed90B2b761705D172Ac707Ac213fa4476Aa30#readContract",
+      "https://etherscan.io/address/0x2CFe3ec4d5a6811f4B8067F0DE7e47DfA938Aa30#readContract",
     curlSnippet: `curl -s -X POST https://ethereum-rpc.publicnode.com \\
   -H "Content-Type: application/json" \\
-  -d '{"jsonrpc":"2.0","id":3,"method":"eth_call","params":[{"to":"0xc2aaCf6553D20d1e9d78E365AAba8032af9c85b0","data":"0x5b34b966"},"latest"]}'`,
+  -d '{"jsonrpc":"2.0","id":3,"method":"eth_call","params":[{"to":"0xc2aaCf6553D20d1e9d78E365AAba8032af9c85b0","data":"0x2500f2b60000000000000000000000002cfe3ec4d5a6811f4b8067f0de7e47dfa938aa30"},"latest"]}'`,
   },
   {
     step: 4,
     title: "Oracle Registry ➔ Chainlink Aggregator",
     source: "AaveOracle.getSourceOfAsset(WBTC)",
-    targetAddress: "0x54586bE6333240e3ef4a78248c410Bf33060Ca0C2",
+    targetAddress: "0x54586bE62E3c3580375aE3723C145253060Ca0C2",
     method: "eth_call getSourceOfAsset()",
-    calldataOrSlot: "0xb3449339 (Asset: WBTC 0x2260FAC5...)",
-    decodedValue: "0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c (BTC/USD Feed)",
+    calldataOrSlot: "0x92bf2be0 (Asset: WBTC 0x2260FAC5...)",
+    decodedValue: "0xDaa4B74C6bAc4e25188e64ebc68DB5050b690cAc (WBTC price source)",
     etherscanUrl:
-      "https://etherscan.io/address/0x54586bE6333240e3ef4a78248c410Bf33060Ca0C2#readContract",
+      "https://etherscan.io/address/0x54586bE62E3c3580375aE3723C145253060Ca0C2#readContract",
     curlSnippet: `curl -s -X POST https://ethereum-rpc.publicnode.com \\
   -H "Content-Type: application/json" \\
-  -d '{"jsonrpc":"2.0","id":4,"method":"eth_call","params":[{"to":"0x54586bE6333240e3ef4a78248c410Bf33060Ca0C2","data":"0xb34493390000000000000000000000002260fac5e5542a773aa44fbcfedf7c193bc2c599"},"latest"]}'`,
+  -d '{"jsonrpc":"2.0","id":4,"method":"eth_call","params":[{"to":"0x54586bE62E3c3580375aE3723C145253060Ca0C2","data":"0x92bf2be00000000000000000000000002260fac5e5542a773aa44fbcfedf7c193bc2c599"},"latest"]}'`,
   },
   {
     step: 5,
@@ -102,7 +102,7 @@ const RPC_STEPS: RpcStep[] = [
     method: "eth_call latestRoundData()",
     calldataOrSlot: "0xfeaf968c",
     decodedValue:
-      "Answer: $67,420.50 · Heartbeat: 3600s · Staleness: 0.95 (Fresh)",
+      "BTC/USD answer (8 decimals) · Heartbeat: 3600s · Staleness: 0.95 (Fresh)",
     etherscanUrl:
       "https://etherscan.io/address/0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c#readContract",
     curlSnippet: `curl -s -X POST https://ethereum-rpc.publicnode.com \\
