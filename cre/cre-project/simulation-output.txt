@@ -1,0 +1,48 @@
+Initializing...
+Loading settings...
+! Using default private key for chain write simulation. To use your own key, set CRE_ETH_PRIVATE_KEY in your .env file or system environment.
+Checking RPC connectivity...
+Compiling workflow...
+✓ Workflow compiled
+✓ Simulation limits enabled
+  HTTP: req=120kb resp=250kb timeout=10s | ConfHTTP: req=125kb resp=500kb timeout=1m30s | Consensus obs=25kb | ChainWrite evm_report=50kb evm_gas=10000000 solana_report=265b solana_cu=300000 | WASM binary=100mb compressed=20mb
+  Binary hash: 22c440e9ce3369866af71d5ec731f1236a463859c9cd49c008531e56ac3d09f8
+  Config hash: 15658d93856c6066aad4c98430726418a5a740930d531ef5eb13b758bd581568
+2026-11-07T05:25:01Z [SIMULATION] Simulator Initialized
+
+2026-11-07T05:25:01Z [SIMULATION] Running trigger trigger=cron-trigger@1.0.0
+2026-11-07T05:25:02Z [USER LOG] [drift] sweep for aave-v3-mainnet
+2026-11-07T05:25:02Z [USER LOG] read pool.POOL_REVISION = 0x000000000000000000000000000000000000000000000000000000000000000b
+2026-11-07T05:25:02Z [USER LOG] read configurator.CONFIGURATOR_REVISION = 0x0000000000000000000000000000000000000000000000000000000000000008
+2026-11-07T05:25:02Z [USER LOG] read provider.getPool = 0x00000000000000000000000087870bca3f3fd6335c3f4ce8392d69350b4fa4e2
+2026-11-07T05:25:02Z [USER LOG] read provider.getPoolConfigurator = 0x00000000000000000000000064b761d848206f447fe2dd461b0c635ec39ebb27
+2026-11-07T05:25:02Z [USER LOG] read provider.getPriceOracle = 0x00000000000000000000000054586be62e3c3580375ae3723c145253060ca0c2
+2026-11-07T05:25:02Z [USER LOG] read provider.getACLManager = 0x000000000000000000000000c2aacf6553d20d1e9d78e365aaba8032af9c85b0
+2026-11-07T05:25:02Z [USER LOG] read provider.getACLAdmin = 0x0000000000000000000000005300a1a15135ea4dc7ad5a167152c01efc9b192a
+2026-11-07T05:25:02Z [USER LOG] read provider.getPoolDataProvider = 0x0000000000000000000000000a16f2fcc0d44fae41cc54e079281d84a363becd
+2026-11-07T05:25:02Z [USER LOG] read oracle.sourceOf.WETH = 0x0000000000000000000000005424384b256154046e9667ddfaaa5e550145215e
+2026-11-07T05:25:02Z [USER LOG] read oracle.sourceOf.WBTC = 0x000000000000000000000000daa4b74c6bac4e25188e64ebc68db5050b690cac
+2026-11-07T05:25:02Z [USER LOG] read oracle.sourceOf.USDC = 0x0000000000000000000000003f73f03aa83b2a48ed27e964ed0fdb590332095b
+2026-11-07T05:25:02Z [USER LOG] read oracle.sourceOf.DAI = 0x0000000000000000000000005c66322ca59bb61e867b28195576dbd8da4b08de
+2026-11-07T05:25:02Z [USER LOG] read oracle.sourceOf.USDT = 0x000000000000000000000000260326c220e469358846b187ee53328303efe19c
+2026-11-07T05:25:02Z [USER LOG] read acl.isEmergencyAdmin.safe = 0x0000000000000000000000000000000000000000000000000000000000000001
+2026-11-07T05:25:02Z [USER LOG] read safe.getThreshold = 0x0000000000000000000000000000000000000000000000000000000000000004
+2026-11-07T05:25:02Z [USER LOG] read safe.getOwners = 0x0000000000000000000000000000000000000000000000000000000000000020…
+2026-11-07T05:25:02Z [USER LOG] read executor.owner = 0x000000000000000000000000dabad81af85554e9ae636395611c58f7ec1aaec5
+2026-11-07T05:25:02Z [USER LOG] read payloadsController.executorSettingsLvl1 = 0x0000000000000000000000005300a1a15135ea4dc7ad5a167152c01efc9b192a…
+2026-11-07T05:25:02Z [USER LOG] [drift] 18 pointers read in 1 batched call (Multicall3)
+2026-11-07T05:25:02Z [USER LOG] [drift] live fingerprint   : 0x70aa1687a9bdc01e94d384f42dacff20c4b78d1670c9375640bf8fb3b9f8392f
+2026-11-07T05:25:03Z [USER LOG] [drift] stored fingerprint : 0x70aa1687a9bdc01e94d384f42dacff20c4b78d1670c9375640bf8fb3b9f8392f
+2026-11-07T05:25:03Z [USER LOG] [drift] NO DRIFT - snapshot aave-v3-mainnet-26359056 is still accurate. Nothing to rebuild.
+
+✓ Workflow Simulation Result:
+"NO_DRIFT 0x70aa1687a9bdc01e94d384f42dacff20c4b78d1670c9375640bf8fb3b9f8392f"
+
+2026-11-07T05:25:03Z [SIMULATION] Execution finished signal received
+2026-11-07T05:25:03Z [SIMULATION] Skipping WorkflowEngineV2
+
+╭──────────────────────────────────────────────────────╮
+│ Simulation complete! Ready to deploy your workflow?  │
+│                                                      │
+│ Run cre account access to request deployment access. │
+╰──────────────────────────────────────────────────────╯

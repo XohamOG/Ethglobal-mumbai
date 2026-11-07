@@ -1,0 +1,6 @@
+{
+  "schedule": "0 0 */4 * * *",
+  "chainSelectorName": "ethereum-mainnet",
+  "protocolId": "aave-v3-mainnet",
+  "graphServiceUrl": "https://REPLACE-WITH-DEPLOYED-GRAPH-SERVICE"
+}

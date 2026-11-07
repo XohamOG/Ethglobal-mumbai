@@ -129,6 +129,8 @@ export class ArkivStorageClient {
         ),
         oracleStaleness: dec(Number(node.oracleStaleness || 0).toFixed(3)),
         oracleHeartbeat: u64(Number(node.oracleHeartbeat || 0)),
+        contractAgeMonths: dec(Number(node.contractAgeMonths || 0).toFixed(1)),
+        timelockDelayHours: dec(Number(node.timelockDelayHours || 0).toFixed(2)),
         contractName: node.contractName || "",
         swarmBytecodeRef: node.swarmBytecodeRef || "",
         updatedAt: u64(Number(node.updatedAt || 0)),

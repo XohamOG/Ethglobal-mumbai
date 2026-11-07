@@ -22,7 +22,7 @@ This document provides complete on-chain verification links, storage slot refere
 | **ACLManager** | `0xc2aaCf6553D20d1e9d78E365AAba8032af9c85b0` | 0 | Implementation | 15 | `0xa2ad090a6b0a6a0259fa02cfce3e1c797827341fe0add25207383257f8b8d460` |
 | **PoolConfigurator (Proxy)** | `0x64b761D848206f447Fe2dd461b0c635Ec39EbB27` | 0 | Proxy | 12 | `0x992b5746f52bcd5aac5603e41662755f82c716255d026b89ab36dba091c096f9` |
 | **AaveOracle** | `0x54586bE62E3c3580375aE3723C145253060Ca0C2` | 1 | Oracle | 0 | `0xf6689fee305ebb1feb7a800e0056af48560ee22cee1da44ac473dd2481762457` |
-| **Governance Executor** | `0xEE56e2B3D491590B5b31738cC34d5232F378a8D5` | 1 | Governance | 5 | `0xfb155363ba554abd9bfc2897f57c627005c147351fc271914219a552d1460b93` |
+| **Governance Executor** | `0x5300A1a15135EA4dc7aD5a167152C01EFc9b192A` | 1 | Governance | 5 | `0xfb155363ba554abd9bfc2897f57c627005c147351fc271914219a552d1460b93` |
 | **Emergency Guardian Safe** | `0x2CFe3ec4d5a6811f4B8067F0DE7e47DfA938Aa30` | 1 | Multisig | 12 | `0x136f67e84438c57525e69ffb3b366ee15af1501aa7ce7f05349e66125652daca` |
 | **ReservesSetupHelper** | `0x3523d24217794F19E92e9A2B68e0dEda4e773410` | 1 | Helper | 10 | `0x4333474e92374c06693a55e21fb7fdc84525e764995e2000cfab4a3454a332a5` |
 | **Chainlink ETH/USD** | `0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419` | 2 | Oracle | 7 | `0xe744d8c25d90837051efd266a9a3dfa1d3a5f83b23c5fff3f4ef0eabbb785212` |
@@ -43,7 +43,7 @@ This document provides complete on-chain verification links, storage slot refere
   - Slot points to: [`0xFF42Ce30054dcE7dc7C1282a9a497aa58eaBCe99`](https://etherscan.io/address/0xFF42Ce30054dcE7dc7C1282a9a497aa58eaBCe99#code)
 
 ### B. Governance & Emergency Controls
-- **Governance Executor (Timelock v2)**: [`0xEE56e2B3D491590B5b31738cC34d5232F378a8D5`](https://etherscan.io/address/0xEE56e2B3D491590B5b31738cC34d5232F378a8D5#code)
+- **Governance V3 Executor Lvl1 (24h delay via PayloadsController 0xdAbad81aF85554E9ae636395611C58F7eC1aAEc5)**: [`0x5300A1a15135EA4dc7aD5a167152C01EFc9b192A`](https://etherscan.io/address/0x5300A1a15135EA4dc7aD5a167152C01EFc9b192A#code)
   - Verification: 86,400s delay configured in contract storage.
 - **Aave Emergency Guardian Safe**: [`0x2CFe3ec4d5a6811f4B8067F0DE7e47DfA938Aa30`](https://etherscan.io/address/0x2CFe3ec4d5a6811f4B8067F0DE7e47DfA938Aa30)
   - Verified via [Safe Transaction Service API](https://safe-transaction-mainnet.safe.global/api/v1/safes/0x2CFe3ec4d5a6811f4B8067F0DE7e47DfA938Aa30/): Threshold 4 of 7 signers.
@@ -60,9 +60,9 @@ This document provides complete on-chain verification links, storage slot refere
 
 ## 3. Swarm Decentralized Artifacts (BZZ Gateway)
 All immutable execution artifacts are stored on Swarm:
-- **Full Ingested Graph JSON**: [https://api.gateway.ethswarm.org/bzz/3a5194ce284962a9b0598c0b1e001e96a5d63a573a4a2423b47913b71b2c8e7d](https://api.gateway.ethswarm.org/bzz/3a5194ce284962a9b0598c0b1e001e96a5d63a573a4a2423b47913b71b2c8e7d)
-- **Ingestion Audit Log**: [https://api.gateway.ethswarm.org/bzz/1c6ae2662e9ce2923f7a559df208b6a1b10c4e1f23caa26a91e42a0e72882fbb](https://api.gateway.ethswarm.org/bzz/1c6ae2662e9ce2923f7a559df208b6a1b10c4e1f23caa26a91e42a0e72882fbb)
-- **Bytecode Dump**: [https://api.gateway.ethswarm.org/bzz/632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9](https://api.gateway.ethswarm.org/bzz/632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9)
+- **Full Ingested Graph JSON**: [http://127.0.0.1:1633/bzz/656bd0d3f41a001afe4ce6fead3447993bfaf531d6b117cc4ddbfe0d825491d2](http://127.0.0.1:1633/bzz/656bd0d3f41a001afe4ce6fead3447993bfaf531d6b117cc4ddbfe0d825491d2)
+- **Ingestion Audit Log**: [http://127.0.0.1:1633/bzz/05b90068c703131862da74fb6815850927f3e2348c3938db78b142d5129ef865](http://127.0.0.1:1633/bzz/05b90068c703131862da74fb6815850927f3e2348c3938db78b142d5129ef865)
+- **Bytecode Dump**: [http://127.0.0.1:1633/bzz/3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89](http://127.0.0.1:1633/bzz/3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89)
 
 ---
 
@@ -74,3 +74,5 @@ The graph edges model physical contract-to-contract relationships:
 4. `multisig`: Safe multisig owners and threshold controllers.
 5. `oracle_feed`: Aggregator query targets for price determination.
 6. `cross_protocol`: Semantic macro-dependencies (e.g. Aave V3 lending core dependent on Chainlink price oracles).
+
+> **Note:** addresses above were re-verified against mainnet (PoolAddressesProvider getters, EIP-1967 slots, Governance V3 executor/PayloadsController). Arkiv entity keys in the tables belong to earlier snapshots; run a rebuild to publish current ones.

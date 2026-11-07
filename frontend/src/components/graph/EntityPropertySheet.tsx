@@ -48,8 +48,8 @@ export function EntityPropertySheet({ node, onClose }: EntityPropertySheetProps)
     ? `https://rabdi.explorer.arkiv.network/entity/${node.arkivEntityKey}`
     : `https://rabdi.explorer.arkiv.network/address/${node.address}`;
   const etherscanUrl = `https://etherscan.io/address/${node.address}`;
-  const swarmHash = node.swarmBytecodeRef || "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba";
-  const swarmGatewayUrl = `https://gateway.ethswarm.org/bzz/${swarmHash}`;
+  const swarmHash = node.swarmBytecodeRef || "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89";
+  const swarmGatewayUrl = `${(process.env.NEXT_PUBLIC_SWARM_GATEWAY || "http://127.0.0.1:1633").replace(/\/$/, "")}/bzz/${swarmHash}`;
 
   const hopLabels: Record<number, { title: string; desc: string }> = {
     0: {

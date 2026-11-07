@@ -335,7 +335,7 @@ app.post("/api/cre/mutate", async (req, res) => {
 
     const snapshotId = `aave-v3-mainnet-${currentBlock}`;
     log(`Arkiv snapshot minted: ${snapshotId} (50,000 blocks BTL)`);
-    log(`Swarm forensic evidence anchored: ${rebuildResult.swarmGraphRef || "3a5194ce2849..."}`);
+    log(`Swarm forensic evidence anchored: ${rebuildResult.swarmGraphRef || "656bd0d3f41a..."}`);
 
     // Submit on-chain attestation
     const attestationTx = ethers.hexlify(ethers.randomBytes(32));
@@ -437,7 +437,7 @@ app.post("/api/cre/trigger/cron", async (req, res) => {
         snapshotId: `aave-v3-mainnet-${currentBlock}`,
         compositeScore: Math.round(calculatedRisk.compositeScore * 100),
         riskTier: calculatedRisk.riskTier,
-        swarmGraphRef: "3a5194ce284962a9b0598c0b1e001e96a5d63a573a4a2423b47913b71b2c8e7d",
+        swarmGraphRef: "656bd0d3f41a001afe4ce6fead3447993bfaf531d6b117cc4ddbfe0d825491d2",
         blockNumber: currentBlock,
         fingerprint: currentFingerprint,
       };

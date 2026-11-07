@@ -3,17 +3,13 @@
 import React, { Suspense, useState, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import {
-  PROTOCOLS,
-  AAVE_NODES,
-  AAVE_EDGES,
-  GraphNode,
-  getRiskScoreConfig,
-} from "@/lib/graph-data";
+import { GraphNode, GraphEdge, getRiskScoreConfig } from "@/lib/graph-data";
+import { useGraphSnapshot, GRAPH_SERVICE_URL } from "@/lib/graph-api";
 import { ProvenanceGraphCanvas } from "@/components/graph/ProvenanceGraphCanvas";
 import { EntityPropertySheet } from "@/components/graph/EntityPropertySheet";
 import { CreTriggerModal } from "@/components/cre/CreTriggerModal";
 import { DemoModePanel } from "@/components/graph/DemoModePanel";
+import { computeComposite } from "@/lib/risk-model";
 import {
   ArrowLeft,
   Zap,
@@ -24,20 +20,60 @@ import {
   FileText,
 } from "lucide-react";
 
-// Hop-decay composite: hop0Avg * 1.0 + hop1Avg * 0.5 + hop2Avg * 0.25
-function hopDecayComposite(list: GraphNode[]): number {
-  const avg = (hop: number) => {
-    const g = list.filter((n) => n.hop === hop);
-    return g.length ? g.reduce((a, n) => a + n.riskScore, 0) / g.length : 0;
-  };
-  return avg(0) * 1.0 + avg(1) * 0.5 + avg(2) * 0.25;
-}
-
 function GraphViewerContent() {
   const searchParams = useSearchParams();
   const protocolId = searchParams.get("protocol") || "aave-v3-mainnet";
-  const protocol = PROTOCOLS.find((p) => p.protocolId === protocolId) || PROTOCOLS[0];
+  const { data, error, loading, reload } = useGraphSnapshot(protocolId);
 
+  if (loading || !data) {
+    return (
+      <div className="min-h-screen bg-[#101010] flex flex-col items-center justify-center gap-3 text-[13px] font-mono text-[#9c9c9c] p-6 text-center">
+        {error ? (
+          <>
+            <span className="text-[#f3f3f3]">Graph data unavailable</span>
+            <span className="max-w-md">{error}</span>
+            <span className="text-[11px] text-[#6f6759]">
+              Expected graph-service at {GRAPH_SERVICE_URL} (set NEXT_PUBLIC_GRAPH_SERVICE_URL)
+            </span>
+            <button
+              onClick={reload}
+              className="mt-2 px-4 py-1.5 rounded-[6px] border border-[#474747] text-[#f3f3f3] uppercase tracking-wider text-[11px] hover:border-[#f3f3f3] cursor-pointer"
+            >
+              Retry
+            </button>
+          </>
+        ) : (
+          <span>Fetching live lineage graph from graph-service…</span>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <GraphViewer
+      key={data.snapshotId}
+      protocolId={protocolId}
+      onRebuilt={reload}
+      baselineNodes={data.nodes}
+      edges={data.edges}
+      baselineScore={data.compositeScore}
+    />
+  );
+}
+
+function GraphViewer({
+  onRebuilt,
+  protocolId,
+  baselineNodes,
+  edges,
+  baselineScore,
+}: {
+  onRebuilt: () => void;
+  protocolId: string;
+  baselineNodes: GraphNode[];
+  edges: GraphEdge[];
+  baselineScore: number;
+}) {
   // Hop filter: "all" | 0 | 1 | 2
   const [activeHop, setActiveHop] = useState<number | "all">("all");
 
@@ -49,10 +85,8 @@ function GraphViewerContent() {
   const [isCreModalOpen, setIsCreModalOpen] = useState(false);
 
   // Dynamic shared state
-  const [nodes, setNodes] = useState<GraphNode[]>(AAVE_NODES);
-  const [compositeScore, setCompositeScore] = useState<number>(
-    protocol.compositeScore || 13.7
-  );
+  const [nodes, setNodes] = useState<GraphNode[]>(baselineNodes);
+  const [compositeScore, setCompositeScore] = useState<number>(baselineScore);
   const [isRebuilding, setIsRebuilding] = useState<boolean>(false);
   const [mutatedNodeInfo, setMutatedNodeInfo] = useState<{
     id: string;
@@ -75,18 +109,9 @@ function GraphViewerContent() {
     [nodes, demoOverrides]
   );
 
-  const baselineFormula = useMemo(
-    () => hopDecayComposite(nodes),
-    [nodes]
-  );
-  const liveFormula = useMemo(
-    () => hopDecayComposite(displayNodes),
-    [displayNodes]
-  );
-  // Apply only the change caused by the sliders on top of the real baseline score
-  const demoComposite = Number(
-    Math.min(100, Math.max(0, compositeScore + (liveFormula - baselineFormula))).toFixed(1)
-  );
+  // Real hop-decay model (1.0 / 0.5 / 0.25), recomputed locally for the demo only
+  const baselineModel = useMemo(() => computeComposite(nodes), [nodes]);
+  const liveModel = useMemo(() => computeComposite(displayNodes), [displayNodes]);
 
   const selectedDisplayNode = selectedNode
     ? displayNodes.find((n) => n.id === selectedNode.id) || null
@@ -98,8 +123,8 @@ function GraphViewerContent() {
         () => null
       );
     } catch {}
-    setNodes(AAVE_NODES);
-    setCompositeScore(13.7);
+    setNodes(baselineNodes);
+    setCompositeScore(baselineScore);
     setMutatedNodeInfo(null);
     setIsRebuilding(false);
     setSelectedNode(null);
@@ -258,7 +283,7 @@ function GraphViewerContent() {
         <div className="flex-1 bg-[#101010] overflow-hidden flex flex-col min-h-0 relative">
           <ProvenanceGraphCanvas
             nodes={displayNodes}
-            edges={AAVE_EDGES}
+            edges={edges}
             selectedNodeId={selectedNode?.id || null}
             onSelectNode={handleSelectNode}
             isRebuilding={isRebuilding}
@@ -311,8 +336,9 @@ function GraphViewerContent() {
         baselineNodeScore={
           selectedNode ? nodes.find((n) => n.id === selectedNode.id)?.riskScore ?? null : null
         }
-        baselineComposite={compositeScore}
-        liveComposite={demoComposite}
+        nodes={displayNodes}
+        baseline={baselineModel}
+        live={liveModel}
         overrideCount={Object.keys(demoOverrides).length}
         onChangeScore={(id, score) =>
           setDemoOverrides((prev) => ({ ...prev, [id]: score }))
@@ -330,7 +356,11 @@ function GraphViewerContent() {
       <CreTriggerModal
         isOpen={isCreModalOpen}
         onClose={() => setIsCreModalOpen(false)}
-        onComplete={(newScore) => setCompositeScore(newScore)}
+        protocolId={protocolId}
+        onComplete={(newScore) => {
+          setCompositeScore(newScore);
+          onRebuilt(); // reload the freshly written snapshot from graph-service
+        }}
       />
     </div>
   );

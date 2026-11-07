@@ -5,7 +5,7 @@
   "riskTier": "LOW",
   "evaluatedAtBlock": 26354138,
   "fingerprint": "0x39a7cd678a45f1e63df9441182b58d3e87149bc0d23f82fa05f4fb0b4993e06c",
-  "swarmGraphRef": "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba",
+  "swarmGraphRef": "656bd0d3f41a001afe4ce6fead3447993bfaf531d6b117cc4ddbfe0d825491d2",
   "swarmEvidenceRef": "12dee381593c94b9bf22c878786434682e3743d3162fc24900658c206643ecfd",
   "nodeCount": 15,
   "hopScores": {
@@ -36,7 +36,7 @@
       "oracleStaleness": 0.2,
       "oracleHeartbeat": 3600,
       "contractName": "VerifiedContract",
-      "swarmBytecodeRef": "632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9",
+      "swarmBytecodeRef": "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
       "updatedAt": 26354138,
       "breakdown": {
         "f1_verification": 0,
@@ -71,7 +71,7 @@
       "oracleStaleness": 0.2,
       "oracleHeartbeat": 3600,
       "contractName": "VerifiedContract",
-      "swarmBytecodeRef": "632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9",
+      "swarmBytecodeRef": "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
       "updatedAt": 26354138,
       "breakdown": {
         "f1_verification": 0,
@@ -106,7 +106,7 @@
       "oracleStaleness": 0.2,
       "oracleHeartbeat": 3600,
       "contractName": "VerifiedContract",
-      "swarmBytecodeRef": "632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9",
+      "swarmBytecodeRef": "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
       "updatedAt": 26354138,
       "breakdown": {
         "f1_verification": 0,
@@ -141,7 +141,7 @@
       "oracleStaleness": 0.2,
       "oracleHeartbeat": 3600,
       "contractName": "VerifiedContract",
-      "swarmBytecodeRef": "632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9",
+      "swarmBytecodeRef": "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
       "updatedAt": 26354138,
       "breakdown": {
         "f1_verification": 0,
@@ -176,7 +176,7 @@
       "oracleStaleness": 0.15,
       "oracleHeartbeat": 3600,
       "contractName": "VerifiedContract",
-      "swarmBytecodeRef": "632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9",
+      "swarmBytecodeRef": "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
       "updatedAt": 26354138,
       "breakdown": {
         "f1_verification": 0,
@@ -211,7 +211,7 @@
       "oracleStaleness": 0.2,
       "oracleHeartbeat": 3600,
       "contractName": "VerifiedContract",
-      "swarmBytecodeRef": "632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9",
+      "swarmBytecodeRef": "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
       "updatedAt": 26354138,
       "breakdown": {
         "f1_verification": 0,
@@ -246,7 +246,7 @@
       "oracleStaleness": 0.2,
       "oracleHeartbeat": 3600,
       "contractName": "VerifiedContract",
-      "swarmBytecodeRef": "632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9",
+      "swarmBytecodeRef": "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
       "updatedAt": 26354138,
       "breakdown": {
         "f1_verification": 0,
@@ -281,7 +281,7 @@
       "oracleStaleness": 0.2,
       "oracleHeartbeat": 3600,
       "contractName": "VerifiedContract",
-      "swarmBytecodeRef": "632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9",
+      "swarmBytecodeRef": "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
       "updatedAt": 26354138,
       "breakdown": {
         "f1_verification": 0,
@@ -324,7 +324,7 @@
       "oracleStaleness": 0.2,
       "oracleHeartbeat": 3600,
       "contractName": "VerifiedContract",
-      "swarmBytecodeRef": "632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9",
+      "swarmBytecodeRef": "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
       "updatedAt": 26354138,
       "breakdown": {
         "f1_verification": 0,
@@ -359,7 +359,7 @@
       "oracleStaleness": 0.2,
       "oracleHeartbeat": 3600,
       "contractName": "VerifiedContract",
-      "swarmBytecodeRef": "632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9",
+      "swarmBytecodeRef": "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
       "updatedAt": 26354138,
       "breakdown": {
         "f1_verification": 0,
@@ -394,7 +394,7 @@
       "oracleStaleness": 0.355,
       "oracleHeartbeat": 3600,
       "contractName": "VerifiedContract",
-      "swarmBytecodeRef": "632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9",
+      "swarmBytecodeRef": "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
       "updatedAt": 26354138,
       "breakdown": {
         "f1_verification": 0,
@@ -429,7 +429,7 @@
       "oracleStaleness": 20.039,
       "oracleHeartbeat": 3600,
       "contractName": "VerifiedContract",
-      "swarmBytecodeRef": "632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9",
+      "swarmBytecodeRef": "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
       "updatedAt": 26354138,
       "breakdown": {
         "f1_verification": 0,
@@ -464,7 +464,7 @@
       "oracleStaleness": 0.356,
       "oracleHeartbeat": 3600,
       "contractName": "VerifiedContract",
-      "swarmBytecodeRef": "632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9",
+      "swarmBytecodeRef": "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
       "updatedAt": 26354138,
       "breakdown": {
         "f1_verification": 0,
@@ -499,7 +499,7 @@
       "oracleStaleness": 0.293,
       "oracleHeartbeat": 3600,
       "contractName": "VerifiedContract",
-      "swarmBytecodeRef": "632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9",
+      "swarmBytecodeRef": "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
       "updatedAt": 26354138,
       "breakdown": {
         "f1_verification": 0,
@@ -534,7 +534,7 @@
       "oracleStaleness": 16.073,
       "oracleHeartbeat": 3600,
       "contractName": "VerifiedContract",
-      "swarmBytecodeRef": "632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9",
+      "swarmBytecodeRef": "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
       "updatedAt": 26354138,
       "breakdown": {
         "f1_verification": 0,

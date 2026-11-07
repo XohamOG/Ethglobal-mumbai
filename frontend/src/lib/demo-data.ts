@@ -104,7 +104,7 @@ export const DEMO_BASELINE_NODES: GraphNode[] = [
     sourcifyStatus: "full_match",
     contractName: "DemoLendPoolProxy",
     arkivEntityKey: "0x5df8dc59a35e80d99ba148ff61df9a96f13bce36c74d6f85ffad9ec6ce6bb1c2",
-    swarmBytecodeRef: "632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9",
+    swarmBytecodeRef: "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
   },
   {
     id: "demo-addresses-provider",

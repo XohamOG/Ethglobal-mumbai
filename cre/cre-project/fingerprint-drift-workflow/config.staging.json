@@ -1,0 +1,6 @@
+{
+  "schedule": "0 */1 * * * *",
+  "chainSelectorName": "ethereum-mainnet",
+  "protocolId": "aave-v3-mainnet",
+  "graphServiceUrl": "http://localhost:4000"
+}

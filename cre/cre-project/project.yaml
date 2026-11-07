@@ -1,0 +1,10 @@
+# Chainlink CRE project settings. RPC URLs are public endpoints; no secrets live here.
+staging-settings:
+  rpcs:
+    - chain-name: ethereum-mainnet
+      url: https://ethereum-rpc.publicnode.com
+
+production-settings:
+  rpcs:
+    - chain-name: ethereum-mainnet
+      url: ${ETHEREUM_MAINNET_RPC_URL}

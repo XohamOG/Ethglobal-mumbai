@@ -2,6 +2,11 @@
 
 This directory contains the production Chainlink Runtime Environment (CRE) workflows that automate multi-hop dependency drift detection, graph re-computation, and on-chain risk attestations for the DeFi Provenance Graph.
 
+> **Official CRE workflow:** the runnable, CLI-simulated workflow lives in [`cre-project/`](./cre-project/README.md)
+> (`cre workflow simulate fingerprint-drift-workflow --target staging-settings`). It reads Aave state through the CRE EVM client,
+> recomputes the drift fingerprint, compares it with the one stored in Arkiv, and only calls `POST /rebuild` when it changed.
+> The ts-node files below are the earlier local prototype.
+
 ---
 
 ## 1. Architecture & Capabilities

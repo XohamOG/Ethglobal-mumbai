@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "description": "On-chain pointers whose values define the Aave V3 drift fingerprint. fingerprint = keccak256(utf8(sorted lines of \"<id>=<lowercase 0x eth_call result>\" joined by \n)), read at the finalized block.",
+  "protocolId": "aave-v3-mainnet",
+  "chain": "ethereum-mainnet",
+  "reads": [
+    {
+      "id": "pool.POOL_REVISION",
+      "to": "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
+      "data": "0x0148170e"
+    },
+    {
+      "id": "configurator.CONFIGURATOR_REVISION",
+      "to": "0x64b761D848206f447Fe2dd461b0c635Ec39EbB27",
+      "data": "0x7af635a6"
+    },
+    {
+      "id": "provider.getPool",
+      "to": "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",
+      "data": "0x026b1d5f"
+    },
+    {
+      "id": "provider.getPoolConfigurator",
+      "to": "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",
+      "data": "0x631adfca"
+    },
+    {
+      "id": "provider.getPriceOracle",
+      "to": "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",
+      "data": "0xfca513a8"
+    },
+    {
+      "id": "provider.getACLManager",
+      "to": "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",
+      "data": "0x707cd716"
+    },
+    {
+      "id": "provider.getACLAdmin",
+      "to": "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",
+      "data": "0x0e67178c"
+    },
+    {
+      "id": "provider.getPoolDataProvider",
+      "to": "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",
+      "data": "0xe860accb"
+    },
+    {
+      "id": "oracle.sourceOf.WETH",
+      "to": "0x54586bE62E3c3580375aE3723C145253060Ca0C2",
+      "data": "0x92bf2be0000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+    },
+    {
+      "id": "oracle.sourceOf.WBTC",
+      "to": "0x54586bE62E3c3580375aE3723C145253060Ca0C2",
+      "data": "0x92bf2be00000000000000000000000002260fac5e5542a773aa44fbcfedf7c193bc2c599"
+    },
+    {
+      "id": "oracle.sourceOf.USDC",
+      "to": "0x54586bE62E3c3580375aE3723C145253060Ca0C2",
+      "data": "0x92bf2be0000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+    },
+    {
+      "id": "oracle.sourceOf.DAI",
+      "to": "0x54586bE62E3c3580375aE3723C145253060Ca0C2",
+      "data": "0x92bf2be00000000000000000000000006b175474e89094c44da98b954eedeac495271d0f"
+    },
+    {
+      "id": "oracle.sourceOf.USDT",
+      "to": "0x54586bE62E3c3580375aE3723C145253060Ca0C2",
+      "data": "0x92bf2be0000000000000000000000000dac17f958d2ee523a2206206994597c13d831ec7"
+    },
+    {
+      "id": "acl.isEmergencyAdmin.safe",
+      "to": "0xc2aaCf6553D20d1e9d78E365AAba8032af9c85b0",
+      "data": "0x2500f2b60000000000000000000000002cfe3ec4d5a6811f4b8067f0de7e47dfa938aa30"
+    },
+    {
+      "id": "safe.getThreshold",
+      "to": "0x2CFe3ec4d5a6811f4B8067F0DE7e47DfA938Aa30",
+      "data": "0xe75235b8"
+    },
+    {
+      "id": "safe.getOwners",
+      "to": "0x2CFe3ec4d5a6811f4B8067F0DE7e47DfA938Aa30",
+      "data": "0xa0e67e2b"
+    },
+    {
+      "id": "executor.owner",
+      "to": "0x5300A1a15135EA4dc7aD5a167152C01EFc9b192A",
+      "data": "0x8da5cb5b"
+    },
+    {
+      "id": "payloadsController.executorSettingsLvl1",
+      "to": "0xdAbad81aF85554E9ae636395611C58F7eC1aAEc5",
+      "data": "0xf80281fb0000000000000000000000000000000000000000000000000000000000000001"
+    }
+  ]
+}

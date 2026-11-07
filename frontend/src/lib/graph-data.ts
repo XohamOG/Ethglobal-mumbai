@@ -191,8 +191,8 @@ export const PROTOCOLS: ProtocolMeta[] = [
     directDepsCount: 4,
     transitiveDepsCount: 5,
     fingerprint: "0x39a7cd678a45f1e63df9441182b58d3e87149bc0d23f82fa05f4fb0b4993e06c",
-    swarmGraphRef: "3a5194ce284962a9b0598c0b1e001e96a5d63a573a4a2423b47913b71b2c8e7d",
-    swarmEvidenceRef: "7b82f109a258c0b1e001e96a5d63a573a4a2423b47913b71b2c8e7d3a5194ce2",
+    swarmGraphRef: "656bd0d3f41a001afe4ce6fead3447993bfaf531d6b117cc4ddbfe0d825491d2",
+    swarmEvidenceRef: "05b90068c703131862da74fb6815850927f3e2348c3938db78b142d5129ef865",
     arkivRegistryKey: "0xc561566253956c5c8fec52d0cd49af8a5c40e1209c87894b863a5275dd665b50",
     arkivSnapshotKey: "0xf3ccb8f81475290b38ed5302d715e7931b9f5df445c1acf888fb3e07cab3f435",
   },
@@ -211,7 +211,7 @@ export const AAVE_NODES: GraphNode[] = [
     sourcifyStatus: "full_match",
     oracleStaleness: 0.2,
     arkivEntityKey: "0x5df8dc59a35e80d99ba148ff61df9a96f13bce36c74d6f85ffad9ec6ce6bb1c2",
-    swarmBytecodeRef: "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba",
+    swarmBytecodeRef: "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
     justification: CONTRACT_JUSTIFICATIONS["aave-v3-pool"],
   },
   {
@@ -226,7 +226,7 @@ export const AAVE_NODES: GraphNode[] = [
     sourcifyStatus: "full_match",
     oracleStaleness: 0.2,
     arkivEntityKey: "0x789c099e28bfbcab37b2d28f090d8a571fbaea0d0d8291079d2dfaa41be5e6e1",
-    swarmBytecodeRef: "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba",
+    swarmBytecodeRef: "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
     justification: CONTRACT_JUSTIFICATIONS["aave-v3-addresses-provider"],
   },
   {
@@ -243,7 +243,7 @@ export const AAVE_NODES: GraphNode[] = [
     safeThreshold: 1,
     oracleStaleness: 0.2,
     arkivEntityKey: "0xc2aacf6553d20d1e9d78e365aaba8032af9c85b0",
-    swarmBytecodeRef: "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba",
+    swarmBytecodeRef: "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
     justification: CONTRACT_JUSTIFICATIONS["aave-v3-acl-manager"],
   },
   {
@@ -258,7 +258,7 @@ export const AAVE_NODES: GraphNode[] = [
     sourcifyStatus: "full_match",
     oracleStaleness: 0.2,
     arkivEntityKey: "0x4d667c4be44062eb142b6279f0458df261d7b1d9dfd70a41763aaeb5c55c065f",
-    swarmBytecodeRef: "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba",
+    swarmBytecodeRef: "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
     justification: CONTRACT_JUSTIFICATIONS["aave-v3-pool-configurator"],
   },
   {
@@ -273,7 +273,7 @@ export const AAVE_NODES: GraphNode[] = [
     sourcifyStatus: "full_match",
     oracleStaleness: 0.15,
     arkivEntityKey: "0x8f0376c6bbd85d77da711ee1b4ca3f5c1d3ecfa7c865f577ba79f2257321528c",
-    swarmBytecodeRef: "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba",
+    swarmBytecodeRef: "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
     justification: CONTRACT_JUSTIFICATIONS["aave-v3-oracle"],
   },
   {
@@ -288,7 +288,7 @@ export const AAVE_NODES: GraphNode[] = [
     sourcifyStatus: "full_match",
     oracleStaleness: 0.2,
     arkivEntityKey: "0x7b4eb56e7cd4b454ba8ff71e4518426369a138a3",
-    swarmBytecodeRef: "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba",
+    swarmBytecodeRef: "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
     justification: CONTRACT_JUSTIFICATIONS["aave-v3-data-provider"],
   },
   {
@@ -303,7 +303,7 @@ export const AAVE_NODES: GraphNode[] = [
     sourcifyStatus: "full_match",
     oracleStaleness: 0.2,
     arkivEntityKey: "0x8c9aabf09907be1699f7d2f93d39580b2a3fa95db7ba33cb92b67fec85a21234",
-    swarmBytecodeRef: "632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9",
+    swarmBytecodeRef: "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
     justification: CONTRACT_JUSTIFICATIONS["aave-v3-pool-impl"],
   },
   {
@@ -318,7 +318,7 @@ export const AAVE_NODES: GraphNode[] = [
     sourcifyStatus: "full_match",
     oracleStaleness: 0.2,
     arkivEntityKey: "0x9c42403b9ad6fceb20c24b611d279cf733f39a70f7cfcb64b22896f6004b7713",
-    swarmBytecodeRef: "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba",
+    swarmBytecodeRef: "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
     justification: CONTRACT_JUSTIFICATIONS["aave-v3-governance-executor"],
   },
   {
@@ -344,7 +344,7 @@ export const AAVE_NODES: GraphNode[] = [
     ],
     oracleStaleness: 0.2,
     arkivEntityKey: "0xdc4779bc5c03c5ae147748834925828fb4429e7102e38c3aaec042e947d06df1",
-    swarmBytecodeRef: "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba",
+    swarmBytecodeRef: "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
     justification: CONTRACT_JUSTIFICATIONS["aave-v3-emergency-safe"],
   },
   {
@@ -359,7 +359,7 @@ export const AAVE_NODES: GraphNode[] = [
     sourcifyStatus: "full_match",
     oracleStaleness: 0.2,
     arkivEntityKey: "0xecb6538411d3557e4e892c57f7ca723aece2b919597288ff3f1d8c1c4ad3d9ca",
-    swarmBytecodeRef: "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba",
+    swarmBytecodeRef: "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
     justification: CONTRACT_JUSTIFICATIONS["aave-v3-configurator-impl"],
   },
   {
@@ -375,7 +375,7 @@ export const AAVE_NODES: GraphNode[] = [
     referencedProtocolId: "chainlink-mainnet",
     oracleStaleness: 0.95,
     arkivEntityKey: "0xfb155363ba554abd9bfc2897f57c627005c147351fc271914219a552d1460b93",
-    swarmBytecodeRef: "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba",
+    swarmBytecodeRef: "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
     justification: CONTRACT_JUSTIFICATIONS["chainlink-eth-usd"],
   },
   {
@@ -391,7 +391,7 @@ export const AAVE_NODES: GraphNode[] = [
     referencedProtocolId: "chainlink-mainnet",
     oracleStaleness: 20.634,
     arkivEntityKey: "0x136f67e84438c57525e69ffb3b366ee15af1501aa7ce7f05349e66125652daca",
-    swarmBytecodeRef: "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba",
+    swarmBytecodeRef: "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
     justification: CONTRACT_JUSTIFICATIONS["chainlink-usdc-usd"],
   },
   {
@@ -407,7 +407,7 @@ export const AAVE_NODES: GraphNode[] = [
     referencedProtocolId: "chainlink-mainnet",
     oracleStaleness: 0.951,
     arkivEntityKey: "0x609eae7d9cea83cdaf5e9544405787948e059e53e130ddd5a15f64e2063d85c6",
-    swarmBytecodeRef: "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba",
+    swarmBytecodeRef: "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
     justification: CONTRACT_JUSTIFICATIONS["chainlink-btc-usd"],
   },
   {
@@ -423,7 +423,7 @@ export const AAVE_NODES: GraphNode[] = [
     referencedProtocolId: "chainlink-mainnet",
     oracleStaleness: 0.888,
     arkivEntityKey: "0xe744d8c25d90837051efd266a9a3dfa1d3a5f83b23c5fff3f4ef0eabbb785212",
-    swarmBytecodeRef: "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba",
+    swarmBytecodeRef: "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
     justification: CONTRACT_JUSTIFICATIONS["chainlink-dai-usd"],
   },
   {
@@ -439,7 +439,7 @@ export const AAVE_NODES: GraphNode[] = [
     referencedProtocolId: "chainlink-mainnet",
     oracleStaleness: 16.668,
     arkivEntityKey: "0x25c172e7d75052be81afc80c004a94c6e901586bba3d1d719ed1d1ff05ce3891",
-    swarmBytecodeRef: "b25edc5390f04681cd534c49f788701fc76c6c64b01eb7f4f99404d20a99beba",
+    swarmBytecodeRef: "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
     justification: CONTRACT_JUSTIFICATIONS["chainlink-usdt-usd"],
   },
 ];

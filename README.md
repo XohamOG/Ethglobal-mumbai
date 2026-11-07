@@ -333,12 +333,12 @@ DeFi Provenance Graph pairs **Arkiv** with **Swarm** for a two-tier decentralize
 | Layer | System | Content Stored | Access Pattern |
 |---|---|---|---|
 | **Structured Relational Layer** | **Arkiv Rabdi DB-Chain** | Typed attributes, composite risk scores, indexed protocol IDs, hops, and entity keys. | Low-latency SQL-like queries via `@arkiv-network/sdk`. |
-| **Decentralized Evidence Layer** | **Ethereum Swarm** | Complete graph JSON (`full-graph.json`), raw RPC traces (`audit-log.json`), and bytecode dumps (`bytecode-dump.json`). | Immutable content-addressed retrieval via Swarm BZZ gateway (`https://api.gateway.ethswarm.org/bzz/<hash>`). |
+| **Decentralized Evidence Layer** | **Ethereum Swarm** | Complete graph JSON (`full-graph.json`), raw RPC traces (`audit-log.json`), and bytecode dumps (`bytecode-dump.json`). | Immutable content-addressed retrieval via Swarm BZZ gateway (`http://127.0.0.1:1633/bzz/<hash>`). |
 
 #### Verified Swarm Gateway Artifacts:
-- **Full Ingested Graph JSON**: [https://api.gateway.ethswarm.org/bzz/3a5194ce284962a9b0598c0b1e001e96a5d63a573a4a2423b47913b71b2c8e7d](https://api.gateway.ethswarm.org/bzz/3a5194ce284962a9b0598c0b1e001e96a5d63a573a4a2423b47913b71b2c8e7d)
-- **Ingestion Forensic Audit Log**: [https://api.gateway.ethswarm.org/bzz/1c6ae2662e9ce2923f7a559df208b6a1b10c4e1f23caa26a91e42a0e72882fbb](https://api.gateway.ethswarm.org/bzz/1c6ae2662e9ce2923f7a559df208b6a1b10c4e1f23caa26a91e42a0e72882fbb)
-- **Bytecode Dump Artifact**: [https://api.gateway.ethswarm.org/bzz/632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9](https://api.gateway.ethswarm.org/bzz/632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9)
+- **Full Ingested Graph JSON**: [http://127.0.0.1:1633/bzz/656bd0d3f41a001afe4ce6fead3447993bfaf531d6b117cc4ddbfe0d825491d2](http://127.0.0.1:1633/bzz/656bd0d3f41a001afe4ce6fead3447993bfaf531d6b117cc4ddbfe0d825491d2)
+- **Ingestion Forensic Audit Log**: [http://127.0.0.1:1633/bzz/05b90068c703131862da74fb6815850927f3e2348c3938db78b142d5129ef865](http://127.0.0.1:1633/bzz/05b90068c703131862da74fb6815850927f3e2348c3938db78b142d5129ef865)
+- **Bytecode Dump Artifact**: [http://127.0.0.1:1633/bzz/3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89](http://127.0.0.1:1633/bzz/3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89)
 
 ---
 

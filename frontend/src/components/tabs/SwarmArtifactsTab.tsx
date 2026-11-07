@@ -65,7 +65,7 @@ export function SwarmArtifactsTab() {
       title: "bytecode-dump.json",
       role: "EVM Runtime Bytecode Hex & Storage Dumps",
       referencedBy: "ContractNode.swarmBytecodeRef",
-      hash: "632a1a8aeaecade273e5f6e0f8581921c21ea5d8d9bd4fa64f0e1823671510e9",
+      hash: "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
       size: "46.2 KB",
       description: "Raw compiled runtime bytecode dump of Aave Pool Implementation contract, used for fingerprinting and on-chain drift verification.",
       payload: {

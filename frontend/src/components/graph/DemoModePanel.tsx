@@ -2,7 +2,8 @@
 
 import React from "react";
 import { FlaskConical, X, RotateCcw, MousePointerClick } from "lucide-react";
-import { GraphNode, getRiskScoreConfig } from "@/lib/graph-data";
+import { GraphNode } from "@/lib/graph-data";
+import { CompositeModel, nodeLeverage } from "@/lib/risk-model";
 
 interface DemoModePanelProps {
   isOpen: boolean;
@@ -10,37 +11,48 @@ interface DemoModePanelProps {
   /** Node picked on the graph (with demo overrides already applied). */
   selectedNode: GraphNode | null;
   baselineNodeScore: number | null;
-  baselineComposite: number;
-  liveComposite: number;
+  /** All nodes with demo overrides applied (used for node leverage). */
+  nodes: GraphNode[];
+  baseline: CompositeModel;
+  live: CompositeModel;
   overrideCount: number;
   onChangeScore: (nodeId: string, score: number) => void;
   onResetNode: (nodeId: string) => void;
   onResetAll: () => void;
 }
 
+const TIER_COLOR: Record<string, string> = {
+  LOW: "text-[#98ff38]",
+  MEDIUM: "text-[#eab308]",
+  HIGH: "text-[#f59e0b]",
+  CRITICAL: "text-[#ef4444]",
+};
+
 /**
- * Demo-only what-if tool. All state lives in the parent's memory and is lost on
- * reload — nothing is written to storage, Arkiv, Swarm or the CRE backend.
+ * Demo-only what-if tool. It re-runs the real hop-decay model locally
+ * (hop0 avg × 1.0 + hop1 avg × 0.5 + hop2 avg × 0.25). Nothing is written to
+ * storage, Arkiv, Swarm, or sent to CRE; state is lost on reload / when closed.
  */
 export function DemoModePanel({
   isOpen,
   onToggle,
   selectedNode,
   baselineNodeScore,
-  baselineComposite,
-  liveComposite,
+  nodes,
+  baseline,
+  live,
   overrideCount,
   onChangeScore,
   onResetNode,
   onResetAll,
 }: DemoModePanelProps) {
-  const risk = getRiskScoreConfig(liveComposite);
-  const delta = Number((liveComposite - baselineComposite).toFixed(1));
+  const delta = Number((live.composite - baseline.composite).toFixed(2));
+  const leverage = selectedNode ? nodeLeverage(selectedNode, nodes) : 0;
 
   return (
     <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3 select-none">
       {isOpen && (
-        <div className="w-80 rounded-[12px] border border-[#474747] bg-[#080808]/95 backdrop-blur-md shadow-2xl p-4 animate-fadeIn">
+        <div className="w-80 rounded-[12px] border border-[#474747] bg-[#080808]/95 backdrop-blur-md shadow-2xl p-4 animate-fadeIn max-h-[80vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <FlaskConical className="w-4 h-4 text-[#f59e0b]" />
@@ -66,15 +78,12 @@ export function DemoModePanel({
               Aave V3 Composite Risk
             </div>
             <div className="flex items-end justify-between">
-              <span
-                className={`text-[32px] leading-none font-mono ${risk.textColor}`}
-                style={{ transition: "color 200ms" }}
-              >
-                {liveComposite.toFixed(1)}
+              <span className={`text-[32px] leading-none font-mono ${TIER_COLOR[live.tier]}`}>
+                {live.composite.toFixed(2)}
               </span>
               <div className="text-right text-[11px] font-mono text-[#9c9c9c]">
                 <div>
-                  baseline {baselineComposite.toFixed(1)}
+                  baseline {baseline.composite.toFixed(2)}
                   {delta !== 0 && (
                     <span className={delta > 0 ? "text-[#f59e0b]" : "text-[#98ff38]"}>
                       {" "}
@@ -83,7 +92,28 @@ export function DemoModePanel({
                     </span>
                   )}
                 </div>
-                <div className="uppercase tracking-wider">{risk.tier}</div>
+                <div className={`uppercase tracking-wider ${TIER_COLOR[live.tier]}`}>
+                  {live.tier}
+                </div>
+              </div>
+            </div>
+
+            {/* Real calculation */}
+            <div className="mt-3 pt-2 border-t border-[#212121] space-y-1 text-[11px] font-mono text-[#9c9c9c]">
+              {live.hops.map((h) => (
+                <div key={h.hop} className="flex justify-between">
+                  <span>
+                    hop {h.hop} avg {h.avg.toFixed(2)} × {h.weight.toFixed(2)}
+                  </span>
+                  <span className="text-[#f3f3f3]">{h.contribution.toFixed(2)}</span>
+                </div>
+              ))}
+              <div className="flex justify-between pt-1 border-t border-[#212121] text-[#f3f3f3]">
+                <span>sum</span>
+                <span>{live.composite.toFixed(2)}</span>
+              </div>
+              <div className="text-[10px] text-[#6f6759] pt-1">
+                LOW ≤25 · MEDIUM ≤50 · HIGH ≤75 · CRITICAL &gt;75
               </div>
             </div>
           </div>
@@ -101,8 +131,7 @@ export function DemoModePanel({
               </div>
               <div className="flex items-center justify-between text-[11px] font-mono text-[#9c9c9c] mb-2">
                 <span>
-                  node risk:{" "}
-                  <span className="text-[#f3f3f3]">{selectedNode.riskScore}</span>
+                  node risk: <span className="text-[#f3f3f3]">{selectedNode.riskScore}</span>
                 </span>
                 <span>base {baselineNodeScore}</span>
               </div>
@@ -112,9 +141,7 @@ export function DemoModePanel({
                 max={100}
                 step={1}
                 value={selectedNode.riskScore}
-                onChange={(e) =>
-                  onChangeScore(selectedNode.id, Number(e.target.value))
-                }
+                onChange={(e) => onChangeScore(selectedNode.id, Number(e.target.value))}
                 className="w-full accent-[#98ff38] cursor-pointer"
                 aria-label={`Risk score for ${selectedNode.label}`}
               />
@@ -122,6 +149,11 @@ export function DemoModePanel({
                 <span>0</span>
                 <span>50</span>
                 <span>100</span>
+              </div>
+              <div className="mt-2 text-[10px] font-mono text-[#6f6759]">
+                +1 node risk = +{leverage.toFixed(3)} composite (hop weight{" "}
+                {(leverage * nodes.filter((n) => n.hop === selectedNode.hop).length).toFixed(2)}
+                {" "}÷ {nodes.filter((n) => n.hop === selectedNode.hop).length} nodes in hop)
               </div>
               <button
                 onClick={() => onResetNode(selectedNode.id)}

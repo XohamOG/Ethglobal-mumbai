@@ -48,7 +48,9 @@ export const ContractNode = defineSchema("contract_node_v1", {
   safeThreshold:        u64(),           // Required signatures if adminType == "safe"
   safeOwners:           bytes(),         // METADATA ONLY: JSON array string of owner addresses
   oracleStaleness:      dec(),           // ageSeconds / heartbeatSeconds (if category == "oracle")
-  oracleHeartbeat:      u64(),           // Expected heartbeat in seconds
+  oracleHeartbeat:      u64(),           // Heartbeat in seconds (inferred from observed rounds)
+  contractAgeMonths:    dec(),           // Age from Sourcify deployment block (F6 input)
+  timelockDelayHours:   dec(),           // On-chain timelock delay, 0 if not timelock-governed (F2 input)
   contractName:         str(),           // Human-readable name from Sourcify mirror
   swarmBytecodeRef:     str(),           // Swarm hash -> bytecode-dump.json
   updatedAt:            u64(),           // Block number of enrichment

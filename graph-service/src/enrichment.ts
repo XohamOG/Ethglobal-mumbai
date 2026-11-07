@@ -1,9 +1,16 @@
 import { ethers } from "ethers";
 
+/**
+ * Real on-chain / public-API enrichment for risk scoring.
+ * Nothing here substitutes a default when a lookup fails: errors propagate so a
+ * rebuild never records an invented "healthy" value.
+ */
+
 export interface SourcifyEnrichment {
   sourcifyStatus: "full_match" | "partial_match" | "not_found";
   contractName: string;
-  compiler?: string;
+  /** Block the contract was created in (from Sourcify's verified deployment info) */
+  deploymentBlock?: number;
 }
 
 export interface SafeEnrichment {
@@ -15,164 +22,169 @@ export interface SafeEnrichment {
 
 export interface OracleEnrichment {
   oracleStaleness: number; // ratio: age / heartbeat
-  oracleHeartbeat: number;
+  oracleHeartbeat: number; // seconds, inferred from observed update cadence
   latestPrice?: string;
   updatedAtBlockTimestamp?: number;
 }
 
-const LATEST_ROUND_DATA_ABI = [
-  "function latestRoundData() external view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)",
-  "function decimals() external view returns (uint8)",
-  "function description() external view returns (string)",
+const FEED_ABI = [
+  "function latestRoundData() view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)",
+  "function getRoundData(uint80 _roundId) view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)",
 ];
+
+const SAFE_ABI = [
+  "function getThreshold() view returns (uint256)",
+  "function getOwners() view returns (address[])",
+];
+
+const EXECUTOR_ABI = ["function owner() view returns (address)"];
+const PAYLOADS_CONTROLLER_ABI = [
+  "function getExecutorSettingsByAccessControl(uint8 accessControl) view returns (tuple(address executor, uint40 delay))",
+];
+
+/** Heartbeats used by Chainlink mainnet price feeds. */
+const STANDARD_HEARTBEATS = [3600, 14400, 21600, 43200, 86400];
+const ROUNDS_TO_SAMPLE = 30;
+const SECONDS_PER_MONTH = 30.44 * 24 * 3600;
+
+async function fetchJson(url: string, timeoutMs = 8000): Promise<{ status: number; body: any }> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    let body: any = null;
+    try {
+      body = await res.json();
+    } catch {}
+    return { status: res.status, body };
+  } finally {
+    clearTimeout(t);
+  }
+}
 
 export class NodeEnricher {
   private rpcProvider: ethers.JsonRpcProvider;
+  private blockTimestampCache = new Map<number, number>();
 
   constructor(rpcUrl: string) {
     this.rpcProvider = new ethers.JsonRpcProvider(rpcUrl);
   }
 
   /**
-   * Enrich contract verification status via Arkiv Sourcify Mirror / Sourcify API
+   * Source verification + deployment block via Sourcify API v2.
+   * 404 / null match = genuinely unverified. Network errors are retried, then thrown.
    */
   async enrichSourcify(address: string, chainId: string = "1"): Promise<SourcifyEnrichment> {
-    const checksumAddr = ethers.getAddress(address);
-    const endpoints = [
-      `https://sourcify.arkiv.network/server/check-by-addresses?addresses=${checksumAddr}&chainIds=${chainId}`,
-      `https://sourcify.dev/server/check-by-addresses?addresses=${checksumAddr}&chainIds=${chainId}`,
-    ];
+    const addr = ethers.getAddress(address);
+    const url = `https://sourcify.dev/server/v2/contract/${chainId}/${addr}?fields=deployment,compilation`;
 
-    for (const url of endpoints) {
+    let lastErr: unknown;
+    for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 4000);
-        const res = await fetch(url, { signal: controller.signal });
-        clearTimeout(timeout);
-
-        if (res.ok) {
-          const data: any = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            const entry = data[0];
-            const status = entry.status === "perfect" ? "full_match" : entry.status === "partial" ? "partial_match" : "not_found";
-            return {
-              sourcifyStatus: status,
-              contractName: entry.name || "VerifiedContract",
-            };
-          }
+        const { status, body } = await fetchJson(url);
+        if (status === 404 || (status === 200 && body && body.match == null)) {
+          return { sourcifyStatus: "not_found", contractName: "" };
         }
+        if (status !== 200) throw new Error(`Sourcify v2 responded ${status}`);
+        const sourcifyStatus = body.match === "exact_match" ? "full_match" : "partial_match";
+        const block = Number(body?.deployment?.blockNumber);
+        return {
+          sourcifyStatus,
+          contractName: body?.compilation?.name || "",
+          deploymentBlock: Number.isFinite(block) && block > 0 ? block : undefined,
+        };
       } catch (err) {
-        // Silently continue to next fallback
+        lastErr = err;
+        await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
       }
     }
-
-    // Default for renowned Aave core contracts if offline/rate-limited
-    return {
-      sourcifyStatus: "full_match",
-      contractName: "VerifiedContract",
-    };
+    throw new Error(`Sourcify lookup failed for ${addr}: ${(lastErr as Error)?.message}`);
   }
 
-  /**
-   * Enrich Safe multisig signer parameters via Safe Transaction Service API
-   */
+  private async blockTimestamp(block: number): Promise<number> {
+    const cached = this.blockTimestampCache.get(block);
+    if (cached) return cached;
+    const b = await this.rpcProvider.getBlock(block);
+    if (!b) throw new Error(`Block ${block} not found`);
+    this.blockTimestampCache.set(block, b.timestamp);
+    return b.timestamp;
+  }
+
+  /** Real contract age in months from the verified deployment block's timestamp. */
+  async contractAgeMonths(deploymentBlock: number): Promise<number> {
+    const ts = await this.blockTimestamp(deploymentBlock);
+    return Number(((Date.now() / 1000 - ts) / SECONDS_PER_MONTH).toFixed(1));
+  }
+
+  /** Safe multisig signer set + threshold read directly from the Safe contract. */
   async enrichSafeMultisig(address: string): Promise<SafeEnrichment> {
-    const checksumAddr = ethers.getAddress(address);
-    const url = `https://safe-transaction-mainnet.safe.global/api/v1/safes/${checksumAddr}/`;
-
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 4000);
-      const res = await fetch(url, { signal: controller.signal });
-      clearTimeout(timeout);
-
-      if (res.ok) {
-        const data: any = await res.json();
-        return {
-          isSafe: true,
-          safeThreshold: data.threshold || 1,
-          safeOwnerCount: (data.owners || []).length,
-          safeOwners: data.owners || [],
-        };
-      }
-    } catch (err) {
-      console.warn(`[Enricher] Safe API lookup failed for ${address}:`, err);
-    }
-
-    // Default for Aave Emergency Guardian Safe (0x2CFe3ec4d5a6811f4B8067F0DE7e47DfA938Aa30: Safe 4/7)
-    if (checksumAddr.toLowerCase() === "0x2cfe3ec4d5a6811f4b8067f0de7e47dfa938aa30") {
-      return {
-        isSafe: true,
-        safeThreshold: 4,
-        safeOwnerCount: 7,
-        safeOwners: [
-          "0x7593c6A2e0F2405904DCE01974d6A734260a9fAc",
-          "0x2B104A15A3626D2b22340324c4d7A8aE7441589c",
-          "0x2cE00d98471b05F25164f9A2eE8f123aA124806a",
-          "0x3B64b07C36Fe384768393526B76A284bE0fD9d65",
-          "0x4b7863A2fF6c32168340d85aF8712217c49A4C62",
-          "0x8929eB08Da9860b73c2419c80dF676d1aF73B604",
-          "0xA521B2cE7A07E44249a5C4212D57D18C617F4e6C",
-        ],
-      };
-    }
-
+    const safe = new ethers.Contract(ethers.getAddress(address), SAFE_ABI, this.rpcProvider);
+    const [threshold, owners] = await Promise.all([safe.getThreshold(), safe.getOwners()]);
     return {
-      isSafe: false,
-      safeThreshold: 1,
-      safeOwnerCount: 1,
-      safeOwners: [],
+      isSafe: true,
+      safeThreshold: Number(threshold),
+      safeOwnerCount: owners.length,
+      safeOwners: [...owners],
     };
   }
 
   /**
-   * Enrich Chainlink oracle feeds with staleness calculations
+   * Real execution delay (hours) imposed on a Governance V3 executor:
+   * executor.owner() -> PayloadsController.getExecutorSettingsByAccessControl(level).
+   * Throws if the controller does not list this executor, so a wrong address never yields a delay.
    */
-  async enrichOracleFeed(address: string, expectedHeartbeatSeconds: number = 3600): Promise<OracleEnrichment> {
-    try {
-      const feed = new ethers.Contract(address, LATEST_ROUND_DATA_ABI, this.rpcProvider);
-      const [roundId, answer, startedAt, updatedAt, answeredInRound] = await feed.latestRoundData();
-
-      const updatedAtSec = Number(updatedAt);
-      const currentSec = Math.floor(Date.now() / 1000);
-      const ageSeconds = Math.max(0, currentSec - updatedAtSec);
-      const ratio = ageSeconds / expectedHeartbeatSeconds;
-
-      return {
-        oracleStaleness: Number(ratio.toFixed(3)),
-        oracleHeartbeat: expectedHeartbeatSeconds,
-        latestPrice: answer.toString(),
-        updatedAtBlockTimestamp: updatedAtSec,
-      };
-    } catch (err) {
-      // In case RPC is down or non-standard feed, fallback to clean healthy ratio
-      return {
-        oracleStaleness: 0.15, // Fresh feed
-        oracleHeartbeat: expectedHeartbeatSeconds,
-      };
+  async executorDelayHours(executorAddress: string): Promise<number> {
+    const executor = ethers.getAddress(executorAddress);
+    const controllerAddr: string = await new ethers.Contract(executor, EXECUTOR_ABI, this.rpcProvider).owner();
+    const controller = new ethers.Contract(controllerAddr, PAYLOADS_CONTROLLER_ABI, this.rpcProvider);
+    for (const level of [1, 2]) {
+      const s = await controller.getExecutorSettingsByAccessControl(level);
+      if (ethers.getAddress(s.executor) === executor) return Number(s.delay) / 3600;
     }
+    throw new Error(`PayloadsController ${controllerAddr} does not list ${executor} as an executor`);
   }
 
   /**
-   * Fetch deployed bytecode and compute Keccak256 hash
+   * Chainlink feed freshness. Heartbeat is inferred from the feed's own recent rounds:
+   * the largest gap between consecutive updates, rounded up to the next standard heartbeat.
    */
+  async enrichOracleFeed(address: string): Promise<OracleEnrichment> {
+    const feed = new ethers.Contract(ethers.getAddress(address), FEED_ABI, this.rpcProvider);
+    const latest = await feed.latestRoundData();
+    const latestId: bigint = latest[0];
+    const latestUpdated = Number(latest[3]);
+
+    const ids = Array.from({ length: ROUNDS_TO_SAMPLE }, (_, i) => latestId - BigInt(i));
+    const rounds = await Promise.all(
+      ids.map((id) =>
+        feed
+          .getRoundData(id)
+          .then((r: any) => Number(r[3]))
+          .catch(() => null)
+      )
+    );
+    const times = rounds.filter((t: number | null): t is number => t !== null && t > 0).sort((a, b) => a - b);
+    if (times.length < 2) throw new Error(`Not enough round history to infer heartbeat for ${address}`);
+
+    let maxGap = 0;
+    for (let i = 1; i < times.length; i++) maxGap = Math.max(maxGap, times[i] - times[i - 1]);
+    // 10% tolerance: heartbeat updates land a little after the nominal interval
+    const heartbeat =
+      STANDARD_HEARTBEATS.find((h) => h >= maxGap / 1.1) ?? Math.ceil(maxGap / 3600) * 3600;
+
+    const age = Math.max(0, Math.floor(Date.now() / 1000) - latestUpdated);
+    return {
+      oracleStaleness: Number((age / heartbeat).toFixed(3)),
+      oracleHeartbeat: heartbeat,
+      latestPrice: latest[1].toString(),
+      updatedAtBlockTimestamp: latestUpdated,
+    };
+  }
+
+  /** Deployed bytecode + keccak256 hash. Throws if the address has no code. */
   async getBytecodeInfo(address: string): Promise<{ bytecode: string; hash: string }> {
-    try {
-      const code = await this.rpcProvider.getCode(address);
-      if (code && code !== "0x") {
-        return {
-          bytecode: code,
-          hash: ethers.keccak256(code),
-        };
-      }
-    } catch (err) {
-      console.warn(`[Enricher] getCode error for ${address}:`, err);
-    }
-    const placeholder = ethers.keccak256(ethers.toUtf8Bytes(address));
-    return {
-      bytecode: "0x",
-      hash: placeholder,
-    };
+    const code = await this.rpcProvider.getCode(address);
+    if (!code || code === "0x") throw new Error(`No bytecode at ${address}`);
+    return { bytecode: code, hash: ethers.keccak256(code) };
   }
 }
-

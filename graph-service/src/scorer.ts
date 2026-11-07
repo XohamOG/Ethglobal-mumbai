@@ -12,11 +12,11 @@ export interface NodeAttributes {
   sourcifyStatus: "full_match" | "partial_match" | "not_found";
   proxyType: "eip1967" | "beacon" | "eip897" | "none";
   adminType: "timelock" | "safe" | "eoa" | "dao" | "none";
-  timelockDelayHours?: number;
+  timelockDelayHours?: number; // required when adminType === "timelock"
   safeOwnerCount?: number;
   safeThreshold?: number;
   oracleStaleness?: number; // ratio: age / heartbeat
-  contractAgeMonths?: number;
+  contractAgeMonths: number;
 }
 
 export interface FactorBreakdown {
@@ -68,7 +68,10 @@ export function scoreContractNode(node: NodeAttributes): {
   if (node.adminType === "none") {
     f2 = 0;
   } else if (node.adminType === "timelock") {
-    const delay = node.timelockDelayHours ?? 48;
+    if (node.timelockDelayHours === undefined) {
+      throw new Error(`timelockDelayHours missing for timelock-governed ${node.contractAddress}`);
+    }
+    const delay = node.timelockDelayHours;
     if (delay >= 48) f2 = 2;
     else if (delay >= 24) f2 = 5;
     else f2 = 10;
@@ -95,7 +98,10 @@ export function scoreContractNode(node: NodeAttributes): {
   // F4. Oracle Freshness (15 pts max)
   let f4 = 0;
   if (node.category === "oracle") {
-    const ratio = node.oracleStaleness ?? 0.2;
+    if (node.oracleStaleness === undefined) {
+      throw new Error(`oracleStaleness missing for oracle ${node.contractAddress}`);
+    }
+    const ratio = node.oracleStaleness;
     if (ratio < 0.5) f4 = 0;
     else if (ratio < 0.8) f4 = 3;
     else if (ratio < 1.0) f4 = 7;
@@ -121,7 +127,7 @@ export function scoreContractNode(node: NodeAttributes): {
 
   // F6. Contract Age (10 pts max)
   let f6 = 0;
-  const ageMonths = node.contractAgeMonths ?? 30; // Default: seasoned contract (>2 yrs)
+  const ageMonths = node.contractAgeMonths;
   if (ageMonths >= 24) f6 = 0;
   else if (ageMonths >= 12) f6 = 3;
   else if (ageMonths >= 6) f6 = 6;

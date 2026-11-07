@@ -1,0 +1,20 @@
+{
+  "name": "fingerprint-drift-workflow",
+  "version": "1.0.0",
+  "private": true,
+  "main": "main.ts",
+  "type": "module",
+  "scripts": {
+    "postinstall": "bunx cre-setup",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@chainlink/cre-sdk": "1.23.0",
+    "viem": "2.57.16",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.21",
+    "typescript": "^5.7.2"
+  }
+}

@@ -186,9 +186,9 @@ export const RiskSnapshot = defineSchema("risk_snapshot_v1", {
 | **Hop 0** | ACLManager | `0xc2aaCf6553D20d1e9d78E365AAba8032af9c85b0` | `implementation` | Address Book Seed |
 | **Hop 0** | PoolConfigurator (Proxy) | `0x64b761D848206f447Fe2dd461b0c635Ec39EbB27` | `proxy` (EIP-1967) | Address Book Seed |
 | **Hop 0** | AaveOracle | `0x54586bE62E3c3580375aE3723C145253060Ca0C2` | `oracle` | Address Book Seed |
-| **Hop 0** | PoolDataProvider | `0x7B4EB56E7CD4b454BA8ff71E4518426369a138a3` | `implementation` | Address Book Seed |
+| **Hop 0** | PoolDataProvider | `0x0a16f2FCC0D44FaE41cc54e079281D84A363bECD` | `implementation` | Address Book Seed |
 | **Hop 1** | Pool Implementation | `0x728a138A4823392C2EFA55e028d434F526fE03CF` | `implementation` | EIP-1967 Slot `0x360894...` on Pool |
-| **Hop 1** | Governance Timelock (Executor) | `0xEE56e2B3D491590B5b31738cC34d5232F378a8D5` | `implementation` | EIP-1967 Admin Slot `0xb53127...` |
+| **Hop 1** | Governance Timelock (Executor) | `0x5300A1a15135EA4dc7aD5a167152C01EFc9b192A` | `implementation` | EIP-1967 Admin Slot `0xb53127...` |
 | **Hop 1** | Emergency Guardian Safe | `0x2CFe3ec4d5a6811f4B8067F0DE7e47DfA938Aa30` | `multisig` (Safe 4/7) | `ACLManager.hasRole(EMERGENCY_ADMIN)` |
 | **Hop 1** | PoolConfigurator Impl | Resolved dynamically via RPC slot | `implementation` | EIP-1967 Slot on Configurator |
 | **Hop 2** | Chainlink ETH/USD Feed | `0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419` | `oracle` | `AaveOracle.getSourceOfAsset(WETH)` |

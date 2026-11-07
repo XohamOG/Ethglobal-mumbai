@@ -1,0 +1,20 @@
+{
+  "network": "Swarm Sepolia testnet (Bee 2.8.3)",
+  "bee": "http://127.0.0.1:1633",
+  "postageBatchId": "74abc115cada095d518acd652bcbed50fd9829b957e541144f920c0c3b3760ba",
+  "beeWallet": "0x517374A211ff03b5DF96e885Addc8595b1f79535",
+  "snapshotId": "aave-v3-mainnet-26358641",
+  "fingerprint": "0x838aba7658866e5ad72b6e6c4b800c4f7cffc988a8ecd12e64085cdf7278c6cc",
+  "swarm": {
+    "full-graph.json": "656bd0d3f41a001afe4ce6fead3447993bfaf531d6b117cc4ddbfe0d825491d2",
+    "audit-log.json": "05b90068c703131862da74fb6815850927f3e2348c3938db78b142d5129ef865",
+    "bytecode-dump.json": "3b8a310fa645b4d7b320c47a43a78e0e9e136419b1b4e61d34420f5dfb244a89",
+    "protocol-meta.json": "d8c8dc3a48961c6ae659a28ce7ab5d444cdf451179dfdeed7987dc8e69db2b69"
+  },
+  "arkivRabdi": {
+    "writer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "ProtocolRegistry": "0x97bd43199d4ecc6289caf7a9ab18478ebcf7954a2925184a7ff4da071d5ddfc6",
+    "RiskSnapshot": "0xd62280d9a68a47d18a8db013dfc291b8c6deef856bbff29aa50ec61ce69fb274",
+    "ContractNodes": 15
+  }
+}
