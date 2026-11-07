@@ -54,7 +54,7 @@ export default function HomePage() {
       <main className="w-full max-w-2xl flex flex-col items-center text-center relative z-10 py-12">
         {/* Title */}
         <h1 className="text-[64px] sm:text-[84px] md:text-[96px] font-normal text-[#f3f3f3] leading-none tracking-[-0.04em] mb-4 select-none drop-shadow-sm">
-          Macaroon
+          Macaron
         </h1>
 
         {/* Subtitle */}

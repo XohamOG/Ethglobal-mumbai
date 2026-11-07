@@ -158,7 +158,7 @@ function GraphViewer({
           <Link href="/">
             <button className="flex items-center gap-1.5 text-[12px] text-[#9c9c9c] hover:text-[#f3f3f3] transition-colors cursor-pointer py-1.5 px-3 rounded-[8px] border border-[#212121] hover:border-[#474747] bg-[#080808] uppercase tracking-wider">
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Macaroon</span>
+              <span>Macaron</span>
             </button>
           </Link>
           <span className="text-[#212121]">/</span>
